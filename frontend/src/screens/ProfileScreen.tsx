@@ -191,7 +191,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <input
             value={serverUrlInput}
             onChange={e => setServerUrlInput(e.target.value)}
-            placeholder="http://192.168.x.x:8080"
+            placeholder="https://gita-brain.onrender.com"
             style={{
               background: 'rgba(255,255,255,0.04)',
               border: '1px solid #2d2748',

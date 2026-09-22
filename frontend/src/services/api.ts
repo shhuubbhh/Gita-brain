@@ -1,7 +1,7 @@
 import { GuidanceData } from '../types';
 import { FALLBACK_GUIDANCE } from '../data/gitaData';
 
-const DEFAULT_SERVER_URL = 'http://192.168.29.212:8080';
+const DEFAULT_SERVER_URL = 'https://gita-brain.onrender.com';
 const STORAGE_KEY_SERVER_URL = 'gita_brain_server_url';
 
 export function getServerUrl(): string {
