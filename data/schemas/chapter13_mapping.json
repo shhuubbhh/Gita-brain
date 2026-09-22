@@ -1,0 +1,20 @@
+{
+  "source_convention": "Sūtrakṛt-Gītā rendered files",
+  "canonical_convention": "700-verse conventional chapter counts",
+  "status": "reviewed",
+  "rules": [
+    {
+      "source": "13.1-13.32",
+      "canonical": "13.1-13.32"
+    },
+    {
+      "source": "13.34",
+      "canonical": "13.33"
+    },
+    {
+      "source": "13.35",
+      "canonical": "13.34"
+    }
+  ],
+  "reason": "The source contains 34 Chapter-13 records but labels the final two as 13.34 and 13.35; conventional 700-verse numbering labels those same records 13.33 and 13.34."
+}

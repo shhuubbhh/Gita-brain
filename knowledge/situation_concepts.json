@@ -1,0 +1,171 @@
+[
+  {
+    "situation_id": "fear_of_failure",
+    "concepts": [
+      "fear",
+      "results",
+      "attachment",
+      "success_failure",
+      "control_vs_outcome",
+      "equanimity",
+      "action"
+    ]
+  },
+  {
+    "situation_id": "career_comparison",
+    "concepts": [
+      "comparison",
+      "jealousy",
+      "identity",
+      "results",
+      "ambition",
+      "attachment",
+      "duty"
+    ]
+  },
+  {
+    "situation_id": "breakup",
+    "concepts": [
+      "relationships",
+      "grief_of_loss",
+      "attachment",
+      "change",
+      "suffering",
+      "acceptance"
+    ]
+  },
+  {
+    "situation_id": "anger_at_someone",
+    "concepts": [
+      "anger",
+      "desire",
+      "relationships",
+      "self_control",
+      "compassion"
+    ]
+  },
+  {
+    "situation_id": "revenge",
+    "concepts": [
+      "revenge",
+      "anger",
+      "desire",
+      "self_control",
+      "compassion"
+    ]
+  },
+  {
+    "situation_id": "family_pressure",
+    "concepts": [
+      "duty",
+      "relationships",
+      "identity",
+      "decision",
+      "attachment",
+      "comparison"
+    ]
+  },
+  {
+    "situation_id": "career_confusion",
+    "concepts": [
+      "duty",
+      "svadharma",
+      "purpose",
+      "decision",
+      "uncertainty",
+      "action"
+    ]
+  },
+  {
+    "situation_id": "money_anxiety",
+    "concepts": [
+      "anxiety",
+      "fear",
+      "attachment",
+      "gain_loss",
+      "results",
+      "acceptance"
+    ]
+  },
+  {
+    "situation_id": "loneliness",
+    "concepts": [
+      "loneliness",
+      "relationships",
+      "attachment",
+      "suffering",
+      "devotion"
+    ]
+  },
+  {
+    "situation_id": "grief",
+    "concepts": [
+      "grief",
+      "grief_of_loss",
+      "mortality",
+      "change",
+      "attachment",
+      "acceptance"
+    ]
+  },
+  {
+    "situation_id": "guilt",
+    "concepts": [
+      "guilt",
+      "action",
+      "knowledge",
+      "self_control",
+      "acceptance"
+    ]
+  },
+  {
+    "situation_id": "procrastination",
+    "concepts": [
+      "procrastination",
+      "laziness",
+      "discipline",
+      "action",
+      "duty"
+    ]
+  },
+  {
+    "situation_id": "jealousy",
+    "concepts": [
+      "jealousy",
+      "comparison",
+      "attachment",
+      "identity",
+      "equanimity"
+    ]
+  },
+  {
+    "situation_id": "decision_conflict",
+    "concepts": [
+      "decision",
+      "uncertainty",
+      "fear",
+      "duty",
+      "knowledge"
+    ]
+  },
+  {
+    "situation_id": "purpose_crisis",
+    "concepts": [
+      "purpose",
+      "identity",
+      "self_knowledge",
+      "duty",
+      "attachment"
+    ]
+  },
+  {
+    "situation_id": "success_attachment",
+    "concepts": [
+      "success_failure",
+      "attachment",
+      "change",
+      "identity",
+      "equanimity"
+    ]
+  }
+]

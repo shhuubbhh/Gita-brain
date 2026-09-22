@@ -1,0 +1,20 @@
+{
+  "project": "gita-brain",
+  "version": "1.0.0",
+  "standard_structure": {
+    "chapters": 18,
+    "verses": 700
+  },
+  "status": "canonical_source_locked_ingestion_ready",
+  "base_source": "ChiragMirani/gita-quotes data.json -> VedicScriptures API",
+  "source_note": "Source exposes 701 records because of a Chapter 13 numbering convention; production canonicalization remains explicit and reviewable.",
+  "canonical_source": "ekras-doloop/sutrakrit-gita rendered/ (700 verses)",
+  "canonical_text_provenance": "Belvalkar critical edition (BORI 1947), via Ambuda multi-witness",
+  "data_license": "CC-BY 4.0 for rendered per-verse objects; code MIT; texts identified by source as public domain or critical-edition licensed",
+  "llm_providers": [
+    "gemini",
+    "openai",
+    "groq"
+  ],
+  "release": "evidence-quality"
+}

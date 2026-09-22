@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "canonical_id",
+    "chapter",
+    "verse",
+    "sanskrit",
+    "provenance"
+  ],
+  "properties": {
+    "canonical_id": {
+      "type": "string",
+      "pattern": "^BG_[0-9]+_[0-9]+$"
+    },
+    "chapter": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 18
+    },
+    "verse": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sanskrit": {
+      "type": "string"
+    },
+    "transliteration": {
+      "type": "string"
+    },
+    "translations": {
+      "type": "array"
+    },
+    "commentaries": {
+      "type": "array"
+    },
+    "provenance": {
+      "type": "object"
+    }
+  }
+}

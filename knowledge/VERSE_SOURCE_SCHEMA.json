@@ -1,0 +1,16 @@
+{
+  "fields": [
+    "addressed_to",
+    "alternate_references",
+    "canonical_id",
+    "chapter",
+    "enrichment",
+    "provenance",
+    "sanskrit",
+    "source_chapter",
+    "source_verse",
+    "speaker",
+    "transliteration",
+    "verse"
+  ]
+}

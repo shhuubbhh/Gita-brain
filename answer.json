@@ -1,0 +1,118 @@
+{
+  "answer": "### Understanding\n\nIt is completely natural to feel anxious when your livelihood and hard work feel vulnerable. Pouring your energy into a business takes immense courage, and the thought of it failing can bring a heavy weight of fear and uncertainty. Please know that feeling this way simply shows how much you care about what you are building.\n\n### What the Gita points toward\n\nWhile the Bhagavad Gita does not discuss modern business, it offers profound guidance on how to relate to effort, fear, and outcomes. \n\nIn **BG 2.47**, the Gita teaches that you have a right to your actions, but never to the fruits or outcomes of those actions. It cautions against letting results be your sole motivation, while also warning against retreating into inaction out of fear. \n\nBuilding on this, **BG 2.48** encourages acting without clinging tightly to results, meeting both success and failure with an even mind. The text defines this steady, balanced state of spirit as *yoga*. \n\nFinally, in **BG 2.38**, the text speaks of viewing gain and loss, victory and defeat with equanimity as you take up the work in front of you. \n\nTogether, these verses point toward placing your focus entirely on the integrity of your current effort rather than letting the fear of future outcomes paralyze you.\n\n### Applying it here\n\nIn a modern setting like running a business, so many factors—such as market shifts, economic trends, and customer decisions—are beyond your personal control. When your mind fixates entirely on whether the business will \"succeed\" or \"fail,\" anxiety naturally grows because you are trying to hold onto an outcome you cannot single-handedly guarantee.\n\nApplying this wisdom means shifting your focus from the terrifying \"what ifs\" of the future to the practical steps you can take today. You cannot control the ultimate outcome, but you have full agency over your dedication, your care for your work, and how you treat people right now. \n\n### Reflection\n\nWhat is one concrete, helpful task you can complete for your business today—focusing purely on doing it well—while intentionally setting aside thoughts about the final result?",
+  "provider": "gemini",
+  "model": "gemini-3.6-flash",
+  "situation": {
+    "primary": "fear_of_failure",
+    "confidence": 0.83,
+    "matched_phrases": [
+      "fail"
+    ],
+    "alternatives": []
+  },
+  "concepts": [
+    "fear",
+    "results",
+    "attachment",
+    "success_failure",
+    "control_vs_outcome",
+    "equanimity",
+    "action",
+    "anxiety"
+  ],
+  "sources": [
+    "BG_2_47",
+    "BG_2_38",
+    "BG_2_48"
+  ],
+  "evidence": [
+    {
+      "verse_id": "BG_2_47",
+      "retrieval_score": 20.236,
+      "role": "primary",
+      "matched_evidence": "Highest evidence-weighted relevance",
+      "source_of_truth": "data/processed/verses.json",
+      "chapter": 2,
+      "verse": 47,
+      "sanskrit": "कर्मण्य् एवाधिकारस् ते मा फलेषु कदाचन | मा कर्म-फल-हेतुर् भूर् मा ते सङ्गो ऽस्त्व् अकर्मणि",
+      "transliteration": "karmaṇy evādhikāras te mā phaleṣu kadācana | mā karma-phala-hetur bhūr mā te saṅgo 'stv akarmaṇi",
+      "translation": "You have the right to act, never to the fruits of action. Never let the fruit be your motive, and never let inaction be your refuge.",
+      "source_fields": [
+        "addressed_to",
+        "alternate_references",
+        "canonical_id",
+        "chapter",
+        "enrichment",
+        "provenance",
+        "sanskrit",
+        "source_chapter",
+        "source_verse",
+        "speaker",
+        "transliteration",
+        "verse"
+      ]
+    },
+    {
+      "verse_id": "BG_2_38",
+      "retrieval_score": 14.556,
+      "role": "supporting",
+      "matched_evidence": "Supporting evidence",
+      "source_of_truth": "data/processed/verses.json",
+      "chapter": 2,
+      "verse": 38,
+      "sanskrit": "सुख-दुःखे समे कृत्वा लाभालाभौ जयाजयौ | ततो युद्धाय युज्यस्व नैवं पापम् अवाप्स्यसि",
+      "transliteration": "sukha-duḥkhe same kṛtvā lābhālābhau jayājayau | tato yuddhāya yujyasva naivaṃ pāpam avāpsyasi",
+      "translation": "Hold pleasure and pain, gain and loss, victory and defeat as equal, then take up the fight. Acting that way, you will not incur sin.",
+      "source_fields": [
+        "addressed_to",
+        "alternate_references",
+        "canonical_id",
+        "chapter",
+        "enrichment",
+        "provenance",
+        "sanskrit",
+        "source_chapter",
+        "source_verse",
+        "speaker",
+        "transliteration",
+        "verse"
+      ]
+    },
+    {
+      "verse_id": "BG_2_48",
+      "retrieval_score": 13.476,
+      "role": "supporting",
+      "matched_evidence": "Supporting evidence",
+      "source_of_truth": "data/processed/verses.json",
+      "chapter": 2,
+      "verse": 48,
+      "sanskrit": "योगस्थः कुरु कर्माणि सङ्गं त्यक्त्वा धनंजय | सिद्ध्य्-असिद्ध्योः समो भूत्वा समत्वं योग उच्यते",
+      "transliteration": "yogasthaḥ kuru karmāṇi saṅgaṃ tyaktvā dhanaṃjaya | siddhy-asiddhyoḥ samo bhūtvā samatvaṃ yoga ucyate",
+      "translation": "Stand firm in yoga, act without clinging to outcomes, Arjuna, and meet success and failure with the same mind. That evenness of spirit is what yoga means.",
+      "source_fields": [
+        "addressed_to",
+        "alternate_references",
+        "canonical_id",
+        "chapter",
+        "enrichment",
+        "provenance",
+        "sanskrit",
+        "source_chapter",
+        "source_verse",
+        "speaker",
+        "transliteration",
+        "verse"
+      ]
+    }
+  ],
+  "grounding": {
+    "evidence_count": 3,
+    "max_scriptural_claims": 3,
+    "citation_required": true,
+    "source_of_truth": "retrieved corpus only"
+  },
+  "answer_guard": {
+    "valid": true,
+    "problems": []
+  }
+}

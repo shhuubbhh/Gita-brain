@@ -1,0 +1,3 @@
+# Gita Brain utilizes standard library modules (http.server, urllib, json, subprocess)
+# Additional optional WSGI tools can be added if needed:
+# gunicorn>=21.2.0

@@ -1,0 +1,178 @@
+[
+  {
+    "id": "T01",
+    "mood": "anxious",
+    "situation": "I studied for months but I am terrified I will fail my exam and disappoint everyone.",
+    "target_themes": [
+      "fear",
+      "results",
+      "attachment",
+      "duty",
+      "equanimity"
+    ]
+  },
+  {
+    "id": "T02",
+    "mood": "jealous",
+    "situation": "My friend is succeeding much faster than me and I feel like a failure.",
+    "target_themes": [
+      "comparison",
+      "jealousy",
+      "identity",
+      "results",
+      "equanimity"
+    ]
+  },
+  {
+    "id": "T03",
+    "mood": "heartbroken",
+    "situation": "My relationship ended and I cannot stop thinking about what I lost.",
+    "target_themes": [
+      "attachment",
+      "grief_of_loss",
+      "change",
+      "relationships",
+      "acceptance"
+    ]
+  },
+  {
+    "id": "T04",
+    "mood": "angry",
+    "situation": "Someone insulted me publicly and I want to get revenge.",
+    "target_themes": [
+      "anger",
+      "revenge",
+      "desire",
+      "self_control"
+    ]
+  },
+  {
+    "id": "T05",
+    "mood": "confused",
+    "situation": "My family wants me to take a career I do not want. I don't know what I should do.",
+    "target_themes": [
+      "duty",
+      "svadharma",
+      "decision",
+      "relationships",
+      "attachment"
+    ]
+  },
+  {
+    "id": "T06",
+    "mood": "lost",
+    "situation": "I have achieved things but I still feel like my life has no purpose.",
+    "target_themes": [
+      "purpose",
+      "identity",
+      "self_knowledge",
+      "attachment"
+    ]
+  },
+  {
+    "id": "T07",
+    "mood": "guilty",
+    "situation": "I made a mistake that hurt someone and I keep punishing myself for it.",
+    "target_themes": [
+      "guilt",
+      "action",
+      "knowledge",
+      "acceptance",
+      "self_control"
+    ]
+  },
+  {
+    "id": "T08",
+    "mood": "frustrated",
+    "situation": "I work hard but the results are not coming, and I want to quit.",
+    "target_themes": [
+      "action",
+      "results",
+      "attachment",
+      "duty",
+      "equanimity"
+    ]
+  },
+  {
+    "id": "T09",
+    "mood": "lonely",
+    "situation": "I feel alone even when I am surrounded by people.",
+    "target_themes": [
+      "loneliness",
+      "relationships",
+      "attachment",
+      "suffering",
+      "devotion"
+    ]
+  },
+  {
+    "id": "T10",
+    "mood": "uncertain",
+    "situation": "I have two good options and I am terrified of making the wrong decision.",
+    "target_themes": [
+      "decision",
+      "uncertainty",
+      "fear",
+      "duty",
+      "knowledge"
+    ]
+  },
+  {
+    "id": "T11",
+    "mood": "anxious",
+    "situation": "I am constantly worried about money and what will happen to my future.",
+    "target_themes": [
+      "anxiety",
+      "fear",
+      "gain_loss",
+      "attachment",
+      "results"
+    ]
+  },
+  {
+    "id": "T12",
+    "mood": "angry",
+    "situation": "My coworker took credit for my work and I cannot stop thinking about it.",
+    "target_themes": [
+      "anger",
+      "results",
+      "identity",
+      "ego",
+      "self_control"
+    ]
+  },
+  {
+    "id": "T13",
+    "mood": "sad",
+    "situation": "I am afraid of losing someone I love because I know everything changes.",
+    "target_themes": [
+      "mortality",
+      "change",
+      "attachment",
+      "grief"
+    ]
+  },
+  {
+    "id": "T14",
+    "mood": "unmotivated",
+    "situation": "I keep procrastinating even though I know what I need to do.",
+    "target_themes": [
+      "action",
+      "discipline",
+      "procrastination",
+      "self_control",
+      "duty"
+    ]
+  },
+  {
+    "id": "T15",
+    "mood": "happy",
+    "situation": "Things are finally going well and I am afraid it will all disappear.",
+    "target_themes": [
+      "success_failure",
+      "attachment",
+      "change",
+      "equanimity"
+    ]
+  }
+]

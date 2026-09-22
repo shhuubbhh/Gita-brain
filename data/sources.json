@@ -1,0 +1,44 @@
+[
+  {
+    "id": "sanskritdocuments_bori_reference",
+    "type": "reference",
+    "description": "BORI critical-edition reference material surfaced via Sanskrit Documents.",
+    "url": "https://sanskritdocuments.org/mirrors/mahabharata/mahabharata-bori.html",
+    "notes": "Use for textual verification; verify exact redistribution terms before bundling."
+  },
+  {
+    "id": "vedic_scriptures_dataset",
+    "type": "secondary_dataset",
+    "description": "VedicScriptures Bhagavad Gita translations/commentaries dataset.",
+    "url": "https://github.com/vedicscriptures/bhagavad-gita",
+    "notes": "Useful enrichment source; preserve author attribution and verify licenses for each included text."
+  },
+  {
+    "id": "gita_quotes_public_domain",
+    "type": "translation_dataset",
+    "description": "700-verse English dataset using a stated public-domain Purohit Swami translation, with Sanskrit and IAST.",
+    "url": "https://github.com/ChiragMirani/gita-quotes",
+    "notes": "Candidate translation source; independently verify rights/attribution before commercial redistribution."
+  },
+  {
+    "id": "chiragmirani_gita_quotes_data",
+    "type": "ingestion_source",
+    "url": "https://chiragmirani.github.io/gita-quotes/data.json",
+    "description": "Machine-readable Sanskrit, IAST, and English translation dataset.",
+    "license_claim": "Repository states Purohit Swami translation is public domain and data may be reused.",
+    "provenance": "Dataset states its verse data was pulled from VedicScriptures API.",
+    "warning": "Verify rights and attribution independently before commercial redistribution."
+  },
+  {
+    "id": "sutrakrit_gita_canonical",
+    "type": "canonical_corpus",
+    "repository": "https://github.com/ekras-doloop/sutrakrit-gita",
+    "rendered_path": "rendered/",
+    "website": "https://gita.ekrasworks.com/",
+    "description": "700 per-verse rendered objects with Sanskrit Devanagari/IAST, provenance, commentary-panel projections, theme memberships and audit trails.",
+    "moola_provenance": "Belvalkar critical edition (BORI 1947), via Ambuda multi-witness",
+    "data_license": "CC-BY 4.0",
+    "code_license": "MIT",
+    "notes": "Use the mūla field as the canonical Sanskrit layer. Treat doctrinal projections, everyday applications and primary_meaning as interpretive/enrichment layers, not as scripture."
+  }
+]

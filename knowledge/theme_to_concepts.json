@@ -1,0 +1,98 @@
+{
+  "कर्म": [
+    "action",
+    "duty",
+    "results",
+    "attachment",
+    "detachment",
+    "service"
+  ],
+  "धर्म": [
+    "duty",
+    "svadharma",
+    "action",
+    "decision"
+  ],
+  "ज्ञान": [
+    "knowledge",
+    "self_knowledge",
+    "discernment",
+    "freedom"
+  ],
+  "भक्ति": [
+    "devotion",
+    "faith",
+    "surrender",
+    "relationships"
+  ],
+  "ध्यान": [
+    "meditation",
+    "mind",
+    "self_control",
+    "discipline"
+  ],
+  "सत्त्व": [
+    "gunas",
+    "balance",
+    "knowledge"
+  ],
+  "रजस्": [
+    "gunas",
+    "desire",
+    "ambition",
+    "attachment"
+  ],
+  "तमस्": [
+    "gunas",
+    "inertia",
+    "laziness",
+    "ignorance"
+  ],
+  "समत्व": [
+    "equanimity",
+    "balance",
+    "success_failure",
+    "gain_loss"
+  ],
+  "वैराग्य": [
+    "detachment",
+    "renunciation",
+    "freedom"
+  ],
+  "काम": [
+    "desire",
+    "attachment",
+    "anger"
+  ],
+  "क्रोध": [
+    "anger",
+    "desire",
+    "self_control"
+  ],
+  "शोक": [
+    "grief",
+    "suffering",
+    "attachment",
+    "mortality"
+  ],
+  "क्षेत्र": [
+    "self_knowledge",
+    "identity",
+    "mind"
+  ],
+  "क्षेत्रज्ञ": [
+    "self_knowledge",
+    "self"
+  ],
+  "मोक्ष": [
+    "freedom",
+    "renunciation",
+    "self_knowledge"
+  ],
+  "स्वधर्म": [
+    "svadharma",
+    "duty",
+    "action",
+    "decision"
+  ]
+}

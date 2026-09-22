@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: gita-brain-api
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt || true"
+    startCommand: "python api/server.py"
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GITA_BRAIN_MODEL
+        value: gemini-3.6-flash
+      - key: PYTHONIOENCODING
+        value: utf-8
+      - key: PYTHONUTF8
+        value: "1"

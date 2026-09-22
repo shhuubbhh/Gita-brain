@@ -1,0 +1,113 @@
+{
+  "input": {
+    "mood": "anxious",
+    "thought": "I am scared that my business will fail."
+  },
+  "understanding": {
+    "situation": {
+      "primary": "fear_of_failure",
+      "confidence": 0.83,
+      "matched_phrases": [
+        "fail"
+      ],
+      "alternatives": []
+    },
+    "concepts": [
+      "fear",
+      "results",
+      "attachment",
+      "success_failure",
+      "control_vs_outcome",
+      "equanimity",
+      "action",
+      "anxiety"
+    ],
+    "concept_evidence": []
+  },
+  "gita_evidence": [
+    {
+      "verse_id": "BG_2_47",
+      "retrieval_score": 20.236,
+      "role": "primary",
+      "matched_evidence": "Highest evidence-weighted relevance",
+      "source_of_truth": "data/processed/verses.json",
+      "chapter": 2,
+      "verse": 47,
+      "sanskrit": "कर्मण्य् एवाधिकारस् ते मा फलेषु कदाचन | मा कर्म-फल-हेतुर् भूर् मा ते सङ्गो ऽस्त्व् अकर्मणि",
+      "transliteration": "karmaṇy evādhikāras te mā phaleṣu kadācana | mā karma-phala-hetur bhūr mā te saṅgo 'stv akarmaṇi",
+      "translation": "You have the right to act, never to the fruits of action. Never let the fruit be your motive, and never let inaction be your refuge.",
+      "source_fields": [
+        "addressed_to",
+        "alternate_references",
+        "canonical_id",
+        "chapter",
+        "enrichment",
+        "provenance",
+        "sanskrit",
+        "source_chapter",
+        "source_verse",
+        "speaker",
+        "transliteration",
+        "verse"
+      ]
+    },
+    {
+      "verse_id": "BG_2_38",
+      "retrieval_score": 14.556,
+      "role": "supporting",
+      "matched_evidence": "Supporting evidence",
+      "source_of_truth": "data/processed/verses.json",
+      "chapter": 2,
+      "verse": 38,
+      "sanskrit": "सुख-दुःखे समे कृत्वा लाभालाभौ जयाजयौ | ततो युद्धाय युज्यस्व नैवं पापम् अवाप्स्यसि",
+      "transliteration": "sukha-duḥkhe same kṛtvā lābhālābhau jayājayau | tato yuddhāya yujyasva naivaṃ pāpam avāpsyasi",
+      "translation": "Hold pleasure and pain, gain and loss, victory and defeat as equal, then take up the fight. Acting that way, you will not incur sin.",
+      "source_fields": [
+        "addressed_to",
+        "alternate_references",
+        "canonical_id",
+        "chapter",
+        "enrichment",
+        "provenance",
+        "sanskrit",
+        "source_chapter",
+        "source_verse",
+        "speaker",
+        "transliteration",
+        "verse"
+      ]
+    },
+    {
+      "verse_id": "BG_2_48",
+      "retrieval_score": 13.476,
+      "role": "supporting",
+      "matched_evidence": "Supporting evidence",
+      "source_of_truth": "data/processed/verses.json",
+      "chapter": 2,
+      "verse": 48,
+      "sanskrit": "योगस्थः कुरु कर्माणि सङ्गं त्यक्त्वा धनंजय | सिद्ध्य्-असिद्ध्योः समो भूत्वा समत्वं योग उच्यते",
+      "transliteration": "yogasthaḥ kuru karmāṇi saṅgaṃ tyaktvā dhanaṃjaya | siddhy-asiddhyoḥ samo bhūtvā samatvaṃ yoga ucyate",
+      "translation": "Stand firm in yoga, act without clinging to outcomes, Arjuna, and meet success and failure with the same mind. That evenness of spirit is what yoga means.",
+      "source_fields": [
+        "addressed_to",
+        "alternate_references",
+        "canonical_id",
+        "chapter",
+        "enrichment",
+        "provenance",
+        "sanskrit",
+        "source_chapter",
+        "source_verse",
+        "speaker",
+        "transliteration",
+        "verse"
+      ]
+    }
+  ],
+  "grounding": {
+    "evidence_count": 3,
+    "max_scriptural_claims": 3,
+    "citation_required": true,
+    "source_of_truth": "retrieved corpus only"
+  }
+}

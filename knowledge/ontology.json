@@ -1,0 +1,239 @@
+{
+  "version": "0.5.0",
+  "concepts": [
+    {
+      "id": "action",
+      "name": "Action / Karma",
+      "group": "karma",
+      "description": "Intentional action, work, deed or activity."
+    },
+    {
+      "id": "duty",
+      "name": "Duty / Dharma",
+      "group": "dharma",
+      "description": "Obligation, duty or right action in context."
+    },
+    {
+      "id": "svadharma",
+      "name": "Svadharma",
+      "group": "dharma",
+      "description": "One's own duty or fitting course of action."
+    },
+    {
+      "id": "attachment",
+      "name": "Attachment",
+      "group": "mind",
+      "description": "Clinging to objects, people, identity or outcomes."
+    },
+    {
+      "id": "detachment",
+      "name": "Non-attachment",
+      "group": "mind",
+      "description": "Acting without clinging to results or objects."
+    },
+    {
+      "id": "results",
+      "name": "Fruits / Results",
+      "group": "karma",
+      "description": "Consequences, rewards or fruits of action."
+    },
+    {
+      "id": "equanimity",
+      "name": "Equanimity / Samatva",
+      "group": "mind",
+      "description": "Steadiness amid gain/loss, success/failure, pleasure/pain."
+    },
+    {
+      "id": "desire",
+      "name": "Desire / Kama",
+      "group": "mind",
+      "description": "Craving or desire directed toward an object or outcome."
+    },
+    {
+      "id": "anger",
+      "name": "Anger / Krodha",
+      "group": "mind",
+      "description": "Anger, wrath or reactive hostility."
+    },
+    {
+      "id": "fear",
+      "name": "Fear",
+      "group": "mind",
+      "description": "Fear, apprehension or dread."
+    },
+    {
+      "id": "grief",
+      "name": "Grief / Shoka",
+      "group": "mind",
+      "description": "Sorrow, grief or lamentation."
+    },
+    {
+      "id": "suffering",
+      "name": "Suffering / Duhkha",
+      "group": "mind",
+      "description": "Distress, dissatisfaction or suffering."
+    },
+    {
+      "id": "mind",
+      "name": "Mind / Manas",
+      "group": "psychology",
+      "description": "Mental activity, thought and attention."
+    },
+    {
+      "id": "self_control",
+      "name": "Self-control",
+      "group": "practice",
+      "description": "Regulation of senses, impulses and reactions."
+    },
+    {
+      "id": "discipline",
+      "name": "Discipline / Practice",
+      "group": "practice",
+      "description": "Steady practice, cultivation and restraint."
+    },
+    {
+      "id": "meditation",
+      "name": "Meditation / Dhyana",
+      "group": "practice",
+      "description": "Meditative concentration and contemplative practice."
+    },
+    {
+      "id": "knowledge",
+      "name": "Knowledge / Jnana",
+      "group": "knowledge",
+      "description": "Knowledge or wisdom as taught in the text."
+    },
+    {
+      "id": "discernment",
+      "name": "Discernment",
+      "group": "knowledge",
+      "description": "Discrimination, clear seeing and wise judgment."
+    },
+    {
+      "id": "self_knowledge",
+      "name": "Self-knowledge / Atman",
+      "group": "knowledge",
+      "description": "Teaching concerning self, atman, purusha or true nature."
+    },
+    {
+      "id": "ego",
+      "name": "Ego / Doership",
+      "group": "identity",
+      "description": "Ego, I-making, possessive identity or doership."
+    },
+    {
+      "id": "identity",
+      "name": "Identity / Status",
+      "group": "identity",
+      "description": "Identification with roles, status, reputation or self-image."
+    },
+    {
+      "id": "compassion",
+      "name": "Compassion",
+      "group": "relationships",
+      "description": "Compassion, friendliness, non-harm and concern for beings."
+    },
+    {
+      "id": "relationships",
+      "name": "Relationships",
+      "group": "relationships",
+      "description": "Friendship, family, enemies, social bonds and interpersonal conduct."
+    },
+    {
+      "id": "pleasure_pain",
+      "name": "Pleasure and Pain",
+      "group": "experience",
+      "description": "Sukha/duhkha and response to pleasant/unpleasant experience."
+    },
+    {
+      "id": "gain_loss",
+      "name": "Gain and Loss",
+      "group": "experience",
+      "description": "Acquisition/loss and response to changing circumstances."
+    },
+    {
+      "id": "success_failure",
+      "name": "Success and Failure",
+      "group": "experience",
+      "description": "Victory/defeat and response to outcomes."
+    },
+    {
+      "id": "uncertainty",
+      "name": "Uncertainty / Doubt",
+      "group": "decision",
+      "description": "Doubt, uncertainty or lack of clarity."
+    },
+    {
+      "id": "decision",
+      "name": "Decision / Dilemma",
+      "group": "decision",
+      "description": "Choosing a course of action under conflict or uncertainty."
+    },
+    {
+      "id": "purpose",
+      "name": "Purpose / Meaning",
+      "group": "dharma",
+      "description": "Meaning, purpose, goal or direction."
+    },
+    {
+      "id": "ambition",
+      "name": "Ambition",
+      "group": "mind",
+      "description": "Achievement, status seeking or strong goal pursuit."
+    },
+    {
+      "id": "mortality",
+      "name": "Mortality / Death",
+      "group": "knowledge",
+      "description": "Birth, death, mortality, impermanence and rebirth."
+    },
+    {
+      "id": "change",
+      "name": "Change / Impermanence",
+      "group": "knowledge",
+      "description": "Transient, changing and perishable phenomena."
+    },
+    {
+      "id": "faith",
+      "name": "Faith / Shraddha",
+      "group": "devotion",
+      "description": "Faith, trust or conviction."
+    },
+    {
+      "id": "devotion",
+      "name": "Devotion / Bhakti",
+      "group": "devotion",
+      "description": "Devotion, loving worship and relationship with the divine."
+    },
+    {
+      "id": "renunciation",
+      "name": "Renunciation / Sannyasa",
+      "group": "practice",
+      "description": "Giving up attachment, egoic ownership or renouncing action/results."
+    },
+    {
+      "id": "freedom",
+      "name": "Liberation / Moksha",
+      "group": "knowledge",
+      "description": "Freedom from bondage and liberation."
+    },
+    {
+      "id": "gunas",
+      "name": "Three Gunas",
+      "group": "metaphysics",
+      "description": "Sattva, rajas and tamas as modes of prakriti."
+    },
+    {
+      "id": "acceptance",
+      "name": "Forbearance / Acceptance",
+      "group": "mind",
+      "description": "Endurance, tolerance and acceptance of unavoidable conditions."
+    },
+    {
+      "id": "control_vs_outcome",
+      "name": "Action vs Outcome",
+      "group": "karma",
+      "description": "Distinction between what one can act upon and what results."
+    }
+  ]
+}

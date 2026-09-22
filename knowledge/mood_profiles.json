@@ -1,0 +1,111 @@
+{
+  "sad": {
+    "signals": [
+      "sad",
+      "sadness",
+      "hurt",
+      "down",
+      "low",
+      "cry",
+      "empty",
+      "heartbroken",
+      "hopeless"
+    ],
+    "concepts": [
+      "grief_of_loss",
+      "suffering",
+      "acceptance",
+      "attachment"
+    ]
+  },
+  "angry": {
+    "signals": [
+      "angry",
+      "anger",
+      "furious",
+      "mad",
+      "rage",
+      "revenge",
+      "hate"
+    ],
+    "concepts": [
+      "anger",
+      "desire",
+      "self_control",
+      "compassion"
+    ]
+  },
+  "confused": {
+    "signals": [
+      "confused",
+      "confusion",
+      "lost",
+      "uncertain",
+      "don't know",
+      "unsure"
+    ],
+    "concepts": [
+      "uncertainty",
+      "decision",
+      "discernment",
+      "knowledge",
+      "duty"
+    ]
+  },
+  "anxious": {
+    "signals": [
+      "anxious",
+      "anxiety",
+      "worried",
+      "worry",
+      "stress",
+      "scared",
+      "afraid",
+      "fear"
+    ],
+    "concepts": [
+      "anxiety",
+      "fear",
+      "attachment",
+      "results",
+      "control_vs_outcome"
+    ]
+  },
+  "jealous": {
+    "signals": [
+      "jealous",
+      "jealousy",
+      "envy",
+      "envied",
+      "comparison",
+      "compare"
+    ],
+    "concepts": [
+      "jealousy",
+      "comparison",
+      "attachment",
+      "equanimity",
+      "identity"
+    ]
+  },
+  "happy": {
+    "signals": [
+      "happy",
+      "grateful",
+      "joy",
+      "excited",
+      "peaceful",
+      "content"
+    ],
+    "concepts": [
+      "equanimity",
+      "acceptance",
+      "devotion",
+      "action"
+    ]
+  },
+  "neutral": {
+    "signals": [],
+    "concepts": []
+  }
+}

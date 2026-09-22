@@ -1,0 +1,252 @@
+[
+  {
+    "id": "action",
+    "name": "Action",
+    "description": "Doing what is appropriate rather than remaining paralyzed."
+  },
+  {
+    "id": "duty",
+    "name": "Duty / Dharma",
+    "description": "Responsibility, appropriate conduct, and one's role or obligation."
+  },
+  {
+    "id": "attachment",
+    "name": "Attachment",
+    "description": "Clinging to outcomes, people, possessions, identities, or expectations."
+  },
+  {
+    "id": "detachment",
+    "name": "Non-attachment",
+    "description": "Acting without unhealthy dependence on a particular outcome."
+  },
+  {
+    "id": "results",
+    "name": "Fruits of Action",
+    "description": "The consequences or rewards of action and one's relationship to them."
+  },
+  {
+    "id": "equanimity",
+    "name": "Equanimity",
+    "description": "Maintaining balance amid success/failure, pleasure/pain, gain/loss."
+  },
+  {
+    "id": "desire",
+    "name": "Desire",
+    "description": "Craving or longing that can shape judgment and behavior."
+  },
+  {
+    "id": "anger",
+    "name": "Anger",
+    "description": "Anger as a mental/emotional consequence of frustrated desire and loss of clarity."
+  },
+  {
+    "id": "fear",
+    "name": "Fear",
+    "description": "Distress arising from threat, uncertainty, loss, or perceived failure."
+  },
+  {
+    "id": "grief",
+    "name": "Grief",
+    "description": "Sorrow, loss, mourning, or emotional disturbance."
+  },
+  {
+    "id": "anxiety",
+    "name": "Anxiety",
+    "description": "Worry, agitation, uncertainty, or anticipatory distress."
+  },
+  {
+    "id": "comparison",
+    "name": "Comparison",
+    "description": "Evaluating oneself against others and deriving identity or worth from comparison."
+  },
+  {
+    "id": "self_control",
+    "name": "Self-control",
+    "description": "Regulation and disciplined direction of mind and senses."
+  },
+  {
+    "id": "mind",
+    "name": "Mind",
+    "description": "The restless, conditioned, or trainable mental faculty."
+  },
+  {
+    "id": "discipline",
+    "name": "Discipline",
+    "description": "Steady practice, restraint, and sustained effort."
+  },
+  {
+    "id": "knowledge",
+    "name": "Knowledge",
+    "description": "Discernment, understanding, and insight into reality."
+  },
+  {
+    "id": "self_knowledge",
+    "name": "Self-knowledge",
+    "description": "Understanding the Self and distinguishing it from transient conditions."
+  },
+  {
+    "id": "ego",
+    "name": "Ego / Doership",
+    "description": "Identification with 'I' and the belief that one is the independent doer."
+  },
+  {
+    "id": "identity",
+    "name": "Identity",
+    "description": "Attachment to roles, status, possessions, achievements, or social labels."
+  },
+  {
+    "id": "pleasure_pain",
+    "name": "Pleasure and Pain",
+    "description": "The changing experience of pleasant and unpleasant conditions."
+  },
+  {
+    "id": "gain_loss",
+    "name": "Gain and Loss",
+    "description": "External outcomes and changing circumstances of success or deprivation."
+  },
+  {
+    "id": "success_failure",
+    "name": "Success and Failure",
+    "description": "Outcomes that can disturb judgment when treated as measures of worth."
+  },
+  {
+    "id": "uncertainty",
+    "name": "Uncertainty",
+    "description": "Difficulty acting because the future outcome is unknown."
+  },
+  {
+    "id": "decision",
+    "name": "Difficult Decisions",
+    "description": "Conflicting duties, values, desires, or consequences."
+  },
+  {
+    "id": "purpose",
+    "name": "Purpose",
+    "description": "Questions about meaning, direction, and what is worth pursuing."
+  },
+  {
+    "id": "ambition",
+    "name": "Ambition",
+    "description": "Strong striving for achievement, status, or desired outcomes."
+  },
+  {
+    "id": "loneliness",
+    "name": "Loneliness",
+    "description": "Distress associated with isolation or lack of connection."
+  },
+  {
+    "id": "relationships",
+    "name": "Relationships",
+    "description": "Attachment, care, expectations, conflict, and conduct toward others."
+  },
+  {
+    "id": "compassion",
+    "name": "Compassion",
+    "description": "Concern for the welfare of others and non-harmful conduct."
+  },
+  {
+    "id": "forgiveness",
+    "name": "Forgiveness",
+    "description": "Letting go of resentment while responding wisely to harm."
+  },
+  {
+    "id": "grief_of_loss",
+    "name": "Loss",
+    "description": "Distress following loss of a person, relationship, possession, opportunity, or identity."
+  },
+  {
+    "id": "mortality",
+    "name": "Mortality",
+    "description": "Questions about death, impermanence, and the nature of the Self."
+  },
+  {
+    "id": "change",
+    "name": "Change",
+    "description": "Recognition that circumstances and experiences are transient."
+  },
+  {
+    "id": "suffering",
+    "name": "Suffering",
+    "description": "Distress arising from attachment, aversion, confusion, or difficult circumstances."
+  },
+  {
+    "id": "faith",
+    "name": "Faith / Shraddha",
+    "description": "Trust, orientation, and commitment toward a path or understanding."
+  },
+  {
+    "id": "devotion",
+    "name": "Devotion / Bhakti",
+    "description": "Loving orientation toward the Divine."
+  },
+  {
+    "id": "meditation",
+    "name": "Meditation",
+    "description": "Training attention and cultivating steadiness of mind."
+  },
+  {
+    "id": "renunciation",
+    "name": "Renunciation",
+    "description": "Letting go of possessiveness or attachment while understanding action."
+  },
+  {
+    "id": "freedom",
+    "name": "Liberation",
+    "description": "Freedom from binding attachment, ignorance, and compulsive patterns."
+  },
+  {
+    "id": "gunas",
+    "name": "Three Gunas",
+    "description": "Sattva, rajas, and tamas as modes affecting mind and behavior."
+  },
+  {
+    "id": "svadharma",
+    "name": "One's Own Dharma",
+    "description": "Acting according to one's own appropriate nature and responsibility."
+  },
+  {
+    "id": "acceptance",
+    "name": "Acceptance",
+    "description": "Seeing circumstances clearly without adding unnecessary resistance or attachment."
+  },
+  {
+    "id": "control_vs_outcome",
+    "name": "Control vs Outcome",
+    "description": "Distinguishing what can be acted upon from what cannot be controlled."
+  },
+  {
+    "id": "revenge",
+    "name": "Revenge",
+    "description": "Desire to retaliate or harm in response to perceived wrongdoing."
+  },
+  {
+    "id": "jealousy",
+    "name": "Jealousy / Envy",
+    "description": "Distress or resentment arising from another person's advantage or success."
+  },
+  {
+    "id": "guilt",
+    "name": "Guilt",
+    "description": "Distress about past actions, responsibility, or perceived wrongdoing."
+  },
+  {
+    "id": "procrastination",
+    "name": "Inaction / Avoidance",
+    "description": "Avoiding appropriate action through fear, inertia, confusion, or attachment."
+  },
+  {
+    "id": "laziness",
+    "name": "Inertia",
+    "description": "Tendency toward passivity, dullness, or avoidance of necessary effort."
+  },
+  {
+    "id": "balance",
+    "name": "Balance",
+    "description": "Integrated conduct without extremes of indulgence, suppression, or neglect."
+  },
+  {
+    "id": "service",
+    "name": "Service",
+    "description": "Acting for others or for a larger purpose without possessive attachment."
+  }
+]

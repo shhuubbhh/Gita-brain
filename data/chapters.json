@@ -1,0 +1,93 @@
+[
+  {
+    "chapter": 1,
+    "title": "Arjuna Vishada Yoga",
+    "expected_verses": 47
+  },
+  {
+    "chapter": 2,
+    "title": "Sankhya Yoga",
+    "expected_verses": 72
+  },
+  {
+    "chapter": 3,
+    "title": "Karma Yoga",
+    "expected_verses": 43
+  },
+  {
+    "chapter": 4,
+    "title": "Jnana Karma Sannyasa Yoga",
+    "expected_verses": 42
+  },
+  {
+    "chapter": 5,
+    "title": "Karma Sannyasa Yoga",
+    "expected_verses": 29
+  },
+  {
+    "chapter": 6,
+    "title": "Dhyana Yoga",
+    "expected_verses": 47
+  },
+  {
+    "chapter": 7,
+    "title": "Jnana Vijnana Yoga",
+    "expected_verses": 30
+  },
+  {
+    "chapter": 8,
+    "title": "Akshara Brahma Yoga",
+    "expected_verses": 28
+  },
+  {
+    "chapter": 9,
+    "title": "Raja Vidya Raja Guhya Yoga",
+    "expected_verses": 34
+  },
+  {
+    "chapter": 10,
+    "title": "Vibhuti Yoga",
+    "expected_verses": 42
+  },
+  {
+    "chapter": 11,
+    "title": "Vishvarupa Darshana Yoga",
+    "expected_verses": 55
+  },
+  {
+    "chapter": 12,
+    "title": "Bhakti Yoga",
+    "expected_verses": 20
+  },
+  {
+    "chapter": 13,
+    "title": "Kshetra Kshetrajna Vibhaga Yoga",
+    "expected_verses": 34,
+    "source_note": "Canonical project numbering follows the selected 700-verse BORI-based source."
+  },
+  {
+    "chapter": 14,
+    "title": "Gunatraya Vibhaga Yoga",
+    "expected_verses": 27
+  },
+  {
+    "chapter": 15,
+    "title": "Purushottama Yoga",
+    "expected_verses": 20
+  },
+  {
+    "chapter": 16,
+    "title": "Daivasura Sampad Vibhaga Yoga",
+    "expected_verses": 24
+  },
+  {
+    "chapter": 17,
+    "title": "Shraddhatraya Vibhaga Yoga",
+    "expected_verses": 28
+  },
+  {
+    "chapter": 18,
+    "title": "Moksha Sannyasa Yoga",
+    "expected_verses": 78
+  }
+]

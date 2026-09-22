@@ -1,0 +1,190 @@
+[
+  {
+    "id": "fear_of_failure",
+    "name": "Fear of Failure",
+    "concepts": [
+      "fear",
+      "results",
+      "attachment",
+      "success_failure",
+      "control_vs_outcome",
+      "equanimity",
+      "action"
+    ]
+  },
+  {
+    "id": "career_comparison",
+    "name": "Career Comparison",
+    "concepts": [
+      "comparison",
+      "jealousy",
+      "identity",
+      "results",
+      "ambition",
+      "attachment",
+      "duty"
+    ]
+  },
+  {
+    "id": "breakup",
+    "name": "Breakup / Relationship Loss",
+    "concepts": [
+      "relationships",
+      "grief_of_loss",
+      "attachment",
+      "change",
+      "suffering",
+      "acceptance"
+    ]
+  },
+  {
+    "id": "anger_at_someone",
+    "name": "Anger Toward Someone",
+    "concepts": [
+      "anger",
+      "desire",
+      "relationships",
+      "self_control",
+      "compassion"
+    ]
+  },
+  {
+    "id": "revenge",
+    "name": "Desire for Revenge",
+    "concepts": [
+      "revenge",
+      "anger",
+      "desire",
+      "self_control",
+      "compassion"
+    ]
+  },
+  {
+    "id": "family_pressure",
+    "name": "Family Pressure",
+    "concepts": [
+      "duty",
+      "relationships",
+      "identity",
+      "decision",
+      "attachment",
+      "comparison"
+    ]
+  },
+  {
+    "id": "career_confusion",
+    "name": "Career Confusion",
+    "concepts": [
+      "duty",
+      "svadharma",
+      "purpose",
+      "decision",
+      "uncertainty",
+      "action"
+    ]
+  },
+  {
+    "id": "money_anxiety",
+    "name": "Money Anxiety",
+    "concepts": [
+      "anxiety",
+      "fear",
+      "attachment",
+      "gain_loss",
+      "results",
+      "acceptance"
+    ]
+  },
+  {
+    "id": "loneliness",
+    "name": "Loneliness",
+    "concepts": [
+      "loneliness",
+      "relationships",
+      "attachment",
+      "suffering",
+      "devotion"
+    ]
+  },
+  {
+    "id": "grief",
+    "name": "Grief After Loss",
+    "concepts": [
+      "grief",
+      "grief_of_loss",
+      "mortality",
+      "change",
+      "attachment",
+      "acceptance"
+    ]
+  },
+  {
+    "id": "guilt",
+    "name": "Guilt About Past Action",
+    "concepts": [
+      "guilt",
+      "action",
+      "knowledge",
+      "self_control",
+      "acceptance"
+    ]
+  },
+  {
+    "id": "procrastination",
+    "name": "Procrastination",
+    "concepts": [
+      "procrastination",
+      "laziness",
+      "discipline",
+      "action",
+      "duty"
+    ]
+  },
+  {
+    "id": "jealousy",
+    "name": "Jealousy of Another Person",
+    "concepts": [
+      "jealousy",
+      "comparison",
+      "attachment",
+      "identity",
+      "equanimity",
+      "desire",
+      "anger",
+      "mind"
+    ]
+  },
+  {
+    "id": "decision_conflict",
+    "name": "Difficult Decision",
+    "concepts": [
+      "decision",
+      "uncertainty",
+      "fear",
+      "duty",
+      "knowledge"
+    ]
+  },
+  {
+    "id": "purpose_crisis",
+    "name": "Questioning Life Purpose",
+    "concepts": [
+      "purpose",
+      "identity",
+      "self_knowledge",
+      "duty",
+      "attachment"
+    ]
+  },
+  {
+    "id": "success_attachment",
+    "name": "Fear of Losing Success",
+    "concepts": [
+      "success_failure",
+      "attachment",
+      "change",
+      "identity",
+      "equanimity"
+    ]
+  }
+]
