@@ -90,13 +90,33 @@ def parse_structured_answer(raw_text, situation, evidence):
     # Extract primary verse details if available
     primary_verse = {}
     if evidence and len(evidence) > 0:
-        pv = evidence[0]
+        for pv in evidence:
+            if pv.get("translation") and pv.get("sanskrit"):
+                primary_verse = {
+                    "chapter": pv.get("chapter", 2),
+                    "verse": pv.get("verse", 47),
+                    "sanskrit": pv.get("sanskrit", ""),
+                    "transliteration": pv.get("transliteration", ""),
+                    "translation": pv.get("translation", "")
+                }
+                break
+        if not primary_verse:
+            pv = evidence[0]
+            primary_verse = {
+                "chapter": pv.get("chapter", 2),
+                "verse": pv.get("verse", 47),
+                "sanskrit": pv.get("sanskrit", ""),
+                "transliteration": pv.get("transliteration", ""),
+                "translation": pv.get("translation", "")
+            }
+
+    if not primary_verse or not primary_verse.get("translation"):
         primary_verse = {
-            "chapter": pv.get("chapter"),
-            "verse": pv.get("verse"),
-            "sanskrit": pv.get("sanskrit", ""),
-            "transliteration": pv.get("transliteration", ""),
-            "translation": pv.get("translation", "")
+            "chapter": 2,
+            "verse": 47,
+            "sanskrit": "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥",
+            "transliteration": "karmaṇy-evādhikāras te mā phaleṣu kadācana\nmā karma-phala-hetur bhūr mā te saṅgo 'stv akarmaṇi",
+            "translation": "You have a right to perform your prescribed duty, but you are not entitled to the fruits of action. Never consider yourself the cause of the results of your activities, and never be attached to inaction."
         }
 
     # Extract reflection quote

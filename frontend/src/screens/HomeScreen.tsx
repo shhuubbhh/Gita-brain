@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LotusIcon } from '../components/LotusIcon';
 import { GuidanceData } from '../types';
 import { QUICK_START_CHIPS } from '../data/gitaData';
-import { askGita } from '../services/api';
+import { askGita, wakeUpServer } from '../services/api';
 
 interface HomeScreenProps {
   onSaveTeaching?: (teaching: { chapter: number; verse: number; preview: string }) => void;
@@ -21,6 +21,26 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [isSaved, setIsSaved] = useState(false);
   const [isJournalAdded, setIsJournalAdded] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isSlowResponse, setIsSlowResponse] = useState(false);
+
+  // Proactively ping server on launch to wake up Render if sleeping
+  useEffect(() => {
+    wakeUpServer();
+  }, []);
+
+  // Show friendly notice if analyzing takes longer than 6s (e.g. Render spin-up)
+  useEffect(() => {
+    let timer: any;
+    if (stage === 'analyzing') {
+      setIsSlowResponse(false);
+      timer = setTimeout(() => {
+        setIsSlowResponse(true);
+      }, 6000);
+    } else {
+      setIsSlowResponse(false);
+    }
+    return () => clearTimeout(timer);
+  }, [stage]);
 
   // Handle Speech Recognition
   const handleVoiceInput = () => {
@@ -157,6 +177,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         }}>
           Consulting the Bhagavad Gita corpus
         </p>
+        {isSlowResponse && (
+          <div style={{
+            fontSize: 12,
+            color: '#d4a050',
+            textAlign: 'center',
+            lineHeight: 1.5,
+            maxWidth: 300,
+            background: 'rgba(212,160,80,0.08)',
+            padding: '10px 16px',
+            borderRadius: 12,
+            border: '1px solid rgba(212,160,80,0.2)'
+          }}>
+            Connecting to cloud server... (Render free tier may take up to 40s if waking from sleep)
+          </div>
+        )}
       </div>
     );
   }

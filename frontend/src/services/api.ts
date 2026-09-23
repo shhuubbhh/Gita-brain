@@ -18,31 +18,68 @@ export function setServerUrl(url: string): void {
   }
 }
 
-export async function checkServerHealth(customUrl?: string): Promise<{ ok: boolean; statusText: string; data?: any }> {
+export async function checkServerHealth(
+  customUrl?: string,
+  onStatusUpdate?: (status: string) => void
+): Promise<{ ok: boolean; statusText: string; data?: any }> {
   const base = (customUrl || getServerUrl()).replace(/\/+$/, '');
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
+    // 50s timeout for Render free tier spin-up
+    const timeout = setTimeout(() => controller.abort(), 50000);
+
+    // After 3 seconds, let the user know the server may be waking up
+    const warmNotice = setTimeout(() => {
+      if (onStatusUpdate) {
+        onStatusUpdate('Waking up server on Render... (may take 30-45s on free tier)');
+      }
+    }, 3000);
+
     const res = await fetch(`${base}/v1/health`, {
       method: 'GET',
       signal: controller.signal
     });
     clearTimeout(timeout);
+    clearTimeout(warmNotice);
+
     if (res.ok) {
       const data = await res.json();
       return { ok: true, statusText: 'Connected to Gita Brain v0.8.0', data };
     }
     return { ok: false, statusText: `Server error: ${res.status}` };
   } catch (err: any) {
-    return { ok: false, statusText: err.name === 'AbortError' ? 'Connection timed out' : 'Cannot reach server' };
+    return {
+      ok: false,
+      statusText: err.name === 'AbortError'
+        ? 'Connection timed out (Render server took >50s to wake up)'
+        : 'Cannot reach server'
+    };
+  }
+}
+
+// Background proactive ping to wake up Render container upon app startup
+export function wakeUpServer(): void {
+  try {
+    const base = getServerUrl().replace(/\/+$/, '');
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 45000);
+    fetch(`${base}/v1/health`, {
+      method: 'GET',
+      signal: controller.signal
+    }).catch(() => {
+      // Background warm-up ping silent fail is expected if offline
+    });
+  } catch {
+    // Ignore error in non-blocking warm-up
   }
 }
 
 export async function askGita(thought: string, mood = 'neutral'): Promise<GuidanceData> {
   const base = getServerUrl().replace(/\/+$/, '');
-  try {
+
+  const attemptFetch = async (timeoutMs = 60000): Promise<GuidanceData> => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 35000); // 35s LLM generation allowance
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
     const res = await fetch(`${base}/v1/answer`, {
       method: 'POST',
@@ -101,13 +138,25 @@ export async function askGita(thought: string, mood = 'neutral'): Promise<Guidan
       transliteration: firstEvidence.transliteration || '',
       translation: firstEvidence.translation || ''
     };
+  };
+
+  try {
+    return await attemptFetch(60000);
   } catch (error: any) {
-    console.warn('Gita Brain backend request error:', error);
-    // Offline fallback so app never crashes
-    const fallback = FALLBACK_GUIDANCE[mood] || FALLBACK_GUIDANCE.default;
-    return {
-      ...fallback,
-      understanding: `${fallback.understanding}\n\n(Note: Operating in offline mode. Ensure Gita server is running at ${base} or check Settings)`
-    };
+    // If the first call failed, Render might have just finished cold boot.
+    // Try one automatic retry after 2.5s before falling back to offline.
+    console.warn('Initial Gita Brain backend request error, attempting retry:', error);
+    try {
+      await new Promise(r => setTimeout(r, 2500));
+      return await attemptFetch(45000);
+    } catch (retryError: any) {
+      console.warn('Gita Brain retry also failed:', retryError);
+      // Offline fallback so app never crashes
+      const fallback = FALLBACK_GUIDANCE[mood] || FALLBACK_GUIDANCE.default;
+      return {
+        ...fallback,
+        understanding: `${fallback.understanding}\n\n(Note: Operating in offline mode. Ensure Gita server is running at ${base} or check Settings)`
+      };
+    }
   }
 }

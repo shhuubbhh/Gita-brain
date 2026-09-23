@@ -15,16 +15,20 @@ frontend_dist = ROOT / "frontend" / "dist"
 assets_dir = ANDROID_DIR / "app" / "src" / "main" / "assets"
 os.makedirs(assets_dir, exist_ok=True)
 
-if not (frontend_dist / "index.html").exists():
-    print("Building frontend...")
-    subprocess.run(["npm", "run", "build"], cwd=ROOT / "frontend", check=True, shell=True)
+print("Building fresh frontend bundle...")
+subprocess.run(["npm", "run", "build"], cwd=ROOT / "frontend", check=True, shell=True)
 
 print("Syncing web assets to Android project...")
+# Clean old assets in destination to prevent stale bundles
+for old in assets_dir.iterdir():
+    if old.is_dir():
+        shutil.rmtree(old)
+    else:
+        old.unlink()
+
 for item in frontend_dist.iterdir():
     dest = assets_dir / item.name
     if item.is_dir():
-        if dest.exists():
-            shutil.rmtree(dest)
         shutil.copytree(item, dest)
     else:
         shutil.copy2(item, dest)
@@ -59,9 +63,18 @@ if apk_source.exists():
     output_apk = ROOT / "gita-companion-debug.apk"
     shutil.copy2(apk_source, output_apk)
     size_mb = output_apk.stat().st_size / (1024 * 1024)
+
+    # Also copy to Downloads folder if accessible
+    user_downloads = Path.home() / "Downloads" / "gita-companion-debug.apk"
+    try:
+        shutil.copy2(apk_source, user_downloads)
+    except Exception:
+        pass
+
     print("=" * 60)
     print(f"SUCCESS: Android APK created successfully!")
-    print(f"File Path: {output_apk}")
+    print(f"Project Folder: {output_apk}")
+    print(f"Downloads Folder: {user_downloads}")
     print(f"File Size: {size_mb:.2f} MB")
     print("=" * 60)
 else:

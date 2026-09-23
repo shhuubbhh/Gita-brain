@@ -1,4 +1,4 @@
-import { Chapter, GuidanceData, ReflectionEntry, SavedTeaching } from '../types';
+import { Chapter, GuidanceData, JournalEntry, MoodItem, ReflectionEntry, SavedTeaching, Mantra } from '../types';
 
 export const CHAPTERS: Chapter[] = [
   { num: 1, name: 'Arjuna Vishada Yoga', theme: 'The Grief of Arjuna', key: 'grief, confusion, duty, despair, surrender', color: '#9B7AA0' },
@@ -51,6 +51,75 @@ export const QUICK_START_CHIPS = [
   { label: "Need motivation", key: "motivation" },
   { label: "Overthinking", key: "anxiety" },
   { label: "Need peace", key: "peace" }
+];
+
+export const JOURNAL_MOODS: MoodItem[] = [
+  { key: 'Happy', label: 'Happy', emoji: '😊', color: '#D97706', bgLight: '#FEF3C7' },
+  { key: 'Peaceful', label: 'Peaceful', emoji: '😌', color: '#059669', bgLight: '#D1FAE5' },
+  { key: 'Excited', label: 'Excited', emoji: '🤩', color: '#DB2777', bgLight: '#FCE7F3' },
+  { key: 'Grateful', label: 'Grateful', emoji: '🙏', color: '#7C3AED', bgLight: '#EDE9FE' },
+  { key: 'Sad', label: 'Sad', emoji: '🥺', color: '#2563EB', bgLight: '#DBEAFE' },
+  { key: 'Angry', label: 'Angry', emoji: '😤', color: '#DC2626', bgLight: '#FEE2E2' },
+  { key: 'Calm', label: 'Calm', emoji: '🌿', color: '#0D9488', bgLight: '#CCFBF1' },
+  { key: 'Anxious', label: 'Anxious', emoji: '🌫', color: '#64748B', bgLight: '#F1F5F9' },
+];
+
+export const INITIAL_JOURNAL_ENTRIES: JournalEntry[] = [
+  {
+    id: "j-2026-09-23",
+    date: "2026-09-23",
+    displayDate: "Sep 23, 2026",
+    mood: "Happy",
+    emoji: "😊",
+    color: "#D97706",
+    reflection: "Felt very peaceful and grounded today. Committing to acting without anxiety over outcomes made work light and joyful.",
+    teaching: "Bhagavad Gita 2.48",
+    createdAt: new Date("2026-09-23T10:00:00").getTime()
+  },
+  {
+    id: "j-2026-09-18",
+    date: "2026-09-18",
+    displayDate: "Sep 18, 2026",
+    mood: "Peaceful",
+    emoji: "😌",
+    color: "#059669",
+    reflection: "Practiced mindful breathing before the important meeting. Surrendered the fear of failure and focused purely on sincerity.",
+    teaching: "Bhagavad Gita 2.47",
+    createdAt: new Date("2026-09-18T14:30:00").getTime()
+  },
+  {
+    id: "j-2026-09-14",
+    date: "2026-09-14",
+    displayDate: "Sep 14, 2026",
+    mood: "Grateful",
+    emoji: "🙏",
+    color: "#7C3AED",
+    reflection: "Realized comparison only clouds my vision. Thankful for my unique path and the capacity to serve.",
+    teaching: "Bhagavad Gita 3.35",
+    createdAt: new Date("2026-09-14T09:15:00").getTime()
+  },
+  {
+    id: "j-2026-09-10",
+    date: "2026-09-10",
+    displayDate: "Sep 10, 2026",
+    mood: "Calm",
+    emoji: "🌿",
+    color: "#0D9488",
+    reflection: "Morning meditation on the imperishable Self. A very serene day with high clarity.",
+    teaching: "Bhagavad Gita 6.5",
+    createdAt: new Date("2026-09-10T08:00:00").getTime()
+  },
+  {
+    id: "j-2026-09-06",
+    date: "2026-09-06",
+    displayDate: "Sep 06, 2026",
+    mood: "Excited",
+    emoji: "🤩",
+    color: "#DB2777",
+    reflection: "Started a creative new endeavor. Bringing pure devotion and passion to the work.",
+    teaching: "Bhagavad Gita 4.38",
+    createdAt: new Date("2026-09-06T11:45:00").getTime()
+  }
 ];
 
 export const INITIAL_REFLECTIONS: ReflectionEntry[] = [
@@ -170,3 +239,39 @@ export const FALLBACK_GUIDANCE: Record<string, GuidanceData> = {
     action: "Take one clear, well-intentioned step forward today without measuring the ultimate result. Release the need for immediate certainty."
   }
 };
+
+export const JAPA_MANTRAS: Mantra[] = [
+  {
+    id: "hare-krishna",
+    name: "Hare Krishna Hare Krishna, Krishna Krishna Hare Hare",
+    shortName: "Hare Krishna",
+    fullText: "Hare Krishna Hare Krishna, Krishna Krishna Hare Hare, Hare Rama Hare Rama, Rama Rama Hare Hare",
+    sanskrit: "हरे कृष्ण हरे कृष्ण, कृष्ण कृष्ण हरे हरे",
+    meaning: "The Maha-mantra for inner peace, pure love, and transcendental consciousness."
+  },
+  {
+    id: "gayatri-mantra",
+    name: "Gayatri Mantra",
+    shortName: "Gayatri Mantra",
+    fullText: "Om Bhur Bhuvaḥ Svaḥ, Tat-savitur Vareṇyaṁ Bhargo Devasya Dhīmahi, Dhiyo Yo Naḥ Prachodayāt",
+    sanskrit: "ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं भर्गो देवस्य धीमहि धियो यो नः प्रचोदयात्",
+    meaning: "A universal prayer for spiritual illumination, wisdom, and clarity of mind."
+  },
+  {
+    id: "radha-radha",
+    name: "Radha Radha",
+    shortName: "Radha Radha",
+    fullText: "Radhe Radhe Radhe, Shri Radha Radhe Radhe",
+    sanskrit: "श्री राधा राधे राधे, राधे राधे",
+    meaning: "An intimate remembrance of divine devotion, sweet grace, and surrender."
+  },
+  {
+    id: "om-namo-bhagavate",
+    name: "Om Namo Bhagavate Vasudevaya",
+    shortName: "Om Namo Bhagavate",
+    fullText: "Om Namo Bhagavate Vasudevaya",
+    sanskrit: "ॐ नमो भगवते वासुदेवाय",
+    meaning: "Salutations to the Supreme Lord Sri Krishna who resides within all living beings."
+  }
+];
+

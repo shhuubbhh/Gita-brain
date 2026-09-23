@@ -32,7 +32,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const handleTestConnection = async () => {
     setIsTesting(true);
     setServerUrl(serverUrlInput);
-    const res = await checkServerHealth(serverUrlInput);
+    setHealthStatus('Checking connection...');
+    const res = await checkServerHealth(serverUrlInput, (statusMsg) => {
+      setHealthStatus(statusMsg);
+    });
     setIsTesting(false);
     setIsHealthOk(res.ok);
     setHealthStatus(res.statusText);
