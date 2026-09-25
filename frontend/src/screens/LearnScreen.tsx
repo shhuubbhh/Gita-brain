@@ -25,22 +25,22 @@ export const LearnScreen: React.FC<LearnScreenProps> = ({ onSelectChapterPrompt 
 
   // CHAPTER DETAIL VIEW
   if (currentChapter) {
-    const color = currentChapter.color || '#d4a050';
+    const color = '#1E5E3A';
     return (
-      <div style={{ padding: '52px 20px 32px', minHeight: '100vh' }} className="animate-fade-up">
+      <div style={{ padding: '42px 20px 32px', minHeight: '100vh', background: '#FAF7F2' }} className="animate-fade-up">
         <button
           onClick={() => setSelectedChapterIndex(null)}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 6,
-            color: '#4a4464',
+            color: '#6F6B64',
             fontSize: 13,
             background: 'none',
             border: 'none',
             cursor: 'pointer',
             padding: 0,
-            marginBottom: 28
+            marginBottom: 24
           }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -54,7 +54,7 @@ export const LearnScreen: React.FC<LearnScreenProps> = ({ onSelectChapterPrompt 
           fontFamily: 'var(--font-display)',
           fontSize: 80,
           color: color,
-          opacity: 0.12,
+          opacity: 0.15,
           lineHeight: 1,
           fontWeight: 300,
           marginBottom: -16,
@@ -77,31 +77,31 @@ export const LearnScreen: React.FC<LearnScreenProps> = ({ onSelectChapterPrompt 
         <h2 style={{
           fontFamily: 'var(--font-display)',
           fontSize: 28,
-          color: '#ede9f8',
+          color: '#1F1C18',
           lineHeight: 1.25,
           marginBottom: 6,
-          fontWeight: 400
+          fontWeight: 600
         }}>
           {currentChapter.name}
         </h2>
 
-        <p style={{ fontSize: 15, color: '#8b85a8', marginBottom: 28 }}>
+        <p style={{ fontSize: 15, color: '#6F6B64', marginBottom: 28 }}>
           {currentChapter.theme}
         </p>
 
-        <div style={{ borderTop: '1px solid #2d2748', paddingTop: 24, display: 'flex', flexDirection: 'column', gap: 22 }}>
+        <div style={{ borderTop: '1px solid #ECE6DD', paddingTop: 24, display: 'flex', flexDirection: 'column', gap: 22 }}>
           <div>
-            <div style={{ fontSize: 10, color: '#d4a050', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
+            <div style={{ fontSize: 11, color: '#1E5E3A', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
               About This Chapter
             </div>
-            <p style={{ fontSize: 15, color: '#b8b2d0', lineHeight: 1.8 }}>
+            <p style={{ fontSize: 14.5, color: '#3A3630', lineHeight: 1.75 }}>
               {CHAPTER_DESCRIPTIONS[currentChapter.num] ||
                 `Chapter ${currentChapter.num} explores the theme of ${currentChapter.theme.toLowerCase()} through Krishna's dialogue with Arjuna. Its teachings remain deeply relevant to modern life and inner growth.`}
             </p>
           </div>
 
           <div>
-            <div style={{ fontSize: 10, color: '#d4a050', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
+            <div style={{ fontSize: 11, color: '#1E5E3A', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
               Key Themes
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -109,12 +109,13 @@ export const LearnScreen: React.FC<LearnScreenProps> = ({ onSelectChapterPrompt 
                 <span
                   key={k}
                   style={{
-                    background: `${color}10`,
-                    border: `1px solid ${color}25`,
+                    background: 'rgba(30, 94, 58, 0.08)',
+                    border: '1px solid rgba(30, 94, 58, 0.2)',
                     borderRadius: 20,
                     padding: '7px 14px',
-                    color: '#8b85a8',
-                    fontSize: 13
+                    color: '#1E5E3A',
+                    fontSize: 13,
+                    fontWeight: 500
                   }}
                 >
                   {k}
@@ -130,19 +131,20 @@ export const LearnScreen: React.FC<LearnScreenProps> = ({ onSelectChapterPrompt 
               }
             }}
             style={{
-              background: `${color}15`,
-              border: `1px solid ${color}30`,
+              background: '#1E5E3A',
+              border: 'none',
               borderRadius: 14,
               padding: '16px',
-              color: color,
+              color: '#FFFFFF',
               fontSize: 14,
               fontWeight: 600,
               cursor: 'pointer',
               width: '100%',
-              marginTop: 4
+              marginTop: 8,
+              boxShadow: '0 4px 14px rgba(30, 94, 58, 0.2)'
             }}
           >
-            Explore Verses in Chapter {currentChapter.num}
+            Explore Wisdom in Chapter {currentChapter.num}
           </button>
         </div>
       </div>
@@ -151,45 +153,44 @@ export const LearnScreen: React.FC<LearnScreenProps> = ({ onSelectChapterPrompt 
 
   // DEFAULT 18 CHAPTERS LIST
   return (
-    <div style={{ padding: '52px 18px 24px', minHeight: '100vh' }}>
-      <div style={{ marginBottom: 24 }}>
+    <div style={{ padding: '36px 18px 24px', minHeight: '100vh', background: '#FAF7F2' }}>
+      <div style={{ marginBottom: 20 }}>
         <div style={{
           fontSize: 11,
-          color: '#4a4464',
-          fontWeight: 600,
+          color: '#1E5E3A',
+          fontWeight: 700,
           letterSpacing: '0.12em',
           textTransform: 'uppercase',
-          marginBottom: 8
+          marginBottom: 6
         }}>
           Explore
         </div>
         <h2 style={{
           fontFamily: 'var(--font-display)',
-          fontSize: 30,
-          color: '#ede9f8',
+          fontSize: 28,
+          color: '#1F1C18',
           lineHeight: 1.2,
-          fontWeight: 400,
+          fontWeight: 600,
           marginBottom: 8
         }}>
           The Bhagavad Gita
         </h2>
-        <p style={{ fontSize: 14, color: '#6b6487', lineHeight: 1.6 }}>
-          18 chapters of eternal wisdom.<br />
-          Each teaching, a window into the self.
+        <p style={{ fontSize: 14, color: '#6F6B64', lineHeight: 1.5 }}>
+          18 chapters of eternal wisdom. Each teaching, a window into self-discovery.
         </p>
       </div>
 
       {/* Search Input */}
-      <div style={{ position: 'relative', marginBottom: 22 }}>
+      <div style={{ position: 'relative', marginBottom: 20 }}>
         <svg
-          width="15"
-          height="15"
+          width="16"
+          height="16"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#4a4464"
+          stroke="#9C978F"
           strokeWidth="2"
           strokeLinecap="round"
-          style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }}
+          style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)' }}
         >
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.35-4.35" />
@@ -197,71 +198,74 @@ export const LearnScreen: React.FC<LearnScreenProps> = ({ onSelectChapterPrompt 
         <input
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
-          placeholder="Search the Gita..."
+          placeholder="Search chapters, themes, or Sanskrit names..."
           style={{
             width: '100%',
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid #2d2748',
-            borderRadius: 12,
-            padding: '13px 16px 13px 40px',
-            color: '#b8b2d0',
+            background: '#FFFFFF',
+            border: '1px solid #ECE6DD',
+            borderRadius: 14,
+            padding: '13px 16px 13px 44px',
+            color: '#1F1C18',
             fontSize: 14,
             fontFamily: 'inherit',
-            outline: 'none'
+            outline: 'none',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
           }}
-          onFocus={e => e.currentTarget.style.borderColor = 'rgba(212,160,80,0.35)'}
-          onBlur={e => e.currentTarget.style.borderColor = '#2d2748'}
+          onFocus={e => e.currentTarget.style.borderColor = '#1E5E3A'}
+          onBlur={e => e.currentTarget.style.borderColor = '#ECE6DD'}
         />
       </div>
 
       {/* 2-Column Chapter Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 11 }}>
-        {filteredChapters.map((ch, idx) => {
+        {filteredChapters.map((ch) => {
           const originalIdx = ch.num - 1;
-          const color = ch.color || '#d4a050';
           return (
             <button
               key={ch.num}
               onClick={() => setSelectedChapterIndex(originalIdx)}
               style={{
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid #2d2748',
+                background: '#FFFFFF',
+                border: '1px solid #ECE6DD',
                 borderRadius: 16,
-                padding: '18px 16px',
+                padding: '16px 14px',
                 textAlign: 'left',
                 cursor: 'pointer',
-                transition: 'all 0.18s'
+                transition: 'all 0.18s',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.02)'
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = `${color}08`;
-                e.currentTarget.style.borderColor = `${color}35`;
+                e.currentTarget.style.borderColor = '#1E5E3A';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(30, 94, 58, 0.08)';
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
-                e.currentTarget.style.borderColor = '#2d2748';
+                e.currentTarget.style.borderColor = '#ECE6DD';
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.02)';
               }}
             >
               <div style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: 34,
-                color: color,
+                fontSize: 32,
+                color: '#1E5E3A',
                 opacity: 0.35,
                 lineHeight: 1,
-                marginBottom: 10,
-                fontWeight: 300
+                marginBottom: 8,
+                fontWeight: 400
               }}>
                 {String(ch.num).padStart(2, '0')}
               </div>
               <div style={{
-                fontSize: 12,
-                color: '#c4bedd',
-                fontWeight: 500,
-                lineHeight: 1.4,
+                fontSize: 13,
+                color: '#1F1C18',
+                fontWeight: 600,
+                lineHeight: 1.35,
                 marginBottom: 4
               }}>
                 {ch.name.split(' ').slice(0, 3).join(' ')}
               </div>
-              <div style={{ fontSize: 11, color: '#4a4464', lineHeight: 1.4 }}>
+              <div style={{ fontSize: 11.5, color: '#6F6B64', lineHeight: 1.4 }}>
                 {ch.theme}
               </div>
             </button>

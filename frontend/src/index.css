@@ -3,17 +3,34 @@
 
 :root {
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Fraunces", Georgia, serif;
-  --bg-primary: #0e0c1b;
-  --bg-secondary: #141124;
-  --bg-card: rgba(42, 36, 68, 0.85);
-  --border-subtle: #2d2748;
-  --border-gold: rgba(212, 160, 80, 0.2);
-  --text-main: #ede9f8;
-  --text-muted: #8b85a8;
-  --text-subtle: #6b6487;
-  --gold: #d4a050;
-  --gold-light: #e8c97a;
+  --font-display: "Fraunces", "Playfair Display", Georgia, serif;
+  --bg-primary: #FAF7F2;
+  --bg-secondary: #F4EFE6;
+  --bg-card: #FFFFFF;
+  --border-subtle: #ECE6DD;
+  --border-gold: rgba(212, 160, 80, 0.3);
+  --text-main: #1F1C18;
+  --text-muted: #6F6B64;
+  --text-subtle: #9C978F;
+  --primary-green: #1E5E3A;
+  --sage-bubble: #D4E2D8;
+  --gold: #D4A050;
+  --gold-warm: #ECA836;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #121614;
+  --bg-secondary: #19201C;
+  --bg-card: #1E2621;
+  --border-subtle: #29342D;
+  --border-gold: rgba(212, 160, 80, 0.35);
+  --text-main: #F3F0EA;
+  --text-muted: #A6A095;
+  --text-subtle: #7A756D;
+  --primary-green: #297A4C;
+  --sage-bubble: #1F3628;
+  --gold: #E5B466;
+  --gold-warm: #F2BD59;
 }
 
 *, *::before, *::after {
@@ -27,7 +44,7 @@ html, body, #root {
   height: 100%;
   width: 100%;
   background-color: var(--bg-primary);
-  color: #b8b2d0;
+  color: var(--text-main);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

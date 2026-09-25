@@ -1,24 +1,44 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Mantra } from '../types';
 import { JAPA_MANTRAS } from '../data/gitaData';
+import { japaAudio } from '../utils/japaAudio';
 
 interface JapaScreenProps {
   onMantraComplete?: (mantraName: string, roundNumber: number) => void;
+  onOpenMenu?: () => void;
 }
 
 const BEAD_COUNT = 108;
 const SVG_SIZE = 320;
 const CENTER_X = SVG_SIZE / 2;
 const CENTER_Y = SVG_SIZE / 2;
-const MALA_RADIUS = 125;
-const INNER_CIRCLE_RADIUS = 76;
+const MALA_RADIUS = 116;
+const BEAD_RADIUS = 3.35; // mathematically touches at 108 beads around circumference 728px
 
-export const JapaScreen: React.FC<JapaScreenProps> = ({ onMantraComplete }) => {
-  // Persisted state
+interface JapaHistoryItem {
+  dateStr: string; // "2026-09-24"
+  displayDate: string; // "24 September 2026"
+  totalMalas: number;
+  totalRepetitions: number;
+  mantraCounts: Record<string, number>;
+}
+
+export const JapaScreen: React.FC<JapaScreenProps> = ({
+  onMantraComplete,
+  onOpenMenu
+}) => {
+  // Screen navigation state: 'counter' (Screen 1) | 'complete' (Screen 2) | 'progress' (Screen 3)
+  const [currentView, setCurrentView] = useState<'counter' | 'complete' | 'progress'>('counter');
+
+  // Initial count defaults strictly to 0 for a new session
   const [count, setCount] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('gita_japa_count');
-      return saved ? Math.min(Math.max(parseInt(saved, 10), 0), BEAD_COUNT) : 0;
+      const parsed = saved ? parseInt(saved, 10) : 0;
+      if (parsed >= BEAD_COUNT || isNaN(parsed) || parsed < 0) {
+        return 0;
+      }
+      return parsed;
     } catch {
       return 0;
     }
@@ -27,9 +47,9 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({ onMantraComplete }) => {
   const [selectedMantraId, setSelectedMantraId] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('gita_japa_mantra_id');
-      return saved || 'hare-krishna';
+      return saved || 'gayatri-mantra';
     } catch {
-      return 'hare-krishna';
+      return 'gayatri-mantra';
     }
   });
 
@@ -42,19 +62,53 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({ onMantraComplete }) => {
     }
   });
 
-  const [completedRounds, setCompletedRounds] = useState<number>(() => {
+  // User history starts strictly at empty (0 malas, 0 repetitions) until rounds are completed
+  const [history, setHistory] = useState<JapaHistoryItem[]>(() => {
     try {
-      const saved = localStorage.getItem('gita_japa_completed_rounds');
-      return saved ? parseInt(saved, 10) : 0;
+      // Clear legacy mock seed if present
+      localStorage.removeItem('gita_japa_history_v2');
+      const saved = localStorage.getItem('gita_japa_user_history');
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return 0;
+      return [];
     }
   });
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [tapScale, setTapScale] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [soundToast, setSoundToast] = useState<string | null>(null);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const toggleSound = () => {
+    setSoundEnabled(prev => {
+      const next = !prev;
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+      setSoundToast(next ? "Sound: ON 🔔" : "Sound: MUTED 🔇");
+      toastTimeoutRef.current = setTimeout(() => {
+        setSoundToast(null);
+      }, 1800);
+      if (next) {
+        japaAudio.playBeadChime();
+      }
+      return next;
+    });
+  };
+
+  // Pre-initialize and keep audio hardware responsive on user interactions
+  useEffect(() => {
+    japaAudio.init();
+    const handleUserInteraction = () => {
+      japaAudio.unlock();
+    };
+    window.addEventListener('click', handleUserInteraction, { passive: true });
+    window.addEventListener('touchstart', handleUserInteraction, { passive: true });
+    return () => {
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('touchstart', handleUserInteraction);
+    };
+  }, []);
 
   // Sync state to localStorage
   useEffect(() => {
@@ -75,11 +129,30 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({ onMantraComplete }) => {
     } catch {}
   }, [soundEnabled]);
 
+  // Synchronize sound status when modified in Settings screen
+  useEffect(() => {
+    const syncSound = () => {
+      try {
+        const saved = localStorage.getItem('gita_japa_sound');
+        if (saved !== null) {
+          setSoundEnabled(saved === 'true');
+        }
+      } catch {}
+    };
+    syncSound();
+    window.addEventListener('storage', syncSound);
+    window.addEventListener('japa-sound-changed', syncSound);
+    return () => {
+      window.removeEventListener('storage', syncSound);
+      window.removeEventListener('japa-sound-changed', syncSound);
+    };
+  }, []);
+
   useEffect(() => {
     try {
-      localStorage.setItem('gita_japa_completed_rounds', completedRounds.toString());
+      localStorage.setItem('gita_japa_user_history', JSON.stringify(history));
     } catch {}
-  }, [completedRounds]);
+  }, [history]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -97,11 +170,10 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({ onMantraComplete }) => {
   }, [isDropdownOpen]);
 
   const currentMantra: Mantra = useMemo(() => {
-    return JAPA_MANTRAS.find(m => m.id === selectedMantraId) || JAPA_MANTRAS[0];
+    return JAPA_MANTRAS.find(m => m.id === selectedMantraId) || JAPA_MANTRAS[1] || JAPA_MANTRAS[0];
   }, [selectedMantraId]);
 
-  // Pre-calculate 108 bead positions around the circle
-  // Starts at 12 o'clock (-PI/2) and progresses clockwise
+  // Pre-calculate 108 bead coordinates starting at 12 o'clock (-PI/2) clockwise
   const beads = useMemo(() => {
     return Array.from({ length: BEAD_COUNT }, (_, i) => {
       const angle = -Math.PI / 2 + (2 * Math.PI * i) / BEAD_COUNT;
@@ -111,627 +183,990 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({ onMantraComplete }) => {
     });
   }, []);
 
-  // Web Audio chime synthesis (zero external files, instant, 100% offline)
-  const playBeadChime = () => {
-    try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+  // Record completed round in history
+  const recordCompletedRound = () => {
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const displayDate = `${now.getDate()} ${now.toLocaleString('en-US', { month: 'long' })} ${now.getFullYear()}`;
+    const mantraName = currentMantra.shortName || currentMantra.name;
 
-      osc.type = 'sine';
-      // Gentle meditation bell tone (528Hz ramped down softly)
-      osc.frequency.setValueAtTime(528, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(264, ctx.currentTime + 0.11);
+    setHistory(prev => {
+      const existingIdx = prev.findIndex(item => item.dateStr === dateStr);
+      if (existingIdx >= 0) {
+        const item = prev[existingIdx];
+        const updatedCounts = {
+          ...item.mantraCounts,
+          [mantraName]: (item.mantraCounts[mantraName] || 0) + 1
+        };
+        const updatedItem: JapaHistoryItem = {
+          ...item,
+          totalMalas: item.totalMalas + 1,
+          totalRepetitions: (item.totalMalas + 1) * BEAD_COUNT,
+          mantraCounts: updatedCounts
+        };
+        const copy = [...prev];
+        copy[existingIdx] = updatedItem;
+        return copy;
+      } else {
+        const newItem: JapaHistoryItem = {
+          dateStr,
+          displayDate,
+          totalMalas: 1,
+          totalRepetitions: BEAD_COUNT,
+          mantraCounts: {
+            [mantraName]: 1
+          }
+        };
+        return [newItem, ...prev];
+      }
+    });
 
-      gain.gain.setValueAtTime(0.04, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.13);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start();
-      osc.stop(ctx.currentTime + 0.14);
-    } catch {}
+    if (onMantraComplete) {
+      onMantraComplete(currentMantra.name, totalMalasCount + 1);
+    }
   };
 
-  const playCompletionChime = () => {
-    try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-
-      // Triple harmonizing temple chimes
-      [396, 528, 639].forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        const start = ctx.currentTime + i * 0.14;
-        osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0.06, start);
-        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.38);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + 0.40);
-      });
-    } catch {}
-  };
-
-  // Center tap counter logic
+  // Tap handler: increments count, adds one bead
   const handleTap = () => {
     if (count >= BEAD_COUNT) {
-      setShowCompletionModal(true);
+      setCurrentView('complete');
       return;
     }
 
     const nextCount = count + 1;
     setCount(nextCount);
 
-    // Spring tap animation
     setTapScale(true);
-    setTimeout(() => setTapScale(false), 140);
+    setTimeout(() => setTapScale(false), 120);
 
-    // Subtle vibration haptic
     try {
       if (navigator.vibrate) {
-        navigator.vibrate(10);
+        navigator.vibrate(12);
       }
     } catch {}
 
-    // Subtle audio feedback
     if (soundEnabled) {
       if (nextCount === BEAD_COUNT) {
-        playCompletionChime();
+        japaAudio.playCompletionChime();
       } else {
-        playBeadChime();
+        japaAudio.playBeadChime();
       }
     }
 
-    // Reached 108: complete round
+    // When 108 taps are reached, record progress and transition to Screen 2!
     if (nextCount === BEAD_COUNT) {
-      const newTotal = completedRounds + 1;
-      setCompletedRounds(newTotal);
-      if (onMantraComplete) {
-        onMantraComplete(currentMantra.name, newTotal);
-      }
+      recordCompletedRound();
       setTimeout(() => {
-        setShowCompletionModal(true);
-      }, 300);
+        setCurrentView('complete');
+      }, 350);
     }
+  };
+
+  const handleReset = () => {
+    setCount(0);
   };
 
   const handleStartAgain = () => {
     setCount(0);
-    setShowCompletionModal(false);
+    setCurrentView('counter');
   };
 
-  const handleDone = () => {
-    setShowCompletionModal(false);
-  };
+  // Total user progress counts across all recorded days
+  const totalMalasCount = useMemo(() => {
+    return history.reduce((acc, h) => acc + h.totalMalas, 0);
+  }, [history]);
+
+  const totalRepetitionsCount = totalMalasCount * BEAD_COUNT;
 
   return (
     <div style={{
-      background: '#FAF8F5',
-      minHeight: '100%',
-      padding: '24px 20px 40px',
-      color: '#1F1D1A',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       display: 'flex',
       flexDirection: 'column',
+      minHeight: '100%',
+      background: '#FAF8F3',
+      color: '#1F1C18',
+      fontFamily: 'var(--font-sans)',
       userSelect: 'none'
     }}>
-      {/* Header */}
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{
-          fontFamily: "'Fraunces', 'Playfair Display', Georgia, serif",
-          fontSize: 32,
-          fontWeight: 700,
-          color: '#1F1D1A',
-          margin: 0,
-          letterSpacing: '-0.02em',
-          lineHeight: 1.15
-        }}>
-          Japa
-        </h1>
-        <p style={{
-          margin: '4px 0 0',
-          fontSize: 14,
-          color: '#78716C',
-          fontWeight: 400,
-          letterSpacing: '0.01em'
-        }}>
-          108 repetitions · Meditative practice
-        </p>
-      </div>
+      <style>{`
+        @keyframes featherFloat {
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-8px) rotate(1.5deg);
+          }
+        }
+        @keyframes featherGlow {
+          0%, 100% {
+            filter: drop-shadow(0 4px 14px rgba(30, 94, 58, 0.16));
+          }
+          50% {
+            filter: drop-shadow(0 10px 24px rgba(30, 94, 58, 0.32));
+          }
+        }
+      `}</style>
 
-      {/* Mantra Selector & Sound Toggle Row */}
-      <div style={{ display: 'flex', gap: 10, alignItems: 'stretch', marginBottom: 24, position: 'relative' }} ref={dropdownRef}>
-        {/* Dropdown Container */}
-        <div style={{ flex: 1, position: 'relative' }}>
-          <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: '#FFFFFF',
-              border: isDropdownOpen ? '1px solid #D4A050' : '1px solid #E5DFD5',
-              borderRadius: 14,
-              padding: '12px 14px',
-              fontSize: 14,
-              fontWeight: 500,
-              color: '#262422',
-              cursor: 'pointer',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-              transition: 'all 0.18s ease',
-              textAlign: 'left'
-            }}
-          >
-            <span style={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              paddingRight: 8,
-              letterSpacing: '0.01em'
-            }}>
-              {currentMantra.name}
-            </span>
-            <span style={{
-              color: '#8A8275',
-              fontSize: 11,
-              transform: isDropdownOpen ? 'rotate(180deg)' : 'none',
-              transition: 'transform 0.2s ease',
-              display: 'inline-block'
-            }}>
-              ▼
-            </span>
-          </button>
-
-          {/* Dropdown Options Sheet */}
-          {isDropdownOpen && (
-            <div style={{
-              position: 'absolute',
-              top: 'calc(100% + 6px)',
-              left: 0,
-              right: 0,
-              background: '#FFFFFF',
-              border: '1px solid #E5DFD5',
-              borderRadius: 16,
-              boxShadow: '0 8px 24px rgba(40, 30, 20, 0.12)',
-              zIndex: 90,
-              overflow: 'hidden',
-              padding: '6px 0',
-              animation: 'fadeInDown 0.15s ease-out'
-            }}>
-              <div style={{ padding: '6px 14px', fontSize: 11, fontWeight: 700, color: '#A8A29E', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                Select Mantra
-              </div>
-              {JAPA_MANTRAS.map((mantra) => {
-                const isSelected = mantra.id === selectedMantraId;
-                return (
-                  <button
-                    key={mantra.id}
-                    onClick={() => {
-                      setSelectedMantraId(mantra.id);
-                      setIsDropdownOpen(false);
-                    }}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '11px 14px',
-                      background: isSelected ? '#FAF5ED' : 'transparent',
-                      border: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      cursor: 'pointer',
-                      transition: 'background 0.15s'
-                    }}
-                  >
-                    <div>
-                      <div style={{
-                        fontSize: 13.5,
-                        fontWeight: isSelected ? 600 : 500,
-                        color: isSelected ? '#936118' : '#262422'
-                      }}>
-                        {mantra.name}
-                      </div>
-                      <div style={{
-                        fontSize: 11,
-                        color: '#8A8275',
-                        marginTop: 2
-                      }}>
-                        {mantra.sanskrit}
-                      </div>
-                    </div>
-                    {isSelected && (
-                      <span style={{ color: '#D4A050', fontSize: 16, fontWeight: 700, marginLeft: 8 }}>
-                        ✓
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Sound On / Off Toggle Pill */}
-        <button
-          onClick={() => setSoundEnabled(!soundEnabled)}
-          title={soundEnabled ? 'Sound is On (Click to mute)' : 'Sound is Off (Click to unmute)'}
-          style={{
-            background: soundEnabled ? '#F5EFEB' : '#F1EBE4',
-            border: soundEnabled ? '1px solid #D8CCBD' : '1px solid #E5DFD5',
-            borderRadius: 14,
-            padding: '0 14px',
+      {/* ═════════════════════════════════════════════════════════════
+          SCREEN 1: CHANTING SCREEN (Mala Circle with Taps)
+      ═════════════════════════════════════════════════════════════ */}
+      {currentView === 'counter' && (
+        <div className="animate-fade-up" style={{ display: 'flex', flexDirection: 'column', flex: 1, paddingBottom: 20 }}>
+          {/* Header Bar */}
+          <header style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 6,
-            cursor: 'pointer',
-            fontSize: 12.5,
-            fontWeight: 500,
-            color: soundEnabled ? '#644A1E' : '#9CA3AF',
-            transition: 'all 0.18s ease',
-            flexShrink: 0
-          }}
-        >
-          {soundEnabled ? (
-            <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-              </svg>
-              <span>On</span>
-            </>
-          ) : (
-            <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                <line x1="23" y1="9" x2="17" y2="15" />
-                <line x1="17" y1="9" x2="23" y2="15" />
-              </svg>
-              <span>Off</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Circular Mala Visual Section */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        margin: '10px 0 18px',
-        position: 'relative'
-      }}>
-        <div style={{
-          position: 'relative',
-          width: SVG_SIZE,
-          height: SVG_SIZE,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <svg
-            width={SVG_SIZE}
-            height={SVG_SIZE}
-            viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
-            style={{ overflow: 'visible' }}
-          >
-            <defs>
-              {/* Active bead radial glow */}
-              <radialGradient id="activeGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#E5B566" stopOpacity="1" />
-                <stop offset="100%" stopColor="#B37C24" stopOpacity="1" />
-              </radialGradient>
-              <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="1.5" result="glow" />
-                <feComposite in="SourceGraphic" in2="glow" operator="over" />
-              </filter>
-            </defs>
-
-            {/* Subtle guideline track */}
-            <circle
-              cx={CENTER_X}
-              cy={CENTER_Y}
-              r={MALA_RADIUS}
-              fill="none"
-              stroke="#ECE5DA"
-              strokeWidth="0.8"
-              strokeDasharray="2 3"
-            />
-
-            {/* 108 Beads */}
-            {beads.map(({ index, x, y }) => {
-              const isActive = index < count;
-              const isCurrent = index === count - 1;
-
-              return (
-                <circle
-                  key={index}
-                  cx={x}
-                  cy={y}
-                  r={isCurrent ? 3.6 : isActive ? 3.0 : 2.2}
-                  fill={isActive ? 'url(#activeGlow)' : '#E7E0D8'}
-                  stroke={isActive ? '#9C6E20' : '#D6CEC2'}
-                  strokeWidth={isCurrent ? 1.0 : 0.6}
-                  filter={isCurrent ? 'url(#softGlow)' : undefined}
-                  style={{
-                    transition: 'r 0.15s ease, fill 0.15s ease, stroke 0.15s ease'
-                  }}
-                />
-              );
-            })}
-
-            {/* Central Tap Target Circle */}
-            <circle
-              cx={CENTER_X}
-              cy={CENTER_Y}
-              r={INNER_CIRCLE_RADIUS}
-              fill="#FAF8F5"
-              stroke="#E0D6C8"
-              strokeWidth="1.2"
-              onClick={handleTap}
+            justifyContent: 'space-between',
+            padding: '16px 20px 8px',
+            background: '#FAF8F3'
+          }}>
+            <button
+              onClick={onOpenMenu}
+              aria-label="Open menu"
               style={{
+                background: 'none',
+                border: 'none',
                 cursor: 'pointer',
-                transformOrigin: `${CENTER_X}px ${CENTER_Y}px`,
-                transform: tapScale ? 'scale(0.97)' : 'scale(1)',
-                transition: 'transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                filter: 'drop-shadow(0 2px 8px rgba(100, 80, 50, 0.04))'
+                padding: '6px 0',
+                display: 'flex',
+                alignItems: 'center',
+                color: '#1F1C18'
               }}
-            />
-          </svg>
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3.5" y1="6.5" x2="20.5" y2="6.5" />
+                <line x1="3.5" y1="12" x2="20.5" y2="12" />
+                <line x1="3.5" y1="17.5" x2="20.5" y2="17.5" />
+              </svg>
+            </button>
 
-          {/* Interactive Center Content HTML (rendered on top of SVG center circle) */}
-          <div
-            onClick={handleTap}
-            style={{
-              position: 'absolute',
-              width: INNER_CIRCLE_RADIUS * 2,
-              height: INNER_CIRCLE_RADIUS * 2,
-              borderRadius: '50%',
+            <h1 style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '20px',
+              fontWeight: 600,
+              color: '#1F1C18',
+              margin: 0,
+              letterSpacing: '0.015em',
+              textAlign: 'center',
+              flex: 1
+            }}>
+              Japa / Maala
+            </h1>
+
+            {/* Quick link to view Progress (Screen 3) */}
+            <button
+              onClick={() => setCurrentView('progress')}
+              title="View Maala Progress"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#1E5E3A',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                padding: '4px 0'
+              }}
+            >
+              Progress
+            </button>
+          </header>
+
+          <div style={{ padding: '0 20px' }}>
+            {/* Subtext */}
+            <p style={{
+              margin: '4px 0 14px',
+              fontSize: '13px',
+              color: '#706C64',
+              fontWeight: 400
+            }}>
+              108 repetitions- A meditative practice
+            </p>
+
+            {/* Mantra Dropdown Selector */}
+            <div style={{ position: 'relative', marginBottom: 18 }} ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: '#FFFFFF',
+                  border: isDropdownOpen ? '1px solid #1E5E3A' : '1px solid #E5DFD5',
+                  borderRadius: '12px',
+                  padding: '12px 16px',
+                  fontSize: '14.5px',
+                  fontWeight: 500,
+                  color: '#1F1C18',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span>{currentMantra.shortName || currentMantra.name}</span>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#706C64"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    transform: isDropdownOpen ? 'rotate(180deg)' : 'none',
+                    transition: 'transform 0.18s'
+                  }}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+
+              {/* Dropdown Options Menu */}
+              {isDropdownOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  left: 0,
+                  right: 0,
+                  background: '#FFFFFF',
+                  border: '1px solid #ECE6DD',
+                  borderRadius: '14px',
+                  boxShadow: '0 8px 24px rgba(30, 25, 20, 0.1)',
+                  zIndex: 90,
+                  overflow: 'hidden',
+                  padding: '6px 0'
+                }}>
+                  {JAPA_MANTRAS.map(m => {
+                    const isSelected = m.id === selectedMantraId;
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => {
+                          setSelectedMantraId(m.id);
+                          setIsDropdownOpen(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '11px 16px',
+                          background: isSelected ? 'rgba(30, 94, 58, 0.08)' : 'transparent',
+                          border: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <div>
+                          <div style={{
+                            fontSize: '14px',
+                            fontWeight: isSelected ? 600 : 500,
+                            color: isSelected ? '#1E5E3A' : '#1F1C18'
+                          }}>
+                            {m.shortName || m.name}
+                          </div>
+                        </div>
+                        {isSelected && (
+                          <span style={{ color: '#1E5E3A', fontSize: '15px', fontWeight: 700 }}>✓</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Circular Mala Visual Section */}
+            <div style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor: 'pointer',
-              userSelect: 'none',
-              transform: tapScale ? 'scale(0.97)' : 'scale(1)',
-              transition: 'transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1)'
-            }}
-          >
-            <div style={{
-              fontFamily: "'Fraunces', 'Playfair Display', Georgia, serif",
-              fontSize: 44,
-              fontWeight: 700,
-              color: '#1F1D1A',
-              lineHeight: 1,
-              letterSpacing: '-0.02em',
-              transition: 'color 0.15s'
+              position: 'relative',
+              margin: '0 auto'
             }}>
-              {count}
-            </div>
-            <div style={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: '#8A8275',
-              marginTop: 4,
-              letterSpacing: '0.02em'
-            }}>
-              / {BEAD_COUNT}
-            </div>
-            <div style={{
-              fontSize: 11,
-              fontWeight: 500,
-              color: count === 0 ? '#9C9283' : count === BEAD_COUNT ? '#B37C24' : '#A8A092',
-              marginTop: 4,
-              letterSpacing: '0.04em',
-              textTransform: 'lowercase'
-            }}>
-              {count === 0 ? 'tap to begin' : count === BEAD_COUNT ? 'round complete' : 'tap to count'}
+              <div
+                onClick={handleTap}
+                style={{
+                  position: 'relative',
+                  width: SVG_SIZE,
+                  height: SVG_SIZE,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transform: tapScale ? 'scale(0.985)' : 'scale(1)',
+                  transition: 'transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                }}>
+                <svg
+                  width={SVG_SIZE}
+                  height={SVG_SIZE}
+                  viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
+                  style={{ overflow: 'visible' }}
+                >
+                  <defs>
+                    {/* Realistic 3D pearl bead gradient matching Screen 1 */}
+                    <radialGradient id="pearlShine" cx="35%" cy="30%" r="65%">
+                      <stop offset="0%" stopColor="#FFFFFF" />
+                      <stop offset="28%" stopColor="#F9EFE6" />
+                      <stop offset="65%" stopColor="#DFD1C2" />
+                      <stop offset="100%" stopColor="#A89784" />
+                    </radialGradient>
+                    <filter id="pearlDropShadow" x="-30%" y="-30%" width="160%" height="160%">
+                      <feDropShadow dx="0" dy="1.2" stdDeviation="1" floodColor="rgba(80, 60, 40, 0.28)" />
+                    </filter>
+                  </defs>
+
+                  {/* Circular guideline track */}
+                  <circle
+                    cx={CENTER_X}
+                    cy={CENTER_Y}
+                    r={MALA_RADIUS}
+                    fill="none"
+                    stroke="#EBE4D8"
+                    strokeWidth="1"
+                    strokeDasharray="2 3"
+                  />
+
+                  {/* 108 Beads: Every tap makes ONE bead appear! Full circle at 108 */}
+                  {beads.map(({ index, x, y }) => {
+                    const isVisible = index < count;
+                    if (!isVisible) return null;
+
+                    const isCurrent = index === count - 1;
+
+                    return (
+                      <g key={index}>
+                        {isCurrent && (
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={BEAD_RADIUS + 2.4}
+                            fill="none"
+                            stroke="#1E5E3A"
+                            strokeWidth="1.2"
+                            opacity="0.75"
+                          />
+                        )}
+                        <circle
+                          cx={x}
+                          cy={y}
+                          r={BEAD_RADIUS + (isCurrent ? 0.4 : 0)}
+                          fill="url(#pearlShine)"
+                          filter="url(#pearlDropShadow)"
+                        />
+                      </g>
+                    );
+                  })}
+                </svg>
+
+                {/* Central Tap Target Area (Initial count is 0) */}
+                <div
+                  onClick={handleTap}
+                  style={{
+                    position: 'absolute',
+                    width: 150,
+                    height: 150,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transform: tapScale ? 'scale(0.95)' : 'scale(1)',
+                    transition: 'transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                  }}
+                >
+                  <div style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '44px',
+                    fontWeight: 700,
+                    color: '#1E5E3A',
+                    lineHeight: 1
+                  }}>
+                    {count}
+                  </div>
+                  <div style={{
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    color: '#8C867D',
+                    marginTop: '4px'
+                  }}>
+                    / {BEAD_COUNT}
+                  </div>
+                </div>
+
+                {/* Sound Toggle Button (Bottom-Right of Bead Circle) */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleSound();
+                  }}
+                  title={soundEnabled ? "Sound enabled - Tap to mute" : "Sound muted - Tap to enable"}
+                  style={{
+                    position: 'absolute',
+                    bottom: 24,
+                    right: 24,
+                    background: soundEnabled ? '#FFFFFF' : '#FEF2F2',
+                    border: soundEnabled ? '1px solid #ECE6DD' : '1px solid #FCA5A5',
+                    borderRadius: '50%',
+                    width: 38,
+                    height: 38,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: soundEnabled ? '0 2px 6px rgba(0,0,0,0.06)' : '0 2px 8px rgba(220, 38, 38, 0.16)',
+                    color: soundEnabled ? '#1E5E3A' : '#DC2626',
+                    transition: 'all 0.18s ease',
+                    zIndex: 10
+                  }}
+                >
+                  {soundEnabled ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                    </svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                      <line x1="23" y1="9" x2="17" y2="15" />
+                      <line x1="17" y1="9" x2="23" y2="15" />
+                    </svg>
+                  )}
+                </button>
+
+                {/* Floating Toast Notification when Sound is Toggled */}
+                {soundToast && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 70,
+                    right: 14,
+                    background: '#1F1C18',
+                    color: '#FFFFFF',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    padding: '6px 14px',
+                    borderRadius: '18px',
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.22)',
+                    zIndex: 30,
+                    pointerEvents: 'none',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {soundToast}
+                  </div>
+                )}
+              </div>
+
+              {/* Mantra Title & Text Section */}
+              <div style={{
+                textAlign: 'center',
+                margin: '12px auto 20px',
+                maxWidth: 340,
+                padding: '0 10px'
+              }}>
+                <h3 style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  color: '#1F1C18',
+                  margin: '0 0 8px 0'
+                }}>
+                  {currentMantra.shortName || currentMantra.name}
+                </h3>
+                <p style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '13.5px',
+                  color: '#3A3630',
+                  lineHeight: 1.65,
+                  margin: 0,
+                  whiteSpace: 'pre-line'
+                }}>
+                  {selectedMantraId === 'gayatri-mantra' ? (
+                    "Om Bhur Bhuvah Svah Tat Savitur Varenyam\nBhargo Devasya Dhimahi Dhiyo Yo Nah\nPrachodayat"
+                  ) : selectedMantraId === 'hare-krishna' ? (
+                    "Hare Krishna Hare Krishna Krishna Krishna Hare Hare\nHare Rama Hare Rama Rama Rama Hare Hare"
+                  ) : selectedMantraId === 'radha-radha' ? (
+                    "Radhe Radhe Radhe Shri Radha Radhe Radhe\nRadhe Radhe Govinda Radhe Radhe Gopala"
+                  ) : (
+                    currentMantra.fullText
+                  )}
+                </p>
+              </div>
+
+              {/* Primary Tap to Count Button */}
+              <button
+                onClick={handleTap}
+                style={{
+                  width: '100%',
+                  maxWidth: 320,
+                  background: '#16532D',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '28px',
+                  height: '52px',
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(22, 83, 45, 0.25)',
+                  transition: 'transform 0.1s ease',
+                  marginBottom: '12px'
+                }}
+                onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+                onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                Tap to count
+              </button>
+
+              {/* Reset Option */}
+              <button
+                onClick={handleReset}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#706C64',
+                  fontSize: '13.5px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  padding: '6px 16px'
+                }}
+              >
+                Reset
+              </button>
+
+              {/* Dev Test Button to quickly trigger 108 */}
+              <button
+                onClick={() => {
+                  setCount(BEAD_COUNT);
+                  recordCompletedRound();
+                  setCurrentView('complete');
+                }}
+                style={{
+                  marginTop: '10px',
+                  background: 'none',
+                  border: 'none',
+                  color: '#1E5E3A',
+                  fontSize: '11px',
+                  opacity: 0.55,
+                  cursor: 'pointer'
+                }}
+              >
+                [ Test 108 Complete → Screen 2 ]
+              </button>
             </div>
           </div>
-        </div>
-
-        {/* Sanskrit Mantra Display underneath mala */}
-        <div style={{
-          marginTop: 18,
-          marginBottom: 16,
-          textAlign: 'center',
-          maxWidth: 320,
-          minHeight: 28
-        }}>
-          <div style={{
-            fontSize: 16,
-            fontWeight: 500,
-            color: '#6D675E',
-            letterSpacing: '0.02em',
-            lineHeight: 1.45
-          }}>
-            {currentMantra.sanskrit}
-          </div>
-        </div>
-      </div>
-
-      {/* Start Again Action Button */}
-      <button
-        onClick={handleStartAgain}
-        style={{
-          width: '100%',
-          background: '#F2ECE1',
-          border: '1px solid #E5DFD5',
-          borderRadius: 14,
-          padding: '13px 18px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          fontSize: 15,
-          fontWeight: 600,
-          color: '#1E293B',
-          cursor: 'pointer',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
-          transition: 'all 0.15s ease',
-          marginBottom: 16
-        }}
-      >
-        <span style={{ fontSize: 16 }}>🔄</span>
-        <span>Start again</span>
-      </button>
-
-      {/* Guidance Card */}
-      <div style={{
-        background: '#F4EFEB',
-        border: '1px solid #E8E0D5',
-        borderRadius: 18,
-        padding: '16px 20px',
-        color: '#78716C',
-        fontSize: 13.5,
-        lineHeight: 1.55,
-        fontWeight: 400
-      }}>
-        Tap the center of the mala to count each repetition. One full round is 108 beads. Allow each tap to be deliberate and unhurried.
-      </div>
-
-      {/* Completed Rounds Counter badge if any */}
-      {completedRounds > 0 && (
-        <div style={{
-          marginTop: 14,
-          textAlign: 'center',
-          fontSize: 12,
-          color: '#8A8275',
-          fontWeight: 500,
-          letterSpacing: '0.02em'
-        }}>
-          🪷 {completedRounds} {completedRounds === 1 ? 'round' : 'rounds'} completed today
         </div>
       )}
 
-      {/* Japa Completion Modal (At 108 / 108) */}
-      {showCompletionModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(25, 20, 15, 0.45)',
-          backdropFilter: 'blur(6px)',
+      {/* ═════════════════════════════════════════════════════════════
+          SCREEN 2: 108 REPETITIONS COMPLETE (Animated Feather, No 'K')
+      ═════════════════════════════════════════════════════════════ */}
+      {currentView === 'complete' && (
+        <div className="animate-fade-up" style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 200,
-          padding: 20
+          flexDirection: 'column',
+          flex: 1,
+          padding: '16px 20px 40px'
         }}>
-          <div style={{
-            width: '100%',
-            maxWidth: 360,
-            background: '#FAF8F5',
-            borderRadius: 24,
-            padding: '28px 24px',
-            textAlign: 'center',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.18)',
-            border: '1px solid #E8DFD3',
-            animation: 'scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+          {/* Header Bar */}
+          <header style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '28px'
           }}>
-            {/* Meditative Icon */}
+            <button
+              onClick={() => setCurrentView('counter')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#1E5E3A',
+                fontSize: '14.5px',
+                fontWeight: 600,
+                padding: '4px 0'
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              <span>Back</span>
+            </button>
+
+            <h1 style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '20px',
+              fontWeight: 600,
+              color: '#1F1C18',
+              margin: 0,
+              flex: 1,
+              textAlign: 'center',
+              paddingRight: '48px'
+            }}>
+              Japa
+            </h1>
+          </header>
+
+          {/* Animated Feather Emblem (using user uploaded feather image, NO 'K' badge) */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            margin: '18px 0 24px',
+            position: 'relative'
+          }}>
             <div style={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              background: '#F3E9DA',
-              border: '1px solid #DFCDB8',
-              display: 'flex',
+              position: 'relative',
+              display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 16px',
-              fontSize: 26
+              animation: 'featherFloat 3.4s ease-in-out infinite, featherGlow 3.4s ease-in-out infinite'
             }}>
-              🪷
-            </div>
+              {/* Soft ambient green/golden aura behind feather */}
+              <div style={{
+                position: 'absolute',
+                width: '140px',
+                height: '140px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(30, 94, 58, 0.12) 0%, rgba(250, 248, 243, 0) 70%)',
+                pointerEvents: 'none'
+              }} />
 
-            {/* Title */}
+              {/* The user-provided feather image */}
+              <img
+                src="/peacock_feather.png"
+                alt="Peacock Feather"
+                style={{
+                  width: '125px',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  display: 'block'
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Heading & Subtext */}
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <h2 style={{
-              fontFamily: "'Fraunces', 'Playfair Display', Georgia, serif",
-              fontSize: 24,
+              fontFamily: 'var(--font-display)',
+              fontSize: '24px',
               fontWeight: 700,
-              color: '#1F1D1A',
-              margin: '0 0 8px',
-              lineHeight: 1.2
+              color: '#1F1C18',
+              margin: '0 0 8px 0',
+              letterSpacing: '-0.01em'
             }}>
               108 repetitions complete
             </h2>
-
-            {/* Mantra tag */}
-            <div style={{
-              fontSize: 12.5,
-              fontWeight: 600,
-              color: '#936118',
-              background: '#F5EBDD',
-              display: 'inline-block',
-              padding: '4px 12px',
-              borderRadius: 20,
-              marginBottom: 14
-            }}>
-              {currentMantra.shortName}
-            </div>
-
-            {/* Supporting message */}
             <p style={{
-              fontSize: 15,
-              color: '#6B655D',
-              lineHeight: 1.5,
-              margin: '0 0 24px',
-              fontStyle: 'italic'
+              fontSize: '14.5px',
+              color: '#706C64',
+              margin: 0,
+              lineHeight: 1.5
             }}>
-              "Take a quiet moment before you continue."
+              Take a quiet moment before you continue.
             </p>
+          </div>
 
-            {/* Actions: Start Again & Done */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button
-                onClick={handleStartAgain}
-                style={{
-                  width: '100%',
-                  background: '#D4A050',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: 14,
-                  padding: '13px 0',
-                  fontSize: 15,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(212, 160, 80, 0.28)',
-                  transition: 'background 0.15s ease'
-                }}
-              >
-                Start Again
-              </button>
+          {/* Action Options matching Screen 2 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: 340, width: '100%', margin: '0 auto' }}>
+            {/* 1. View progress (Outline button) */}
+            <button
+              onClick={() => setCurrentView('progress')}
+              style={{
+                width: '100%',
+                background: '#FFFFFF',
+                border: '1.5px solid #16532D',
+                borderRadius: '26px',
+                height: '50px',
+                fontSize: '15px',
+                fontWeight: 600,
+                color: '#16532D',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(22, 83, 45, 0.04)'}
+              onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+            >
+              View progress
+            </button>
 
-              <button
-                onClick={handleDone}
-                style={{
-                  width: '100%',
-                  background: '#F0EAE0',
-                  color: '#4B463E',
-                  border: '1px solid #E2D7C8',
-                  borderRadius: 14,
-                  padding: '12px 0',
-                  fontSize: 15,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'background 0.15s ease'
-                }}
-              >
-                Done
-              </button>
+            {/* 2. Start Again (Solid green button) */}
+            <button
+              onClick={handleStartAgain}
+              style={{
+                width: '100%',
+                background: '#16532D',
+                border: 'none',
+                borderRadius: '26px',
+                height: '50px',
+                fontSize: '15px',
+                fontWeight: 600,
+                color: '#FFFFFF',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(22, 83, 45, 0.25)',
+                transition: 'transform 0.1s ease'
+              }}
+              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+              onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              Start Again
+            </button>
+
+            {/* 3. Done link */}
+            <button
+              onClick={() => setCurrentView('counter')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#706C64',
+                fontSize: '14px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                padding: '8px 0',
+                marginTop: '4px'
+              }}
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ═════════════════════════════════════════════════════════════
+          SCREEN 3: MAALA PROGRESS (0 Malas Initially, Increments On Completion)
+      ═════════════════════════════════════════════════════════════ */}
+      {currentView === 'progress' && (
+        <div className="animate-fade-up" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          padding: '16px 20px 40px'
+        }}>
+          {/* Header Bar */}
+          <header style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '24px'
+          }}>
+            <button
+              onClick={() => setCurrentView('counter')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#1E5E3A',
+                fontSize: '14.5px',
+                fontWeight: 600,
+                padding: '4px 0'
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              <span>Back</span>
+            </button>
+
+            <h1 style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '20px',
+              fontWeight: 600,
+              color: '#1F1C18',
+              margin: 0,
+              flex: 1,
+              textAlign: 'center',
+              paddingRight: '48px'
+            }}>
+              Maala Progress
+            </h1>
+          </header>
+
+          {/* Top Two Stats Cards (Side by side) */}
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            marginBottom: '28px'
+          }}>
+            {/* Card 1: TOTAL MALAS (Green Card) */}
+            <div style={{
+              flex: 1,
+              background: '#16532D',
+              borderRadius: '16px',
+              padding: '16px 18px',
+              color: '#FFFFFF',
+              boxShadow: '0 4px 14px rgba(22, 83, 45, 0.2)'
+            }}>
+              <div style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                opacity: 0.88,
+                marginBottom: '8px'
+              }}>
+                TOTAL MALAS
+              </div>
+              <div style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '36px',
+                fontWeight: 700,
+                lineHeight: 1
+              }}>
+                {totalMalasCount}
+              </div>
             </div>
+
+            {/* Card 2: REPETITIONS (White Card) */}
+            <div style={{
+              flex: 1,
+              background: '#FFFFFF',
+              border: '1px solid #ECE6DD',
+              borderRadius: '16px',
+              padding: '16px 18px',
+              color: '#1F1C18',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
+            }}>
+              <div style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: '#706C64',
+                marginBottom: '8px'
+              }}>
+                REPETITIONS
+              </div>
+              <div style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '36px',
+                fontWeight: 700,
+                lineHeight: 1
+              }}>
+                {totalRepetitionsCount}
+              </div>
+            </div>
+          </div>
+
+          {/* History Section */}
+          <div>
+            <div style={{
+              fontSize: '11.5px',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: '#8C867D',
+              marginBottom: '12px'
+            }}>
+              HISTORY
+            </div>
+
+            {/* If user hasn't completed any rounds yet */}
+            {history.length === 0 ? (
+              <div style={{
+                background: '#FFFFFF',
+                border: '1px solid #ECE6DD',
+                borderRadius: '18px',
+                padding: '28px 20px',
+                textAlign: 'center',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)'
+              }}>
+                <div style={{ fontSize: '28px', marginBottom: '10px' }}>📿</div>
+                <div style={{
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  color: '#1F1C18',
+                  marginBottom: '6px'
+                }}>
+                  No Japa malas recorded today
+                </div>
+                <p style={{
+                  fontSize: '13px',
+                  color: '#706C64',
+                  margin: 0,
+                  lineHeight: 1.5,
+                  maxWidth: '280px',
+                  marginLeft: 'auto',
+                  marginRight: 'auto'
+                }}>
+                  Complete your first round of 108 repetitions to begin recording your daily progress.
+                </p>
+              </div>
+            ) : (
+              /* History Cards with completed rounds */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {history.map((item, idx) => (
+                  <div
+                    key={item.dateStr || idx}
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1px solid #ECE6DD',
+                      borderRadius: '18px',
+                      padding: '20px',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
+                    }}
+                  >
+                    {/* Date Title & Summary */}
+                    <div style={{ marginBottom: '14px' }}>
+                      <div style={{
+                        fontSize: '15.5px',
+                        fontWeight: 600,
+                        color: '#1F1C18',
+                        marginBottom: '3px'
+                      }}>
+                        {item.displayDate}
+                      </div>
+                      <div style={{
+                        fontSize: '12.5px',
+                        color: '#706C64'
+                      }}>
+                        {item.totalMalas} {item.totalMalas === 1 ? 'Mala' : 'Malas'} · {item.totalRepetitions} repetitions
+                      </div>
+                    </div>
+
+                    {/* List of Mantras Chanted That Day */}
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '10px',
+                      borderTop: '1px solid #F4EFE6',
+                      paddingTop: '12px'
+                    }}>
+                      {Object.entries(item.mantraCounts).map(([mName, roundCount]) => (
+                        <div
+                          key={mName}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            fontSize: '14px'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ color: '#E28743', fontSize: '16px', lineHeight: 1 }}>•</span>
+                            <span style={{ color: '#2B2723', fontWeight: 500 }}>{mName}</span>
+                          </div>
+                          <div style={{
+                            color: '#16532D',
+                            fontWeight: 600,
+                            fontSize: '13.5px'
+                          }}>
+                            {roundCount} ×
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

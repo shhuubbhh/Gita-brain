@@ -6,7 +6,10 @@ interface JournalScreenProps {
   entries: JournalEntry[];
   onSaveEntry: (entry: { date: string; mood: string; reflection: string; teaching?: string }) => void;
   onDeleteEntry?: (id: string) => void;
+  onOpenMenu?: () => void;
 }
+
+type SubScreen = 'landing' | 'write' | 'calendar' | 'history';
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -15,77 +18,64 @@ const MONTH_NAMES = [
 
 const WEEKDAY_NAMES = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-// Generates a spiritual Gita synthesis based on monthly mood patterns
-function generateMonthlyGitaSummary(entries: JournalEntry[], monthName: string): { title: string; quote: string; verse: string; insight: string } {
-  if (entries.length === 0) {
-    return {
-      title: "A Blank Page for Self-Discovery",
-      quote: "Yoga is the journey of the self, through the self, to the self.",
-      verse: "Bhagavad Gita 6.20",
-      insight: "Begin recording your daily reflections to cultivate self-awareness and equanimity."
-    };
+// Gita teaching for the monthly reflection card & modal
+const FEATURED_MONTHLY_TEACHING = {
+  ref: "BG 2.47 • Sānkhya Yoga",
+  shortQuote: "You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions. Never consider yourself...",
+  fullQuote: "You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions. Never consider yourself the cause of the results of your activities, and never be attached to not doing your duty.",
+  sanskrit: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन ।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ॥",
+  transliteration: "karmaṇy-evādhikāras te mā phaleṣu kadācana |\nmā karma-phala-hetur bhūr mā te saṅgo 'stvakarmaṇi ||",
+  chapterName: "Chapter 2: Sānkhya Yoga (The Yoga of Knowledge)",
+  practicalWisdom: "When your daily reflections uncover anxiety, pressure, or comparison, Krishna offers the ultimate liberation: focus with all your heart on your sincere effort today, while surrendering anxiety over future outcomes. True peace of mind belongs to one whose actions are pure and unburdened by expectations."
+};
+
+// Calculate streak based on recorded entries
+function calculateStreak(entries: JournalEntry[]): number {
+  if (!entries || entries.length === 0) return 0;
+  const uniqueDates = Array.from(new Set(entries.map(e => e.date))).sort().reverse();
+  if (uniqueDates.length === 0) return 0;
+
+  let streak = 1;
+  let prevDate = new Date(uniqueDates[0]);
+  for (let i = 1; i < uniqueDates.length; i++) {
+    const curDate = new Date(uniqueDates[i]);
+    const diffTime = Math.abs(prevDate.getTime() - curDate.getTime());
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays === 1) {
+      streak++;
+      prevDate = curDate;
+    } else {
+      break;
+    }
   }
-
-  // Count mood categories
-  const moodCounts: Record<string, number> = {};
-  entries.forEach(e => {
-    moodCounts[e.mood] = (moodCounts[e.mood] || 0) + 1;
-  });
-
-  const dominantMood = Object.keys(moodCounts).reduce((a, b) => moodCounts[a] > moodCounts[b] ? a : b);
-
-  if (['Peaceful', 'Calm', 'Grateful', 'Happy'].includes(dominantMood)) {
-    return {
-      title: `A Month of Sattvic Equanimity`,
-      quote: "Perform your duty with an even mind, abandoning all attachment to success or failure. Such equanimity is called Yoga.",
-      verse: "Bhagavad Gita 2.48",
-      insight: `Throughout ${monthName}, your reflections reflected grounded peace, gratitude, and joy. In the Gita, Krishna teaches that steady inner contentment (samatva) is the true mark of wisdom. You navigated your days with stillness and grace.`
-    };
-  } else if (['Anxious', 'Sad'].includes(dominantMood)) {
-    return {
-      title: `A Month of Inner Transformation`,
-      quote: "Elevate yourself through the power of your mind, and do not degrade yourself, for the mind can be the friend and also the enemy of the self.",
-      verse: "Bhagavad Gita 6.5",
-      insight: `During ${monthName}, you encountered moments of vulnerability, heavy feelings, and honest searching. The Gita reminds us that spiritual strength is forged inside the furnace of uncertainty. Every reflection you wrote was a conscious step toward self-mastery.`
-    };
-  } else if (['Angry', 'Excited'].includes(dominantMood)) {
-    return {
-      title: `Channelling Energy into Purpose`,
-      quote: "Therefore, without being attached to the fruits of activities, one should act as a matter of duty.",
-      verse: "Bhagavad Gita 3.19",
-      insight: `In ${monthName}, you experienced potent, dynamic emotions. Krishna guides Arjuna to direct fiery intensity not into conflict or frantic chasing, but into sincere, selfless action (Karma Yoga), where passion turns into purpose.`
-    };
-  }
-
-  return {
-    title: `A Balanced Path of Reflection`,
-    quote: "One who is satisfied with whatever comes by chance, who is free from duality, is never entangled.",
-    verse: "Bhagavad Gita 4.22",
-    insight: `You walked a diverse emotional landscape in ${monthName}. Observing the changing waves of mind without being swept away is the very essence of spiritual practice.`
-  };
+  return streak;
 }
 
 export const JournalScreen: React.FC<JournalScreenProps> = ({
   entries,
   onSaveEntry,
-  onDeleteEntry
+  onDeleteEntry,
+  onOpenMenu
 }) => {
-  // Calendar navigation state (defaults to September 2026 matching app corpus)
-  const today = new Date(2026, 8, 23); // 2026-09-23
+  // Navigation between the 4 screens: 'landing' (1) -> 'write' (2) -> 'calendar' (3) -> 'history' (4)
+  const [currentScreen, setCurrentScreen] = useState<SubScreen>('landing');
+
+  // Today reference (defaults to September 23, 2026 to harmonize with app corpus)
+  const today = useMemo(() => new Date(2026, 8, 23), []);
+
+  // Calendar view month & year state
   const [viewYear, setViewYear] = useState<number>(2026);
-  const [viewMonth, setViewMonth] = useState<number>(8); // 0-indexed: 8 = September
+  const [viewMonth, setViewMonth] = useState<number>(8); // September = 8 (0-indexed)
 
-  // Selected date ISO string, defaults to today "2026-09-23"
+  // Write reflection state
   const [selectedDateStr, setSelectedDateStr] = useState<string>("2026-09-23");
-
-  // Form input state
   const [selectedMood, setSelectedMood] = useState<string>("Happy");
   const [reflectionText, setReflectionText] = useState<string>("");
-  const [teachingRef, setTeachingRef] = useState<string>("");
-  const [isSavedFeedback, setIsSavedFeedback] = useState<boolean>(false);
+  const [validationError, setValidationError] = useState<string>("");
 
-  // Monthly summary modal state
-  const [showSummaryModal, setShowSummaryModal] = useState<boolean>(false);
+  // Modals state
+  const [showFullTeachingModal, setShowFullTeachingModal] = useState<boolean>(false);
+  const [selectedDayEntryModal, setSelectedDayEntryModal] = useState<JournalEntry | null>(null);
 
   // Month navigation helpers
   const handlePrevMonth = () => {
@@ -121,32 +111,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
     return entries.filter(e => e.date.startsWith(monthPrefix));
   }, [entries, viewYear, viewMonth]);
 
-  // Most common mood this month
-  const mostCommonMoodInfo = useMemo(() => {
-    if (currentMonthEntries.length === 0) {
-      return { mood: 'None', emoji: '🪷', count: 0 };
-    }
-    const counts: Record<string, number> = {};
-    currentMonthEntries.forEach(e => {
-      counts[e.mood] = (counts[e.mood] || 0) + 1;
-    });
-    let topMood = currentMonthEntries[0].mood;
-    let maxCount = 0;
-    Object.entries(counts).forEach(([m, cnt]) => {
-      if (cnt > maxCount) {
-        maxCount = cnt;
-        topMood = m;
-      }
-    });
-    const foundMood = JOURNAL_MOODS.find(m => m.label === topMood || m.key === topMood);
-    return {
-      mood: topMood,
-      emoji: foundMood ? foundMood.emoji : '😊',
-      count: maxCount
-    };
-  }, [currentMonthEntries]);
-
-  // Calendar day calculation
+  // Calendar day calculation for month grid
   const calendarDays = useMemo(() => {
     const firstDayIndex = new Date(viewYear, viewMonth, 1).getDay(); // 0 = Sunday
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
@@ -155,168 +120,688 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
       dayNum: number | null;
       dateStr: string | null;
       isToday: boolean;
-      isSelected: boolean;
       entry?: JournalEntry;
     }> = [];
 
     // Preceding empty slots
     for (let i = 0; i < firstDayIndex; i++) {
-      days.push({ dayNum: null, dateStr: null, isToday: false, isSelected: false });
+      days.push({ dayNum: null, dateStr: null, isToday: false });
     }
 
     // Days in current month
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const isToday = viewYear === today.getFullYear() && viewMonth === today.getMonth() && d === today.getDate();
-      const isSelected = dateStr === selectedDateStr;
       const entry = entriesByDate[dateStr];
 
       days.push({
         dayNum: d,
         dateStr,
         isToday,
-        isSelected,
         entry
       });
     }
 
     return days;
-  }, [viewYear, viewMonth, selectedDateStr, entriesByDate, today]);
+  }, [viewYear, viewMonth, entriesByDate, today]);
 
-  // When a day is clicked
-  const handleSelectDay = (dateStr: string) => {
-    setSelectedDateStr(dateStr);
-    setIsSavedFeedback(false);
-    const existing = entriesByDate[dateStr];
-    if (existing) {
-      setSelectedMood(existing.mood);
-      setReflectionText(existing.reflection);
-      setTeachingRef(existing.teaching || "");
-    } else {
-      setSelectedMood("Happy");
-      setReflectionText("");
-      setTeachingRef("");
+  // Formatted date string for write screen
+  const formattedSelectedDate = useMemo(() => {
+    try {
+      const [y, m, d] = selectedDateStr.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      return dateObj.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    } catch {
+      return "23 September 2026";
     }
-  };
+  }, [selectedDateStr]);
 
-  // Save current day's reflection
-  const handleSave = () => {
+  // Handle Save Reflection from Screen 2
+  const handleSaveReflection = () => {
     if (!reflectionText.trim()) {
-      alert("Please write a few words about your day before saving.");
+      setValidationError("Please write a few words about your day before saving.");
       return;
     }
 
+    setValidationError("");
     onSaveEntry({
       date: selectedDateStr,
       mood: selectedMood,
       reflection: reflectionText.trim(),
-      teaching: teachingRef.trim() || undefined
+      teaching: FEATURED_MONTHLY_TEACHING.ref
     });
 
-    setIsSavedFeedback(true);
-    setTimeout(() => {
-      setIsSavedFeedback(false);
-    }, 2800);
+    // Reset reflection form
+    setReflectionText("");
+
+    // Lead to 3rd screen (Calendar tracking journal) as specified
+    setCurrentScreen('calendar');
   };
 
-  // Formatted date string for selected date
-  const selectedDateFormatted = useMemo(() => {
+  // Streak count
+  const streakCount = useMemo(() => calculateStreak(entries), [entries]);
+
+  // Sorted entries for history (Screen 4) - newest first
+  const sortedHistoryEntries = useMemo(() => {
+    return [...entries].sort((a, b) => {
+      return new Date(b.date).getTime() - new Date(a.date).getTime() || b.createdAt - a.createdAt;
+    });
+  }, [entries]);
+
+  // Format date helper for history cards: e.g. "24 Sep 2026"
+  const formatHistoryDate = (dateStr: string) => {
     try {
-      const [y, m, d] = selectedDateStr.split('-').map(Number);
+      const [y, m, d] = dateStr.split('-').map(Number);
       const dateObj = new Date(y, m - 1, d);
-      const isToday = y === today.getFullYear() && (m - 1) === today.getMonth() && d === today.getDate();
-      const formatted = dateObj.toLocaleDateString('en-US', {
-        weekday: 'short',
+      return dateObj.toLocaleDateString('en-GB', {
+        day: '2-digit',
         month: 'short',
-        day: 'numeric'
+        year: 'numeric'
       });
-      return isToday ? `Today, ${formatted}` : formatted;
     } catch {
-      return selectedDateStr;
+      return dateStr;
     }
-  }, [selectedDateStr, today]);
+  };
 
-  // Current selected day's entry
-  const activeDayEntry = entriesByDate[selectedDateStr];
-
-  // Monthly summary data
-  const monthlySummary = useMemo(() => {
-    return generateMonthlyGitaSummary(currentMonthEntries, MONTH_NAMES[viewMonth]);
-  }, [currentMonthEntries, viewMonth]);
-
-  return (
-    <div style={{
-      background: '#FAF8F5',
-      minHeight: '100vh',
-      padding: '48px 18px 40px',
-      color: '#1C1917'
-    }}>
-      {/* 1. Header (Matching reference: Serif "Calendar", "Your mood and reflection history") */}
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 34,
-          color: '#1C1917',
-          fontWeight: 400,
-          lineHeight: 1.15,
-          letterSpacing: '-0.02em',
-          marginBottom: 6
-        }}>
-          Calendar
-        </h1>
-        <p style={{
-          fontSize: 14,
-          color: '#78716C',
-          lineHeight: 1.5,
-          fontWeight: 400
-        }}>
-          Your mood and reflection history
-        </p>
-      </div>
-
-      {/* 2. Interactive Calendar Card */}
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SCREEN 1: My Journal Landing
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (currentScreen === 'landing') {
+    return (
       <div style={{
-        background: '#FFFFFF',
-        border: '1px solid #EFEAE3',
-        borderRadius: 22,
-        padding: '22px 16px',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
-        marginBottom: 20
+        background: '#FAF7F2',
+        minHeight: '100%',
+        padding: '24px 18px 40px',
+        color: '#1C1917',
+        display: 'flex',
+        flexDirection: 'column'
       }}>
-        {/* Month Navigation */}
+        {/* Header: Hamburger | Title | + New */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 24,
+          paddingTop: 8
+        }}>
+          <button
+            onClick={onOpenMenu}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#1C1917',
+              padding: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            aria-label="Open Menu"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <line x1="4" y1="6" x2="20" y2="6" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="18" x2="20" y2="18" />
+            </svg>
+          </button>
+
+          <h1 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 20,
+            color: '#1C1917',
+            fontWeight: 600,
+            margin: 0
+          }}>
+            My Journal
+          </h1>
+
+          <button
+            onClick={() => setCurrentScreen('write')}
+            style={{
+              background: '#1E5E3A',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: 20,
+              padding: '6px 16px',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              boxShadow: '0 2px 8px rgba(30, 94, 58, 0.25)',
+              transition: 'transform 0.15s ease'
+            }}
+          >
+            + New
+          </button>
+        </div>
+
+        {/* Informational Guidance Banner Card */}
+        <div style={{
+          background: '#FFF9EE',
+          border: '1px solid #EFE4D0',
+          borderRadius: 20,
+          padding: '24px 20px',
+          marginBottom: 36,
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)'
+        }}>
+          <p style={{
+            fontSize: 14.5,
+            lineHeight: 1.6,
+            color: '#2A2621',
+            margin: '0 0 14px 0'
+          }}>
+            Journal your thoughts and experiences each day.
+          </p>
+          <p style={{
+            fontSize: 14.5,
+            lineHeight: 1.6,
+            color: '#2A2621',
+            margin: 0
+          }}>
+            At the end of the month, reflect on your overall mood and receive a{' '}
+            <strong style={{ fontWeight: 600, color: '#1C1917' }}>
+              personalized, relevant Gita teaching
+            </strong>{' '}
+            to help you understand your journey and move forward with greater clarity.
+          </p>
+        </div>
+
+        {/* Middle Empty / Status State */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          padding: '10px 10px 30px'
+        }}>
+          {/* Notepad Pencil Icon */}
+          <div style={{
+            fontSize: 48,
+            marginBottom: 16,
+            lineHeight: 1
+          }}>
+            📝
+          </div>
+
+          <h2 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 19,
+            color: '#1C1917',
+            fontWeight: 500,
+            marginBottom: 8
+          }}>
+            {entries.length === 0 ? 'No reflections yet' : `${entries.length} reflections recorded`}
+          </h2>
+
+          <p style={{
+            fontSize: 13.5,
+            color: '#78716C',
+            lineHeight: 1.5,
+            maxWidth: 260,
+            marginBottom: 28
+          }}>
+            {entries.length === 0
+              ? 'Your thoughts can become a place to pause and understand yourself.'
+              : 'Keep nurturing your daily reflections to cultivate inner equanimity.'}
+          </p>
+
+          {/* Primary Action Button */}
+          <button
+            onClick={() => setCurrentScreen('write')}
+            style={{
+              width: '100%',
+              maxWidth: 340,
+              background: '#1E5E3A',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: 24,
+              height: 48,
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(30, 94, 58, 0.22)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'opacity 0.2s ease, transform 0.15s ease'
+            }}
+          >
+            {entries.length === 0 ? 'Write your first reflection' : 'Write your reflection'}
+          </button>
+        </div>
+
+        {/* Bottom Button: View mood calendar */}
+        <button
+          onClick={() => setCurrentScreen('calendar')}
+          style={{
+            background: '#FFFFFF',
+            border: '1px solid #ECE6DD',
+            borderRadius: 16,
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
+            transition: 'background 0.15s ease'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 24,
+              height: 24,
+              borderRadius: 6,
+              background: '#E0F2FE',
+              color: '#0284C7'
+            }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </span>
+            <span style={{
+              fontSize: 14,
+              fontWeight: 500,
+              color: '#1C1917'
+            }}>
+              View mood calendar
+            </span>
+          </div>
+
+          <span style={{ fontSize: 16, color: '#A8A29E' }}>→</span>
+        </button>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SCREEN 2: Write Reflection & Select Emotion
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (currentScreen === 'write') {
+    return (
+      <div style={{
+        background: '#FAF7F2',
+        minHeight: '100%',
+        padding: '24px 18px 40px',
+        color: '#1C1917',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        {/* Header: Back / Hamburger | Title */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           marginBottom: 18,
-          padding: '0 6px'
+          paddingTop: 8
         }}>
           <button
-            onClick={handlePrevMonth}
+            onClick={() => setCurrentScreen('landing')}
             style={{
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: '#57534E',
+              color: '#1C1917',
               padding: '6px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 8
+              gap: 4
             }}
-            aria-label="Previous Month"
+            aria-label="Back"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
 
+          <h1 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 20,
+            color: '#1C1917',
+            fontWeight: 600,
+            margin: 0
+          }}>
+            My Journal
+          </h1>
+
+          <div style={{ width: 32 }} />
+        </div>
+
+        {/* Date capsule bar matching screenshot: "Today" | "23 September 2026" */}
+        <div style={{
+          background: '#F1ECE3',
+          borderRadius: 20,
+          padding: '5px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 16
+        }}>
+          <span style={{
+            background: '#FFFFFF',
+            borderRadius: 14,
+            padding: '3px 12px',
+            fontSize: 12,
+            fontWeight: 600,
+            color: '#1C1917',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+          }}>
+            Today
+          </span>
+
+          <span style={{
+            fontSize: 13,
+            fontWeight: 500,
+            color: '#57534E'
+          }}>
+            {formattedSelectedDate}
+          </span>
+        </div>
+
+        {/* Main Writing & Emotion Card */}
+        <div style={{
+          background: '#FFFFFF',
+          border: '1px solid #ECE6DD',
+          borderRadius: 20,
+          padding: '18px 18px 20px',
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.02)',
+          marginBottom: 18,
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          {/* Text Area */}
+          <textarea
+            value={reflectionText}
+            onChange={(e) => {
+              setReflectionText(e.target.value);
+              if (validationError) setValidationError("");
+            }}
+            placeholder="Write what's on your mind..."
+            style={{
+              width: '100%',
+              minHeight: 180,
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              fontSize: 15,
+              lineHeight: 1.6,
+              color: '#1C1917',
+              fontFamily: 'inherit',
+              resize: 'none',
+              marginBottom: 16
+            }}
+          />
+
+          {validationError && (
+            <div style={{
+              fontSize: 12.5,
+              color: '#DC2626',
+              marginBottom: 12,
+              padding: '6px 12px',
+              background: '#FEE2E2',
+              borderRadius: 8
+            }}>
+              {validationError}
+            </div>
+          )}
+
+          {/* Emotion / Mood Selector Header */}
+          <div style={{
+            borderTop: '1px solid #F4EFE6',
+            paddingTop: 16,
+            marginTop: 'auto'
+          }}>
+            <div style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: '#78716C',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              marginBottom: 10
+            }}>
+              How are you feeling today?
+            </div>
+
+            {/* 8 Emotions Grid matching requirements: sad, happy, excited, confused, anxious, stressed, angry, neutral */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: 8
+            }}>
+              {JOURNAL_MOODS.map(m => {
+                const isSelected = selectedMood === m.label;
+                return (
+                  <button
+                    key={m.key}
+                    type="button"
+                    onClick={() => setSelectedMood(m.label)}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '8px 4px',
+                      borderRadius: 14,
+                      border: isSelected ? '1.5px solid #1E5E3A' : '1px solid #ECE6DD',
+                      background: isSelected ? 'rgba(30, 94, 58, 0.08)' : '#FAF8F5',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <span style={{ fontSize: 20, marginBottom: 2 }}>{m.emoji}</span>
+                    <span style={{
+                      fontSize: 11,
+                      fontWeight: isSelected ? 600 : 500,
+                      color: isSelected ? '#1E5E3A' : '#57534E'
+                    }}>
+                      {m.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Buttons: Save (Dark green) & Cancel (Outlined) */}
+        <div style={{
+          display: 'flex',
+          gap: 12,
+          marginBottom: 16
+        }}>
+          <button
+            onClick={handleSaveReflection}
+            style={{
+              flex: 1,
+              background: '#1E5E3A',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: 24,
+              height: 48,
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 3px 12px rgba(30, 94, 58, 0.22)'
+            }}
+          >
+            Save
+          </button>
+
+          <button
+            onClick={() => setCurrentScreen('landing')}
+            style={{
+              flex: 1,
+              background: '#FFFFFF',
+              color: '#1E5E3A',
+              border: '1.5px solid #1E5E3A',
+              borderRadius: 24,
+              height: 48,
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+
+        {/* Bottom Button: View mood calendar */}
+        <button
+          onClick={() => setCurrentScreen('calendar')}
+          style={{
+            background: '#FFFFFF',
+            border: '1px solid #ECE6DD',
+            borderRadius: 16,
+            padding: '14px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 22,
+              height: 22,
+              borderRadius: 6,
+              background: '#E0F2FE',
+              color: '#0284C7'
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </span>
+            <span style={{ fontSize: 13.5, fontWeight: 500, color: '#1C1917' }}>
+              View mood calendar
+            </span>
+          </div>
+          <span style={{ fontSize: 15, color: '#A8A29E' }}>→</span>
+        </button>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SCREEN 3: Calendar Tracking Journal
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (currentScreen === 'calendar') {
+    return (
+      <div style={{
+        background: '#FAF7F2',
+        minHeight: '100%',
+        padding: '24px 18px 40px',
+        color: '#1C1917',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        {/* Header: Back / Hamburger | Title: Calendar | + New button */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 16,
+          paddingTop: 8
+        }}>
+          <button
+            onClick={() => setCurrentScreen('landing')}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#1C1917',
+              padding: '6px',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+            aria-label="Back to Journal Home"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="6" x2="20" y2="6" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="18" x2="20" y2="18" />
+            </svg>
+          </button>
+
+          <h1 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 20,
+            color: '#1C1917',
+            fontWeight: 600,
+            margin: 0
+          }}>
+            Calendar
+          </h1>
+
+          <button
+            onClick={() => setCurrentScreen('write')}
+            style={{
+              background: '#1E5E3A',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: 20,
+              padding: '6px 14px',
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            + New
+          </button>
+        </div>
+
+        {/* Interactive Month Navigation */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 8px',
+          marginBottom: 16
+        }}>
+          <button
+            onClick={handlePrevMonth}
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid #ECE6DD',
+              borderRadius: '50%',
+              width: 32,
+              height: 32,
+              cursor: 'pointer',
+              color: '#57534E',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            aria-label="Previous Month"
+          >
+            ‹
+          </button>
+
           <h2 style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 21,
+            fontSize: 18,
             color: '#1C1917',
-            fontWeight: 400,
-            letterSpacing: '-0.01em'
+            fontWeight: 600,
+            margin: 0
           }}>
             {MONTH_NAMES[viewMonth]} {viewYear}
           </h2>
@@ -324,642 +809,717 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
           <button
             onClick={handleNextMonth}
             style={{
-              background: 'none',
-              border: 'none',
+              background: '#FFFFFF',
+              border: '1px solid #ECE6DD',
+              borderRadius: '50%',
+              width: 32,
+              height: 32,
               cursor: 'pointer',
               color: '#57534E',
-              padding: '6px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 8
+              justifyContent: 'center'
             }}
             aria-label="Next Month"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
+            ›
           </button>
         </div>
 
-        {/* Weekday Names */}
+        {/* Calendar Grid Container */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(7, 1fr)',
-          textAlign: 'center',
-          marginBottom: 10
+          background: '#FFFFFF',
+          border: '1px solid #ECE6DD',
+          borderRadius: 20,
+          padding: '16px 12px 18px',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)',
+          marginBottom: 20
         }}>
-          {WEEKDAY_NAMES.map(day => (
-            <div
-              key={day}
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: '#A8A29E',
-                padding: '4px 0'
-              }}
-            >
-              {day}
-            </div>
-          ))}
-        </div>
-
-        {/* Calendar Days Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(7, 1fr)',
-          rowGap: 10,
-          columnGap: 4
-        }}>
-          {calendarDays.map((item, idx) => {
-            if (item.dayNum === null) {
-              return <div key={`empty-${idx}`} style={{ height: 48 }} />;
-            }
-
-            const isSelected = item.isSelected;
-            const hasEntry = Boolean(item.entry);
-
-            return (
-              <button
-                key={item.dateStr}
-                onClick={() => item.dateStr && handleSelectDay(item.dateStr)}
+          {/* Weekday Row */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, 1fr)',
+            textAlign: 'center',
+            marginBottom: 10
+          }}>
+            {WEEKDAY_NAMES.map(day => (
+              <div
+                key={day}
                 style={{
-                  height: 48,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: isSelected
-                    ? 'rgba(212, 160, 80, 0.12)'
-                    : 'transparent',
-                  border: isSelected
-                    ? '1.5px solid #D4A050'
-                    : '1.5px solid transparent',
-                  borderRadius: 14,
-                  cursor: 'pointer',
-                  padding: 2,
-                  position: 'relative',
-                  transition: 'all 0.15s ease'
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: '#A8A29E',
+                  padding: '4px 0'
                 }}
               >
-                <span style={{
-                  fontSize: 14,
-                  fontWeight: isSelected || item.isToday ? 600 : 400,
-                  color: isSelected ? '#1C1917' : item.isToday ? '#B45309' : '#292524',
-                  lineHeight: 1.1
-                }}>
-                  {item.dayNum}
-                </span>
-
-                {/* Display recorded mood emoji under the date */}
-                {hasEntry ? (
-                  <span style={{ fontSize: 13, marginTop: 2, lineHeight: 1 }}>
-                    {item.entry?.emoji || '🪷'}
-                  </span>
-                ) : item.isToday ? (
-                  <span style={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: '50%',
-                    background: '#D4A050',
-                    marginTop: 4
-                  }} />
-                ) : (
-                  <span style={{ height: 15 }} />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 3. Daily Reflection Card (Shows when a date is clicked) */}
-      <div style={{
-        background: '#FFFFFF',
-        border: '1px solid #EFEAE3',
-        borderRadius: 22,
-        padding: '20px',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
-        marginBottom: 20
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 14
-        }}>
-          <div>
-            <div style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: '0.08em',
-              color: '#D4A050',
-              textTransform: 'uppercase',
-              marginBottom: 3
-            }}>
-              Daily Journal
-            </div>
-            <h3 style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 19,
-              color: '#1C1917',
-              fontWeight: 400
-            }}>
-              {selectedDateFormatted}
-            </h3>
+                {day}
+              </div>
+            ))}
           </div>
 
-          {activeDayEntry && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              background: '#F5F2EB',
-              padding: '4px 10px',
-              borderRadius: 20,
-              fontSize: 12,
-              fontWeight: 500,
-              color: '#57534E'
-            }}>
-              <span>{activeDayEntry.emoji}</span>
-              <span>{activeDayEntry.mood}</span>
-            </div>
-          )}
-        </div>
+          {/* Month Days */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, 1fr)',
+            rowGap: 8,
+            columnGap: 2
+          }}>
+            {calendarDays.map((item, idx) => {
+              if (item.dayNum === null) {
+                return <div key={`empty-${idx}`} style={{ height: 46 }} />;
+              }
 
-        {/* Mood selection row */}
-        <div style={{ marginBottom: 16 }}>
-          <div style={{
-            fontSize: 11,
-            color: '#78716C',
-            fontWeight: 500,
-            marginBottom: 8
-          }}>
-            How is your mind & mood today?
-          </div>
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 7
-          }}>
-            {JOURNAL_MOODS.map(m => {
-              const isChosen = selectedMood === m.label;
+              const hasEntry = Boolean(item.entry);
+              const isToday = item.isToday;
+
               return (
                 <button
-                  key={m.key}
-                  onClick={() => setSelectedMood(m.label)}
+                  key={item.dateStr}
+                  type="button"
+                  onClick={() => {
+                    if (item.entry) {
+                      setSelectedDayEntryModal(item.entry);
+                    } else if (item.dateStr) {
+                      setSelectedDateStr(item.dateStr);
+                      setCurrentScreen('write');
+                    }
+                  }}
                   style={{
+                    height: 46,
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    gap: 6,
-                    padding: '7px 12px',
-                    borderRadius: 20,
-                    border: isChosen ? `1.5px solid ${m.color}` : '1px solid #E7E0D8',
-                    background: isChosen ? m.bgLight : '#FFFFFF',
-                    color: isChosen ? m.color : '#57534E',
-                    fontSize: 13,
-                    fontWeight: isChosen ? 600 : 400,
+                    justifyContent: 'center',
+                    background: hasEntry
+                      ? '#FAF6EE'
+                      : isToday
+                      ? 'rgba(30, 94, 58, 0.04)'
+                      : 'transparent',
+                    border: hasEntry
+                      ? '1.5px solid #C89B3C'
+                      : isToday
+                      ? '1px dashed #1E5E3A'
+                      : '1.5px solid transparent',
+                    borderRadius: 12,
                     cursor: 'pointer',
+                    padding: 2,
                     transition: 'all 0.15s ease'
                   }}
+                  title={hasEntry ? `Reflection: ${item.entry?.mood}` : `Journal for ${item.dateStr}`}
                 >
-                  <span style={{ fontSize: 14 }}>{m.emoji}</span>
-                  <span>{m.label}</span>
+                  <span style={{
+                    fontSize: 13,
+                    fontWeight: hasEntry || isToday ? 600 : 400,
+                    color: hasEntry ? '#1C1917' : isToday ? '#1E5E3A' : '#44403C',
+                    lineHeight: 1
+                  }}>
+                    {item.dayNum}
+                  </span>
+
+                  {/* Display recorded mood emoji under the date as shown in the screenshot! */}
+                  {hasEntry ? (
+                    <span style={{ fontSize: 13, marginTop: 2, lineHeight: 1 }}>
+                      {item.entry?.emoji || '😊'}
+                    </span>
+                  ) : isToday ? (
+                    <span style={{
+                      width: 4,
+                      height: 4,
+                      borderRadius: '50%',
+                      background: '#1E5E3A',
+                      marginTop: 3
+                    }} />
+                  ) : (
+                    <span style={{ height: 12 }} />
+                  )}
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Text Reflection Input */}
-        <div style={{ marginBottom: 14 }}>
-          <textarea
-            value={reflectionText}
-            onChange={e => setReflectionText(e.target.value)}
-            placeholder="Write your reflections, how you responded to circumstances, or what you learned from the Gita..."
-            rows={4}
-            style={{
-              width: '100%',
-              background: '#FAF8F5',
-              border: '1px solid #E7E0D8',
-              borderRadius: 14,
-              padding: '14px 16px',
-              fontSize: 14,
-              lineHeight: 1.6,
-              color: '#1C1917',
-              fontFamily: 'inherit',
-              outline: 'none',
-              resize: 'none',
-              transition: 'border-color 0.18s'
-            }}
-            onFocus={e => e.currentTarget.style.borderColor = '#D4A050'}
-            onBlur={e => e.currentTarget.style.borderColor = '#E7E0D8'}
-          />
-        </div>
+        {/* THIS MONTH'S TEACHING Card */}
+        <div style={{
+          background: '#FFF9EE',
+          border: '1px solid #F3EBDD',
+          borderRadius: 20,
+          padding: '20px',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)',
+          marginBottom: 16
+        }}>
+          <div style={{
+            fontSize: 10.5,
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            color: '#B45309',
+            textTransform: 'uppercase',
+            marginBottom: 6
+          }}>
+            THIS MONTH'S TEACHING
+          </div>
 
-        {/* Optional Gita Teaching Field */}
-        <div style={{ marginBottom: 16 }}>
-          <input
-            value={teachingRef}
-            onChange={e => setTeachingRef(e.target.value)}
-            placeholder="Related Gita Verse (e.g. Bhagavad Gita 2.47) - optional"
-            style={{
-              width: '100%',
-              background: '#FAF8F5',
-              border: '1px solid #E7E0D8',
-              borderRadius: 12,
-              padding: '10px 14px',
-              fontSize: 13,
-              color: '#1C1917',
-              fontFamily: 'inherit',
-              outline: 'none'
-            }}
-            onFocus={e => e.currentTarget.style.borderColor = '#D4A050'}
-            onBlur={e => e.currentTarget.style.borderColor = '#E7E0D8'}
-          />
-        </div>
+          <div style={{
+            fontSize: 14,
+            fontWeight: 600,
+            color: '#1C1917',
+            marginBottom: 8
+          }}>
+            {FEATURED_MONTHLY_TEACHING.ref}
+          </div>
 
-        {/* Save button & feedback */}
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <p style={{
+            fontSize: 13.5,
+            fontStyle: 'italic',
+            lineHeight: 1.6,
+            color: '#44403C',
+            margin: '0 0 16px 0'
+          }}>
+            "{FEATURED_MONTHLY_TEACHING.shortQuote}"
+          </p>
+
           <button
-            onClick={handleSave}
+            onClick={() => setShowFullTeachingModal(true)}
             style={{
-              flex: 1,
-              background: isSavedFeedback ? '#059669' : '#D4A050',
-              color: isSavedFeedback ? '#FFFFFF' : '#0E0C1B',
+              width: '100%',
+              background: '#C88A2C',
+              color: '#FFFFFF',
               border: 'none',
-              borderRadius: 12,
-              padding: '13px',
-              fontWeight: 600,
+              borderRadius: 20,
+              height: 44,
               fontSize: 14,
+              fontWeight: 600,
               cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              transition: 'all 0.2s ease'
+              boxShadow: '0 3px 10px rgba(200, 138, 44, 0.25)'
             }}
           >
-            {isSavedFeedback ? (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Saved to Journal
-              </>
-            ) : activeDayEntry ? (
-              'Update Reflection'
-            ) : (
-              'Save Reflection'
-            )}
+            View full teaching
           </button>
-
-          {activeDayEntry && onDeleteEntry && (
-            <button
-              onClick={() => onDeleteEntry(activeDayEntry.id)}
-              style={{
-                background: 'transparent',
-                border: '1px solid #FCA5A5',
-                color: '#DC2626',
-                borderRadius: 12,
-                padding: '13px 16px',
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: 'pointer'
-              }}
-            >
-              Delete
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* 4. THIS MONTH Card (Matching reference image) */}
-      <div style={{
-        background: '#FFFFFF',
-        border: '1px solid #EFEAE3',
-        borderRadius: 22,
-        padding: '20px',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
-        marginBottom: 20
-      }}>
-        <div style={{
-          fontSize: 10,
-          fontWeight: 700,
-          letterSpacing: '0.12em',
-          color: '#A8A29E',
-          textTransform: 'uppercase',
-          marginBottom: 12
-        }}>
-          THIS MONTH
         </div>
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 16
-        }}>
-          <div style={{
-            fontSize: 42,
-            lineHeight: 1,
-            flexShrink: 0
-          }}>
-            {mostCommonMoodInfo.emoji}
-          </div>
-
-          <div style={{ flex: 1 }}>
-            <div style={{
-              fontSize: 16,
-              fontWeight: 600,
-              color: '#1C1917',
-              marginBottom: 3
-            }}>
-              {currentMonthEntries.length} {currentMonthEntries.length === 1 ? 'reflection' : 'reflections'} recorded
-            </div>
-            <div style={{
-              fontSize: 13,
-              color: '#78716C',
-              marginBottom: 8
-            }}>
-              Most common mood: {mostCommonMoodInfo.mood}
-            </div>
-
-            <button
-              onClick={() => setShowSummaryModal(true)}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                color: '#2563EB',
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5
-              }}
-            >
-              View all journal entries →
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 5. MOOD KEY Card (Matching reference image) */}
-      <div style={{
-        background: '#FFFFFF',
-        border: '1px solid #EFEAE3',
-        borderRadius: 22,
-        padding: '20px',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
-        marginBottom: 28
-      }}>
-        <div style={{
-          fontSize: 10,
-          fontWeight: 700,
-          letterSpacing: '0.12em',
-          color: '#A8A29E',
-          textTransform: 'uppercase',
-          marginBottom: 14
-        }}>
-          MOOD KEY
-        </div>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 8
-        }}>
-          {JOURNAL_MOODS.slice(0, 6).map(m => (
-            <div
-              key={m.key}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                background: '#FAF8F5',
-                border: '1px solid #EFEAE3',
-                borderRadius: 14,
-                padding: '9px 10px',
-                fontSize: 12,
-                color: '#44403C',
-                fontWeight: 500
-              }}
-            >
-              <span style={{ fontSize: 14 }}>{m.emoji}</span>
-              <span>{m.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 6. Monthly Mood & Journal Summary Modal */}
-      {showSummaryModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(28, 25, 23, 0.65)',
-          backdropFilter: 'blur(8px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 16,
-          zIndex: 200
-        }}>
-          <div style={{
-            background: '#FAF8F5',
-            borderRadius: 24,
-            width: '100%',
-            maxWidth: 420,
-            maxHeight: '85vh',
+        {/* Bottom Button Requested by User: 'Journal History' that leads to 4th screen */}
+        <button
+          onClick={() => setCurrentScreen('history')}
+          style={{
+            background: '#FFFFFF',
+            border: '1.5px solid #1E5E3A',
+            color: '#1E5E3A',
+            borderRadius: 20,
+            padding: '15px 20px',
             display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: 14.5,
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
+            transition: 'background 0.15s ease'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 18 }}>📖</span>
+            <span>Journal History</span>
+          </div>
+          <span style={{ fontSize: 16 }}>→</span>
+        </button>
+
+        {/* Modal: Full Gita Teaching */}
+        {showFullTeachingModal && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(20, 18, 14, 0.55)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 18,
+            zIndex: 300
           }}>
-            {/* Modal Header */}
             <div style={{
-              padding: '20px 22px 16px',
-              borderBottom: '1px solid #EFEAE3',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
+              background: '#FAF7F2',
+              borderRadius: 24,
+              width: '100%',
+              maxWidth: 400,
+              maxHeight: '85vh',
+              overflowY: 'auto',
+              padding: '24px 22px',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)',
+              position: 'relative'
             }}>
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: '#D4A050', textTransform: 'uppercase' }}>
-                  Monthly Review
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: 16
+              }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+                    Gita Teaching for {MONTH_NAMES[viewMonth]}
+                  </div>
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 19, color: '#1C1917', margin: 0 }}>
+                    {FEATURED_MONTHLY_TEACHING.ref}
+                  </h3>
                 </div>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: '#1C1917', fontWeight: 400 }}>
-                  {MONTH_NAMES[viewMonth]} {viewYear} Summary
-                </h3>
+
+                <button
+                  onClick={() => setShowFullTeachingModal(false)}
+                  style={{
+                    background: '#EAE5DB',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: 32,
+                    height: 32,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#57534E'
+                  }}
+                >
+                  ✕
+                </button>
               </div>
 
-              <button
-                onClick={() => setShowSummaryModal(false)}
-                style={{
-                  background: '#E7E0D8',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: 32,
-                  height: 32,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#57534E'
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Modal Body Scroll */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px' }}>
-              {/* Gita Insight Synthesis Card */}
+              {/* Sanskrit Verse Card */}
               <div style={{
-                background: 'linear-gradient(135deg, rgba(212,160,80,0.1), rgba(254,243,199,0.5))',
-                border: '1px solid rgba(212,160,80,0.25)',
-                borderRadius: 18,
-                padding: '18px 20px',
-                marginBottom: 20
+                background: '#FFF9EE',
+                border: '1px solid #EFE4D0',
+                borderRadius: 16,
+                padding: '16px',
+                textAlign: 'center',
+                marginBottom: 16
               }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#B45309', textTransform: 'uppercase', marginBottom: 6 }}>
-                  {monthlySummary.title}
+                <div style={{
+                  fontFamily: 'Georgia, serif',
+                  fontSize: 16,
+                  color: '#78350F',
+                  fontWeight: 600,
+                  lineHeight: 1.8,
+                  whiteSpace: 'pre-line',
+                  marginBottom: 10
+                }}>
+                  {FEATURED_MONTHLY_TEACHING.sanskrit}
                 </div>
                 <div style={{
-                  fontSize: 14,
+                  fontSize: 12.5,
                   fontStyle: 'italic',
-                  color: '#1C1917',
-                  lineHeight: 1.6,
-                  marginBottom: 8
+                  color: '#92400E',
+                  lineHeight: 1.5,
+                  whiteSpace: 'pre-line'
                 }}>
-                  "{monthlySummary.quote}"
+                  {FEATURED_MONTHLY_TEACHING.transliteration}
                 </div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: '#D4A050', marginBottom: 12 }}>
-                  — {monthlySummary.verse}
+              </div>
+
+              {/* Translation */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: '#78716C', textTransform: 'uppercase', marginBottom: 6 }}>
+                  English Translation
                 </div>
-                <p style={{ fontSize: 13, color: '#57534E', lineHeight: 1.7 }}>
-                  {monthlySummary.insight}
+                <p style={{ fontSize: 14, fontStyle: 'italic', color: '#1C1917', lineHeight: 1.6, margin: 0 }}>
+                  "{FEATURED_MONTHLY_TEACHING.fullQuote}"
                 </p>
               </div>
 
-              {/* Monthly Stats */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 10,
-                marginBottom: 20
-              }}>
-                <div style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #EFEAE3',
-                  borderRadius: 14,
-                  padding: '14px',
-                  textAlign: 'center'
-                }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 24, color: '#1C1917', fontWeight: 500 }}>
-                    {currentMonthEntries.length}
-                  </div>
-                  <div style={{ fontSize: 11, color: '#78716C' }}>Reflections Written</div>
+              {/* Practical Guidance */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: '#78716C', textTransform: 'uppercase', marginBottom: 6 }}>
+                  Wisdom for Your Reflections
                 </div>
-
-                <div style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #EFEAE3',
-                  borderRadius: 14,
-                  padding: '14px',
-                  textAlign: 'center'
-                }}>
-                  <div style={{ fontSize: 22, lineHeight: 1.2 }}>
-                    {mostCommonMoodInfo.emoji}
-                  </div>
-                  <div style={{ fontSize: 11, color: '#78716C', marginTop: 2 }}>{mostCommonMoodInfo.mood}</div>
-                </div>
+                <p style={{ fontSize: 13, color: '#57534E', lineHeight: 1.65, margin: 0 }}>
+                  {FEATURED_MONTHLY_TEACHING.practicalWisdom}
+                </p>
               </div>
 
-              {/* Entries list for this month */}
-              <div style={{
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                color: '#78716C',
-                textTransform: 'uppercase',
-                marginBottom: 12
-              }}>
-                Entries in {MONTH_NAMES[viewMonth]}
-              </div>
-
-              {currentMonthEntries.length === 0 ? (
-                <div style={{
-                  textAlign: 'center',
-                  padding: '24px 0',
-                  color: '#A8A29E',
-                  fontSize: 14
-                }}>
-                  No entries recorded yet in {MONTH_NAMES[viewMonth]}.
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {currentMonthEntries.map(entry => (
-                    <div
-                      key={entry.id}
-                      style={{
-                        background: '#FFFFFF',
-                        border: '1px solid #EFEAE3',
-                        borderRadius: 14,
-                        padding: '14px 16px'
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span>{entry.emoji}</span>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1917' }}>{entry.mood}</span>
-                        </div>
-                        <span style={{ fontSize: 11, color: '#78716C' }}>{entry.displayDate}</span>
-                      </div>
-                      {entry.teaching && (
-                        <div style={{ fontSize: 11, color: '#B45309', fontWeight: 500, marginBottom: 4 }}>
-                          {entry.teaching}
-                        </div>
-                      )}
-                      <p style={{ fontSize: 13, color: '#44403C', lineHeight: 1.6 }}>
-                        {entry.reflection}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div style={{
-              padding: '14px 22px',
-              borderTop: '1px solid #EFEAE3',
-              background: '#FFFFFF'
-            }}>
               <button
-                onClick={() => setShowSummaryModal(false)}
+                onClick={() => setShowFullTeachingModal(false)}
                 style={{
                   width: '100%',
-                  background: '#D4A050',
+                  background: '#1E5E3A',
+                  color: '#FFFFFF',
                   border: 'none',
-                  borderRadius: 12,
-                  padding: '12px',
+                  borderRadius: 20,
+                  height: 44,
                   fontWeight: 600,
                   fontSize: 14,
-                  color: '#0E0C1B',
                   cursor: 'pointer'
                 }}
               >
-                Close Summary
+                Close
               </button>
             </div>
           </div>
+        )}
+
+        {/* Modal: View Single Day Entry */}
+        {selectedDayEntryModal && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(20, 18, 14, 0.55)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 18,
+            zIndex: 300
+          }}>
+            <div style={{
+              background: '#FAF7F2',
+              borderRadius: 22,
+              width: '100%',
+              maxWidth: 380,
+              padding: '22px 20px',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 14
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 24 }}>{selectedDayEntryModal.emoji}</span>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#1C1917' }}>
+                      {selectedDayEntryModal.mood}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#78716C' }}>
+                      {formatHistoryDate(selectedDayEntryModal.date)}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setSelectedDayEntryModal(null)}
+                  style={{
+                    background: '#EAE5DB',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: 30,
+                    height: 30,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#57534E'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div style={{
+                background: '#FFFFFF',
+                border: '1px solid #ECE6DD',
+                borderRadius: 14,
+                padding: '14px 16px',
+                fontSize: 14,
+                color: '#292524',
+                lineHeight: 1.6,
+                marginBottom: 16,
+                maxHeight: 220,
+                overflowY: 'auto'
+              }}>
+                {selectedDayEntryModal.reflection}
+              </div>
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                {onDeleteEntry && (
+                  <button
+                    onClick={() => {
+                      onDeleteEntry(selectedDayEntryModal.id);
+                      setSelectedDayEntryModal(null);
+                    }}
+                    style={{
+                      flex: 1,
+                      background: 'transparent',
+                      border: '1px solid #FCA5A5',
+                      color: '#DC2626',
+                      borderRadius: 16,
+                      height: 40,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Delete Entry
+                  </button>
+                )}
+                <button
+                  onClick={() => setSelectedDayEntryModal(null)}
+                  style={{
+                    flex: 1,
+                    background: '#1E5E3A',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: 16,
+                    height: 40,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SCREEN 4: Journal History
+  // ─────────────────────────────────────────────────────────────────────────────
+  return (
+    <div style={{
+      background: '#FAF7F2',
+      minHeight: '100%',
+      padding: '24px 18px 40px',
+      color: '#1C1917',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      {/* Header: < Back | Title: Journal history */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 20,
+        paddingTop: 8
+      }}>
+        <button
+          onClick={() => setCurrentScreen('calendar')}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: '#1C1917',
+            padding: '6px 0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            fontSize: 14,
+            fontWeight: 500
+          }}
+          aria-label="Back to Calendar"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          <span>Back</span>
+        </button>
+
+        <h1 style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 19,
+          color: '#1C1917',
+          fontWeight: 600,
+          margin: 0
+        }}>
+          Journal history
+        </h1>
+
+        <div style={{ width: 44 }} />
+      </div>
+
+      {/* Streak Banner Card matching Screenshot: Dark Green with big number and flame */}
+      <div style={{
+        background: '#1E5E3A',
+        borderRadius: 18,
+        padding: '18px 22px',
+        color: '#FFFFFF',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 24,
+        boxShadow: '0 4px 16px rgba(30, 94, 58, 0.25)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            fontSize: 36,
+            fontWeight: 700,
+            lineHeight: 1
+          }}>
+            {streakCount}
+          </div>
+
+          <div style={{
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            lineHeight: 1.4,
+            color: 'rgba(255, 255, 255, 0.9)'
+          }}>
+            DAYS<br />JOURNALING STREAK
+          </div>
         </div>
-      )}
+
+        <div style={{ fontSize: 30, lineHeight: 1 }}>
+          🔥
+        </div>
+      </div>
+
+      {/* Section Title: HISTORY */}
+      <div style={{
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: '0.08em',
+        color: '#78716C',
+        textTransform: 'uppercase',
+        marginBottom: 12,
+        paddingLeft: 4
+      }}>
+        HISTORY
+      </div>
+
+      {/* History Entries List: Empty initially until user writes their first reflection */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 12,
+        marginBottom: 20
+      }}>
+        {sortedHistoryEntries.length === 0 ? (
+          <div style={{
+            background: '#FFFFFF',
+            border: '1px solid #ECE6DD',
+            borderRadius: 18,
+            padding: '36px 20px',
+            textAlign: 'center',
+            color: '#78716C'
+          }}>
+            <div style={{ fontSize: 36, marginBottom: 10 }}>📖</div>
+            <div style={{
+              fontSize: 15,
+              fontWeight: 600,
+              color: '#1C1917',
+              marginBottom: 6
+            }}>
+              No reflections recorded yet
+            </div>
+            <p style={{
+              fontSize: 13,
+              color: '#78716C',
+              lineHeight: 1.5,
+              maxWidth: 240,
+              margin: '0 auto 20px auto'
+            }}>
+              Write your first reflection to start your journal history and build your streak.
+            </p>
+            <button
+              onClick={() => setCurrentScreen('write')}
+              style={{
+                background: '#1E5E3A',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: 20,
+                padding: '10px 20px',
+                fontSize: 13.5,
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              Write your first reflection
+            </button>
+          </div>
+        ) : (
+          sortedHistoryEntries.map(entry => (
+            <div
+              key={entry.id}
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #ECE6DD',
+                borderRadius: 16,
+                padding: '16px 18px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)'
+              }}
+            >
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 8
+              }}>
+                <div style={{
+                  fontSize: 13.5,
+                  fontWeight: 600,
+                  color: '#1C1917'
+                }}>
+                  {formatHistoryDate(entry.date)}
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  background: '#F5F2EB',
+                  padding: '3px 8px',
+                  borderRadius: 12,
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: '#44403C'
+                }}>
+                  <span>{entry.emoji}</span>
+                  <span>{entry.mood}</span>
+                </div>
+              </div>
+
+              <p style={{
+                fontSize: 13.5,
+                color: '#44403C',
+                lineHeight: 1.6,
+                margin: 0
+              }}>
+                {entry.reflection}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Bottom Action: View mood calendar */}
+      <button
+        onClick={() => setCurrentScreen('calendar')}
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid #ECE6DD',
+          borderRadius: 16,
+          padding: '14px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          marginTop: 'auto'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 22,
+            height: 22,
+            borderRadius: 6,
+            background: '#E0F2FE',
+            color: '#0284C7'
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          </span>
+          <span style={{ fontSize: 13.5, fontWeight: 500, color: '#1C1917' }}>
+            View mood calendar
+          </span>
+        </div>
+        <span style={{ fontSize: 15, color: '#A8A29E' }}>→</span>
+      </button>
     </div>
   );
 };
