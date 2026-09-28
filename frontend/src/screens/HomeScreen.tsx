@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GuidanceData } from '../types';
 import { askGita, wakeUpServer } from '../services/api';
+import { Language, TRANSLATIONS } from '../utils/translations';
 
 interface HomeScreenProps {
   onSaveTeaching?: (teaching: { chapter: number; verse: number; preview: string }) => void;
   onAddReflection?: (entry: { mood: string; teaching: string; reflection: string }) => void;
   onOpenMenu?: () => void;
+  language?: Language;
+  theme?: 'light' | 'dark';
 }
 
 const DEFAULT_SAMPLE_QUERY = "hi i am very sad today, i dont know what to do and how i will succeed in my life, can you help me anyhow ?";
@@ -13,8 +16,13 @@ const DEFAULT_SAMPLE_QUERY = "hi i am very sad today, i dont know what to do and
 export const HomeScreen: React.FC<HomeScreenProps> = ({
   onSaveTeaching,
   onAddReflection,
-  onOpenMenu
+  onOpenMenu,
+  language = 'en',
+  theme = 'light'
 }) => {
+  const isDark = theme === 'dark';
+  const t = TRANSLATIONS[language] || TRANSLATIONS.en;
+
   // Navigation / Query state
   const [submittedQuery, setSubmittedQuery] = useState<string | null>(null);
   const [thought, setThought] = useState('');
@@ -36,9 +44,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   // Compute time-based greeting, defaulting to "Good evening" if past 4pm or evening
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour >= 4 && hour < 12) return 'Good morning';
-    if (hour >= 12 && hour < 16) return 'Good afternoon';
-    return 'Good evening';
+    if (hour >= 4 && hour < 12) return t.greetingMorning;
+    if (hour >= 12 && hour < 16) return t.greetingAfternoon;
+    if (hour >= 16 && hour < 21) return t.greetingEvening;
+    return t.greetingNight;
   };
 
   const greeting = getGreeting();
@@ -196,9 +205,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      minHeight: '100vh',
-      background: '#FAF7F2',
-      color: '#1F1C18',
+      minHeight: 'calc(100vh - 76px)',
+      flex: 1,
+      background: isDark ? '#121614' : '#FAF7F2',
+      color: isDark ? '#F3F0EA' : '#1F1C18',
       position: 'relative'
     }}>
       {/* ───────────────────────────────────────────────────────────
@@ -210,7 +220,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '16px 20px 10px',
-        background: '#FAF7F2',
+        background: isDark ? '#121614' : '#FAF7F2',
+        borderBottom: isDark ? '1px solid #29342D' : 'none',
         position: 'sticky',
         top: 0,
         zIndex: 40
@@ -228,7 +239,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#1F1C18',
+              color: isDark ? '#F3F0EA' : '#1F1C18',
               borderRadius: '8px'
             }}
           >
@@ -245,13 +256,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           fontFamily: 'var(--font-display)',
           fontSize: '20px',
           fontWeight: 600,
-          color: '#1F1C18',
+          color: isDark ? '#F3F0EA' : '#1F1C18',
           margin: 0,
           letterSpacing: '0.015em',
           textAlign: 'center',
           flex: 1
         }}>
-          Maargdarshan
+          {t.drawerTitle}
         </h1>
 
         {/* Right Slot: Return to Home icon in query mode, or empty spacer for centering */}
@@ -264,7 +275,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                color: '#6F6B64',
+                color: isDark ? '#9CA3AF' : '#6F6B64',
                 padding: '6px 0',
                 display: 'flex',
                 alignItems: 'center',
@@ -308,7 +319,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               width: '300px',
               height: '240px',
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(254, 228, 148, 0.4) 0%, rgba(250, 247, 242, 0) 70%)',
+              background: isDark
+                ? 'radial-gradient(circle, rgba(212, 160, 80, 0.22) 0%, rgba(18, 22, 20, 0) 70%)'
+                : 'radial-gradient(circle, rgba(254, 228, 148, 0.4) 0%, rgba(250, 247, 242, 0) 70%)',
               pointerEvents: 'none'
             }} />
 
@@ -327,10 +340,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             >
               <defs>
                 <linearGradient id="goldenDuneGrad" x1="0%" y1="20%" x2="100%" y2="80%">
-                  <stop offset="0%" stopColor="#F5BE47" stopOpacity="0.95" />
-                  <stop offset="42%" stopColor="#F8D878" stopOpacity="0.85" />
-                  <stop offset="80%" stopColor="#FCF0CD" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#FAF7F2" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor={isDark ? "#C9942A" : "#F5BE47"} stopOpacity={isDark ? 0.80 : 0.95} />
+                  <stop offset="42%" stopColor={isDark ? "#8C661D" : "#F8D878"} stopOpacity={isDark ? 0.60 : 0.85} />
+                  <stop offset="80%" stopColor={isDark ? "#3A2D14" : "#FCF0CD"} stopOpacity={isDark ? 0.35 : 0.4} />
+                  <stop offset="100%" stopColor={isDark ? "#121614" : "#FAF7F2"} stopOpacity="0.0" />
                 </linearGradient>
               </defs>
 
@@ -349,14 +362,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               marginBottom: '10px'
             }}>
               <img
-                src="/krishna.png"
+                src="./krishna.png"
                 alt="Bal Krishna with peacock feather"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.src.includes('android_asset')) {
+                    target.src = 'file:///android_asset/krishna.png';
+                  }
+                }}
                 style={{
                   height: '240px',
                   width: 'auto',
                   objectFit: 'contain',
                   display: 'block',
-                  filter: 'drop-shadow(0 6px 14px rgba(210, 150, 40, 0.15))'
+                  filter: isDark
+                    ? 'drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4))'
+                    : 'drop-shadow(0 6px 14px rgba(210, 150, 40, 0.15))'
                 }}
               />
             </div>
@@ -366,7 +387,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <div style={{ padding: '12px 24px 16px' }}>
             <p style={{
               fontSize: '14.5px',
-              color: '#706C64',
+              color: isDark ? '#9CA3AF' : '#706C64',
               fontWeight: 400,
               margin: '0 0 6px 0',
               letterSpacing: '-0.01em'
@@ -378,51 +399,53 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               fontFamily: 'var(--font-display)',
               fontSize: '32px',
               fontWeight: 700,
-              color: '#1F1C18',
+              color: isDark ? '#F3F0EA' : '#1F1C18',
               lineHeight: 1.18,
               margin: '0 0 10px 0',
               letterSpacing: '-0.015em'
             }}>
-              What's on your mind?
+              {language === 'hi' ? 'आपके मन में क्या चल रहा है?' : "What's on your mind?"}
             </h2>
 
             <p style={{
               fontSize: '15px',
-              color: '#706C64',
+              color: isDark ? '#9CA3AF' : '#706C64',
               lineHeight: 1.5,
               margin: 0,
               maxWidth: '340px'
             }}>
-              Share what you're going through. We'll help you explore it through the wisdom of the Gita.
+              {language === 'hi'
+                ? 'अपने विचार साझा करें। गीता के शाश्वत ज्ञान से हम सही मार्गदर्शन पाने में आपकी सहायता करेंगे।'
+                : "Share what you're going through. We'll help you explore it through the wisdom of the Gita."}
             </p>
           </div>
 
           {/* Subtle quick test chip for the user's exact query */}
           <div style={{ padding: '4px 24px 24px' }}>
             <button
-              onClick={() => handleSubmitQuery(DEFAULT_SAMPLE_QUERY, 'Sad')}
+              onClick={() => handleSubmitQuery(language === 'hi' ? "नमस्ते, आज मैं बहुत उदास हूँ, मुझे समझ नहीं आ रहा क्या करूँ, क्या आप मार्गदर्शन कर सकते हैं?" : DEFAULT_SAMPLE_QUERY, 'Sad')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                background: 'rgba(30, 94, 58, 0.05)',
-                border: '1px solid rgba(30, 94, 58, 0.18)',
+                background: isDark ? 'rgba(74, 222, 128, 0.1)' : 'rgba(30, 94, 58, 0.05)',
+                border: isDark ? '1px solid rgba(74, 222, 128, 0.25)' : '1px solid rgba(30, 94, 58, 0.18)',
                 borderRadius: '20px',
                 padding: '6px 14px',
-                color: '#1E5E3A',
+                color: isDark ? '#4ADE80' : '#1E5E3A',
                 fontSize: '12px',
                 fontWeight: 500,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(30, 94, 58, 0.1)';
+                e.currentTarget.style.background = isDark ? 'rgba(74, 222, 128, 0.18)' : 'rgba(30, 94, 58, 0.1)';
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(30, 94, 58, 0.05)';
+                e.currentTarget.style.background = isDark ? 'rgba(74, 222, 128, 0.1)' : 'rgba(30, 94, 58, 0.05)';
               }}
             >
-              <span>Try sample query from slide: "I am very sad today..."</span>
+              <span>{language === 'hi' ? 'नमूना प्रश्न आजमाएं: "आज मैं बहुत उदास हूँ..."' : 'Try sample query from slide: "I am very sad today..."'}</span>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
@@ -449,7 +472,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <div style={{ marginBottom: '24px' }}>
             <p style={{
               fontSize: '14.5px',
-              color: '#706C64',
+              color: isDark ? '#9CA3AF' : '#706C64',
               fontWeight: 400,
               margin: '0 0 6px 0',
               letterSpacing: '-0.01em'
@@ -461,22 +484,24 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               fontFamily: 'var(--font-display)',
               fontSize: '32px',
               fontWeight: 700,
-              color: '#1F1C18',
+              color: isDark ? '#F3F0EA' : '#1F1C18',
               lineHeight: 1.18,
               margin: '0 0 10px 0',
               letterSpacing: '-0.015em'
             }}>
-              What's on your mind?
+              {language === 'hi' ? 'आपके मन में क्या चल रहा है?' : "What's on your mind?"}
             </h2>
 
             <p style={{
               fontSize: '15px',
-              color: '#706C64',
+              color: isDark ? '#9CA3AF' : '#706C64',
               lineHeight: 1.5,
               margin: 0,
               maxWidth: '350px'
             }}>
-              Share what you're going through. We'll help you explore it through the wisdom of the Gita.
+              {language === 'hi'
+                ? 'अपने विचार साझा करें। गीता के शाश्वत ज्ञान से हम सही मार्गदर्शन पाने में आपकी सहायता करेंगे।'
+                : "Share what you're going through. We'll help you explore it through the wisdom of the Gita."}
             </p>
           </div>
 
@@ -487,15 +512,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             marginBottom: '26px'
           }}>
             <div style={{
-              background: '#D5E2D6',
-              color: '#222E25',
+              background: isDark ? '#1F3526' : '#D5E2D6',
+              color: isDark ? '#E8F5E9' : '#222E25',
+              border: isDark ? '1px solid #2B4E37' : 'none',
               padding: '16px 20px',
               borderRadius: '20px 20px 4px 20px',
               maxWidth: '85%',
               fontSize: '14.5px',
               lineHeight: 1.45,
               fontWeight: 400,
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
+              boxShadow: isDark ? '0 4px 16px rgba(0, 0, 0, 0.25)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
               wordBreak: 'break-word'
             }}>
               {submittedQuery}
@@ -510,10 +536,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               padding: '36px 20px',
-              background: '#FFFFFF',
+              background: isDark ? '#1E2621' : '#FFFFFF',
               borderRadius: '24px',
-              border: '1px solid #ECE6DD',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)',
+              border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
+              boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.35)' : '0 4px 20px rgba(0, 0, 0, 0.04)',
               gap: '14px',
               textAlign: 'center'
             }}>
@@ -521,11 +547,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 width: '46px',
                 height: '46px',
                 borderRadius: '50%',
-                background: 'rgba(30, 94, 58, 0.1)',
+                background: isDark ? 'rgba(74, 222, 128, 0.15)' : 'rgba(30, 94, 58, 0.1)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#1E5E3A'
+                color: isDark ? '#4ADE80' : '#1E5E3A'
               }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
@@ -537,28 +563,28 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   fontFamily: 'var(--font-display)',
                   fontSize: '18px',
                   fontWeight: 600,
-                  color: '#1F1C18',
+                  color: isDark ? '#F3F0EA' : '#1F1C18',
                   margin: '0 0 4px 0'
                 }}>
-                  Consulting the Gita corpus...
+                  {language === 'hi' ? 'गीता ज्ञान से परामर्श ले रहे हैं...' : 'Consulting the Gita corpus...'}
                 </h3>
                 <p style={{
                   fontSize: '13px',
-                  color: '#706C64',
+                  color: isDark ? '#9CA3AF' : '#706C64',
                   margin: 0,
                   maxWidth: '260px',
                   lineHeight: 1.5
                 }}>
-                  Retrieving relevant shlokas for your inquiry.
+                  {language === 'hi' ? 'आपके प्रश्न के लिए उपयुक्त श्लोक खोजे जा रहे हैं।' : 'Retrieving relevant shlokas for your inquiry.'}
                 </p>
               </div>
 
               {isSlowResponse && (
                 <div style={{
                   fontSize: '12px',
-                  color: '#8A6D3B',
-                  background: '#FFF9E6',
-                  border: '1px solid #F3E5AB',
+                  color: isDark ? '#FDE68A' : '#8A6D3B',
+                  background: isDark ? '#2E2612' : '#FFF9E6',
+                  border: isDark ? '1px solid #4D3D1A' : '1px solid #F3E5AB',
                   borderRadius: '10px',
                   padding: '8px 14px',
                   marginTop: '4px'
@@ -578,11 +604,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             }}>
               {/* Card Container */}
               <div style={{
-                background: '#FFFFFF',
+                background: isDark ? '#1E2621' : '#FFFFFF',
                 borderRadius: '24px',
-                border: '1px solid #ECE6DD',
+                border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
                 padding: '24px',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)'
+                boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.35)' : '0 4px 20px rgba(0, 0, 0, 0.04)'
               }}>
                 {/* Header Tag / Chapter Pill */}
                 <div style={{
@@ -590,15 +616,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   marginBottom: '16px',
-                  borderBottom: '1px solid #F4EFE6',
+                  borderBottom: isDark ? '1px solid #29342D' : '1px solid #F4EFE6',
                   paddingBottom: '14px'
                 }}>
                   <div style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    background: 'rgba(30, 94, 58, 0.08)',
-                    color: '#1E5E3A',
+                    background: isDark ? 'rgba(74, 222, 128, 0.15)' : 'rgba(30, 94, 58, 0.08)',
+                    color: isDark ? '#4ADE80' : '#1E5E3A',
                     padding: '5px 12px',
                     borderRadius: '20px',
                     fontSize: '12px',
@@ -613,7 +639,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     onClick={handlePlayShlokaAudio}
                     title="Listen to Shloka"
                     style={{
-                      background: isPlayingAudio ? 'rgba(30, 94, 58, 0.15)' : 'rgba(0, 0, 0, 0.04)',
+                      background: isPlayingAudio
+                        ? (isDark ? 'rgba(74, 222, 128, 0.25)' : 'rgba(30, 94, 58, 0.15)')
+                        : (isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)'),
                       border: 'none',
                       borderRadius: '50%',
                       width: '34px',
@@ -622,7 +650,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      color: isPlayingAudio ? '#1E5E3A' : '#706C64',
+                      color: isPlayingAudio ? (isDark ? '#4ADE80' : '#1E5E3A') : (isDark ? '#9CA3AF' : '#706C64'),
                       transition: 'all 0.15s'
                     }}
                   >
@@ -640,7 +668,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     fontWeight: 700,
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
-                    color: '#1E5E3A',
+                    color: isDark ? '#4ADE80' : '#1E5E3A',
                     marginBottom: '4px'
                   }}>
                     Insight on your state
@@ -649,7 +677,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     fontFamily: 'var(--font-display)',
                     fontSize: '19px',
                     fontWeight: 600,
-                    color: '#1F1C18',
+                    color: isDark ? '#F3F0EA' : '#1F1C18',
                     lineHeight: 1.3,
                     margin: '0 0 8px 0'
                   }}>
@@ -657,7 +685,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   </h3>
                   <p style={{
                     fontSize: '14px',
-                    color: '#706C64',
+                    color: isDark ? '#D1D5DB' : '#706C64',
                     lineHeight: 1.55,
                     margin: 0
                   }}>
@@ -668,9 +696,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 {/* Sanskrit Shloka Box */}
                 {guidance.sanskrit && (
                   <div style={{
-                    background: '#FAF7F2',
+                    background: isDark ? '#161C18' : '#FAF7F2',
                     borderRadius: '16px',
-                    border: '1px solid #ECE5DC',
+                    border: isDark ? '1px solid #2B372F' : '1px solid #ECE5DC',
                     padding: '16px',
                     marginBottom: '16px',
                     textAlign: 'center'
@@ -678,7 +706,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     <p style={{
                       fontFamily: 'var(--font-display)',
                       fontSize: '16.5px',
-                      color: '#1F1C18',
+                      color: isDark ? '#F3F0EA' : '#1F1C18',
                       lineHeight: 1.8,
                       margin: '0 0 8px 0',
                       whiteSpace: 'pre-line',
@@ -690,7 +718,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       <p style={{
                         fontSize: '12.5px',
                         fontStyle: 'italic',
-                        color: '#7A756D',
+                        color: isDark ? '#9CA3AF' : '#7A756D',
                         lineHeight: 1.6,
                         margin: 0
                       }}>
@@ -707,14 +735,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     fontWeight: 700,
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
-                    color: '#8C867D',
+                    color: isDark ? '#9CA3AF' : '#8C867D',
                     marginBottom: '6px'
                   }}>
                     Verse Translation
                   </div>
                   <p style={{
                     fontSize: '14px',
-                    color: '#2E2B27',
+                    color: isDark ? '#E5E7EB' : '#2E2B27',
                     lineHeight: 1.65,
                     fontStyle: 'italic',
                     margin: 0
@@ -725,8 +753,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
                 {/* Krishna's Practical Guidance */}
                 <div style={{
-                  background: 'rgba(30, 94, 58, 0.04)',
-                  borderLeft: '3px solid #1E5E3A',
+                  background: isDark ? 'rgba(74, 222, 128, 0.08)' : 'rgba(30, 94, 58, 0.04)',
+                  borderLeft: isDark ? '3px solid #4ADE80' : '3px solid #1E5E3A',
                   padding: '14px 16px',
                   borderRadius: '0 12px 12px 0',
                   marginBottom: '16px'
@@ -736,14 +764,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     fontWeight: 700,
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
-                    color: '#1E5E3A',
+                    color: isDark ? '#4ADE80' : '#1E5E3A',
                     marginBottom: '6px'
                   }}>
                     Gita's Counsel For You
                   </div>
                   <p style={{
                     fontSize: '14px',
-                    color: '#1F1C18',
+                    color: isDark ? '#F3F0EA' : '#1F1C18',
                     lineHeight: 1.6,
                     margin: 0
                   }}>
@@ -759,14 +787,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       fontWeight: 700,
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
-                      color: '#8C867D',
+                      color: isDark ? '#9CA3AF' : '#8C867D',
                       marginBottom: '6px'
                     }}>
                       Daily Practice
                     </div>
                     <p style={{
                       fontSize: '13.5px',
-                      color: '#4A463F',
+                      color: isDark ? '#D1D5DB' : '#4A463F',
                       lineHeight: 1.55,
                       margin: 0
                     }}>
@@ -787,9 +815,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       gap: '6px',
                       padding: '11px 14px',
                       borderRadius: '12px',
-                      background: isSaved ? '#1E5E3A' : '#FAF7F2',
-                      color: isSaved ? '#FFFFFF' : '#1F1C18',
-                      border: isSaved ? '1px solid #1E5E3A' : '1px solid #ECE6DD',
+                      background: isSaved ? '#1E5E3A' : (isDark ? '#26322A' : '#FAF7F2'),
+                      color: isSaved ? '#FFFFFF' : (isDark ? '#F3F0EA' : '#1F1C18'),
+                      border: isSaved ? '1px solid #1E5E3A' : (isDark ? '1px solid #36463B' : '1px solid #ECE6DD'),
                       fontSize: '13px',
                       fontWeight: 500,
                       cursor: 'pointer',
@@ -799,7 +827,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     <svg width="15" height="15" viewBox="0 0 24 24" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                     </svg>
-                    <span>{isSaved ? 'Saved to Profile' : 'Save Teaching'}</span>
+                    <span>{isSaved ? (language === 'hi' ? 'सहेजा गया' : 'Saved to Profile') : (language === 'hi' ? 'उपदेश सहेजें' : 'Save Teaching')}</span>
                   </button>
 
                   <button
@@ -812,9 +840,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       gap: '6px',
                       padding: '11px 14px',
                       borderRadius: '12px',
-                      background: isJournalAdded ? '#1E5E3A' : '#FAF7F2',
-                      color: isJournalAdded ? '#FFFFFF' : '#1F1C18',
-                      border: isJournalAdded ? '1px solid #1E5E3A' : '1px solid #ECE6DD',
+                      background: isJournalAdded ? '#1E5E3A' : (isDark ? '#26322A' : '#FAF7F2'),
+                      color: isJournalAdded ? '#FFFFFF' : (isDark ? '#F3F0EA' : '#1F1C18'),
+                      border: isJournalAdded ? '1px solid #1E5E3A' : (isDark ? '1px solid #36463B' : '1px solid #ECE6DD'),
                       fontSize: '13px',
                       fontWeight: 500,
                       cursor: 'pointer',
@@ -825,7 +853,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                       <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                     </svg>
-                    <span>{isJournalAdded ? 'Added to Journal' : 'Add to Journal'}</span>
+                    <span>{isJournalAdded ? (language === 'hi' ? 'चिंतन में जोड़ा गया' : 'Added to Journal') : (language === 'hi' ? 'चिंतन में जोड़ें' : 'Add to Journal')}</span>
                   </button>
                 </div>
               </div>
@@ -841,8 +869,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   padding: '13px 20px',
                   borderRadius: '14px',
                   background: 'transparent',
-                  border: '1px solid #ECE6DD',
-                  color: '#706C64',
+                  border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
+                  color: isDark ? '#9CA3AF' : '#706C64',
                   fontSize: '13.5px',
                   fontWeight: 500,
                   cursor: 'pointer',
@@ -850,20 +878,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   transition: 'all 0.15s'
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.background = '#FFFFFF';
-                  e.currentTarget.style.color = '#1E5E3A';
-                  e.currentTarget.style.borderColor = '#1E5E3A';
+                  e.currentTarget.style.background = isDark ? '#1E2621' : '#FFFFFF';
+                  e.currentTarget.style.color = isDark ? '#4ADE80' : '#1E5E3A';
+                  e.currentTarget.style.borderColor = isDark ? '#4ADE80' : '#1E5E3A';
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = '#706C64';
-                  e.currentTarget.style.borderColor = '#ECE6DD';
+                  e.currentTarget.style.color = isDark ? '#9CA3AF' : '#706C64';
+                  e.currentTarget.style.borderColor = isDark ? '#29342D' : '#ECE6DD';
                 }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 12H5M12 19l-7-7 7-7" />
                 </svg>
-                <span>Ask another question (Return to Home)</span>
+                <span>{language === 'hi' ? 'अन्य प्रश्न पूछें (मुख्य पृष्ठ पर लौटें)' : 'Ask another question (Return to Home)'}</span>
               </button>
             </div>
           )}
@@ -887,14 +915,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         pointerEvents: 'none'
       }}>
         <div style={{
-          background: '#FFFFFF',
-          border: '1px solid #ECE5DC',
+          background: isDark ? '#1E2621' : '#FFFFFF',
+          border: isDark ? '1px solid #29342D' : '1px solid #ECE5DC',
           borderRadius: '30px',
           height: '56px',
           display: 'flex',
           alignItems: 'center',
           padding: '0 10px 0 22px',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03)',
+          boxShadow: isDark
+            ? '0 8px 32px rgba(0, 0, 0, 0.45)'
+            : '0 4px 20px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03)',
           pointerEvents: 'auto',
           transition: 'all 0.2s ease'
         }}>
@@ -910,7 +940,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 handleSubmitQuery();
               }
             }}
-            placeholder="Tell me what's bothering you..."
+            placeholder={language === 'hi' ? 'बताएं, आपके मन में क्या चल रहा है...' : "Tell me what's bothering you..."}
             style={{
               flex: 1,
               background: 'transparent',
@@ -918,7 +948,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               outline: 'none',
               fontSize: '15px',
               fontFamily: 'inherit',
-              color: '#1F1C18',
+              color: isDark ? '#F3F0EA' : '#1F1C18',
               padding: 0
             }}
           />
@@ -929,7 +959,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               onClick={() => handleSubmitQuery()}
               aria-label="Submit query"
               style={{
-                background: '#1E5E3A',
+                background: isDark ? '#4ADE80' : '#1E5E3A',
                 border: 'none',
                 borderRadius: '50%',
                 width: '38px',
@@ -938,7 +968,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                color: '#FFFFFF',
+                color: isDark ? '#0F172A' : '#FFFFFF',
                 marginRight: '6px',
                 transition: 'transform 0.15s'
               }}
@@ -958,8 +988,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             aria-label={isListening ? "Listening for speech" : "Start voice input"}
             title={isListening ? "Listening..." : "Speak your mind"}
             style={{
-              background: isListening ? 'rgba(30, 94, 58, 0.12)' : 'none',
-              border: isListening ? '1px solid #1E5E3A' : 'none',
+              background: isListening
+                ? (isDark ? 'rgba(74, 222, 128, 0.2)' : 'rgba(30, 94, 58, 0.12)')
+                : 'none',
+              border: isListening
+                ? (isDark ? '1px solid #4ADE80' : '1px solid #1E5E3A')
+                : 'none',
               borderRadius: '50%',
               width: '40px',
               height: '40px',
@@ -967,7 +1001,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              color: isListening ? '#1E5E3A' : '#5C5750',
+              color: isListening
+                ? (isDark ? '#4ADE80' : '#1E5E3A')
+                : (isDark ? '#9CA3AF' : '#5C5750'),
               transition: 'all 0.18s'
             }}
           >

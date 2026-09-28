@@ -191,7 +191,11 @@ export const JAPA_MANTRAS: Mantra[] = [
     shortName: "Hare Krishna",
     fullText: "Hare Krishna Hare Krishna, Krishna Krishna Hare Hare, Hare Rama Hare Rama, Rama Rama Hare Hare",
     sanskrit: "हरे कृष्ण हरे कृष्ण, कृष्ण कृष्ण हरे हरे",
-    meaning: "The Maha-mantra for inner peace, pure love, and transcendental consciousness."
+    meaning: "The Maha-mantra for inner peace, pure love, and transcendental consciousness.",
+    nameHi: "हरे कृष्ण हरे कृष्ण, कृष्ण कृष्ण हरे हरे",
+    shortNameHi: "हरे कृष्ण",
+    fullTextHi: "हरे कृष्ण हरे कृष्ण कृष्ण कृष्ण हरे हरे\nहरे राम हरे राम राम राम हरे हरे",
+    meaningHi: "आंतरिक शांति, दिव्य प्रेम और परम चेतना के लिए महामंत्र।"
   },
   {
     id: "gayatri-mantra",
@@ -199,7 +203,11 @@ export const JAPA_MANTRAS: Mantra[] = [
     shortName: "Gayatri Mantra",
     fullText: "Om Bhur Bhuvaḥ Svaḥ, Tat-savitur Vareṇyaṁ Bhargo Devasya Dhīmahi, Dhiyo Yo Naḥ Prachodayāt",
     sanskrit: "ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं भर्गो देवस्य धीमहि धियो यो नः प्रचोदयात्",
-    meaning: "A universal prayer for spiritual illumination, wisdom, and clarity of mind."
+    meaning: "A universal prayer for spiritual illumination, wisdom, and clarity of mind.",
+    nameHi: "गायत्री मंत्र",
+    shortNameHi: "गायत्री मंत्र",
+    fullTextHi: "ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं\nभर्गो देवस्य धीमहि धियो यो नः प्रचोदयात्",
+    meaningHi: "आध्यात्मिक प्रकाश, सद्बुद्धि और मानसिक स्पष्टता के लिए सार्वभौमिक प्रार्थना।"
   },
   {
     id: "radha-radha",
@@ -207,7 +215,11 @@ export const JAPA_MANTRAS: Mantra[] = [
     shortName: "Radha Radha",
     fullText: "Radhe Radhe Radhe, Shri Radha Radhe Radhe",
     sanskrit: "श्री राधा राधे राधे, राधे राधे",
-    meaning: "An intimate remembrance of divine devotion, sweet grace, and surrender."
+    meaning: "An intimate remembrance of divine devotion, sweet grace, and surrender.",
+    nameHi: "राधा नाम",
+    shortNameHi: "राधा राधा",
+    fullTextHi: "राधे राधे राधे श्री राधा राधे राधे\nराधे राधे गोविंद राधे राधे गोपाला",
+    meaningHi: "दिव्य भक्ति, कृपा और आत्म-समर्पण का पावन स्मरण।"
   },
   {
     id: "om-namo-bhagavate",
@@ -215,7 +227,11 @@ export const JAPA_MANTRAS: Mantra[] = [
     shortName: "Om Namo Bhagavate",
     fullText: "Om Namo Bhagavate Vasudevaya",
     sanskrit: "ॐ नमो भगवते वासुदेवाय",
-    meaning: "Salutations to the Supreme Lord Sri Krishna who resides within all living beings."
+    meaning: "Salutations to the Supreme Lord Sri Krishna who resides within all living beings.",
+    nameHi: "ॐ नमो भगवते वासुदेवाय",
+    shortNameHi: "ॐ नमो भगवते",
+    fullTextHi: "ॐ नमो भगवते वासुदेवाय",
+    meaningHi: "सभी जीवों के हृदय में वास करने वाले परम प्रभु श्री कृष्ण को सादर नमन।"
   }
 ];
 

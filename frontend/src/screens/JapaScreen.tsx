@@ -2,10 +2,15 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Mantra } from '../types';
 import { JAPA_MANTRAS } from '../data/gitaData';
 import { japaAudio } from '../utils/japaAudio';
+import { Language, TRANSLATIONS } from '../utils/translations';
 
 interface JapaScreenProps {
   onMantraComplete?: (mantraName: string, roundNumber: number) => void;
   onOpenMenu?: () => void;
+  soundEnabled?: boolean;
+  onToggleSound?: (enabled: boolean) => void;
+  language?: Language;
+  theme?: 'light' | 'dark';
 }
 
 const BEAD_COUNT = 108;
@@ -23,26 +28,42 @@ interface JapaHistoryItem {
   mantraCounts: Record<string, number>;
 }
 
+const getMantraDisplayName = (name: string, language: Language) => {
+  if (language !== 'hi') return name;
+  const found = JAPA_MANTRAS.find(m => m.name === name || m.shortName === name || m.id === name);
+  if (found && (found.shortNameHi || found.nameHi)) {
+    return found.shortNameHi || found.nameHi!;
+  }
+  if (name.toLowerCase().includes('gayatri')) return 'गायत्री मंत्र';
+  if (name.toLowerCase().includes('krishna')) return 'हरे कृष्ण';
+  if (name.toLowerCase().includes('radha')) return 'राधा नाम';
+  if (name.toLowerCase().includes('vasudevaya') || name.toLowerCase().includes('bhagavate')) return 'ॐ नमो भगवते वासुदेवाय';
+  return name;
+};
+
 export const JapaScreen: React.FC<JapaScreenProps> = ({
   onMantraComplete,
-  onOpenMenu
+  onOpenMenu,
+  soundEnabled: propSoundEnabled,
+  onToggleSound,
+  language = 'en',
+  theme = 'light'
 }) => {
+  const isDark = theme === 'dark';
+  const t = TRANSLATIONS[language] || TRANSLATIONS.en;
+
   // Screen navigation state: 'counter' (Screen 1) | 'complete' (Screen 2) | 'progress' (Screen 3)
   const [currentView, setCurrentView] = useState<'counter' | 'complete' | 'progress'>('counter');
 
-  // Initial count defaults strictly to 0 for a new session
-  const [count, setCount] = useState<number>(() => {
+  // Initial count strictly resets to 0 every time the user opens the app
+  const [count, setCount] = useState<number>(0);
+
+  // Clear any legacy persistent count so it always resets on app start
+  useEffect(() => {
     try {
-      const saved = localStorage.getItem('gita_japa_count');
-      const parsed = saved ? parseInt(saved, 10) : 0;
-      if (parsed >= BEAD_COUNT || isNaN(parsed) || parsed < 0) {
-        return 0;
-      }
-      return parsed;
-    } catch {
-      return 0;
-    }
-  });
+      localStorage.removeItem('gita_japa_count');
+    } catch {}
+  }, []);
 
   const [selectedMantraId, setSelectedMantraId] = useState<string>(() => {
     try {
@@ -53,7 +74,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
     }
   });
 
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+  const [localSoundEnabled, setLocalSoundEnabled] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem('gita_japa_sound');
       return saved !== null ? saved === 'true' : true;
@@ -62,11 +83,15 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
     }
   });
 
+  // Sound is determined by prop if provided, else local state
+  const isSoundOn = propSoundEnabled !== undefined ? propSoundEnabled : localSoundEnabled;
+
   // User history starts strictly at empty (0 malas, 0 repetitions) until rounds are completed
   const [history, setHistory] = useState<JapaHistoryItem[]>(() => {
     try {
       // Clear legacy mock seed if present
       localStorage.removeItem('gita_japa_history_v2');
+      localStorage.removeItem('gita_japa_history');
       const saved = localStorage.getItem('gita_japa_user_history');
       return saved ? JSON.parse(saved) : [];
     } catch {
@@ -82,18 +107,22 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const toggleSound = () => {
-    setSoundEnabled(prev => {
-      const next = !prev;
-      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-      setSoundToast(next ? "Sound: ON 🔔" : "Sound: MUTED 🔇");
-      toastTimeoutRef.current = setTimeout(() => {
-        setSoundToast(null);
-      }, 1800);
-      if (next) {
-        japaAudio.playBeadChime();
-      }
-      return next;
-    });
+    const next = !isSoundOn;
+    if (onToggleSound) {
+      onToggleSound(next);
+    }
+    setLocalSoundEnabled(next);
+    try {
+      localStorage.setItem('gita_japa_sound', next.toString());
+    } catch {}
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setSoundToast(next ? t.soundOn : t.soundMuted);
+    toastTimeoutRef.current = setTimeout(() => {
+      setSoundToast(null);
+    }, 1800);
+    if (next) {
+      japaAudio.playBeadChime();
+    }
   };
 
   // Pre-initialize and keep audio hardware responsive on user interactions
@@ -110,24 +139,11 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
     };
   }, []);
 
-  // Sync state to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('gita_japa_count', count.toString());
-    } catch {}
-  }, [count]);
-
   useEffect(() => {
     try {
       localStorage.setItem('gita_japa_mantra_id', selectedMantraId);
     } catch {}
   }, [selectedMantraId]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('gita_japa_sound', soundEnabled.toString());
-    } catch {}
-  }, [soundEnabled]);
 
   // Synchronize sound status when modified in Settings screen
   useEffect(() => {
@@ -135,11 +151,10 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
       try {
         const saved = localStorage.getItem('gita_japa_sound');
         if (saved !== null) {
-          setSoundEnabled(saved === 'true');
+          setLocalSoundEnabled(saved === 'true');
         }
       } catch {}
     };
-    syncSound();
     window.addEventListener('storage', syncSound);
     window.addEventListener('japa-sound-changed', syncSound);
     return () => {
@@ -182,6 +197,13 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
       return { index: i, x, y };
     });
   }, []);
+
+  // Total user progress counts across all recorded days
+  const totalMalasCount = useMemo(() => {
+    return history.reduce((acc, h) => acc + h.totalMalas, 0);
+  }, [history]);
+
+  const totalRepetitionsCount = totalMalasCount * BEAD_COUNT;
 
   // Record completed round in history
   const recordCompletedRound = () => {
@@ -245,7 +267,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
       }
     } catch {}
 
-    if (soundEnabled) {
+    if (isSoundOn) {
       if (nextCount === BEAD_COUNT) {
         japaAudio.playCompletionChime();
       } else {
@@ -271,22 +293,17 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
     setCurrentView('counter');
   };
 
-  // Total user progress counts across all recorded days
-  const totalMalasCount = useMemo(() => {
-    return history.reduce((acc, h) => acc + h.totalMalas, 0);
-  }, [history]);
-
-  const totalRepetitionsCount = totalMalasCount * BEAD_COUNT;
-
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      minHeight: '100%',
-      background: '#FAF8F3',
-      color: '#1F1C18',
+      flex: 1,
+      minHeight: 'calc(100vh - 76px)',
+      background: isDark ? '#121614' : '#FAF8F3',
+      color: isDark ? '#F3F0EA' : '#1F1C18',
       fontFamily: 'var(--font-sans)',
-      userSelect: 'none'
+      userSelect: 'none',
+      boxSizing: 'border-box'
     }}>
       <style>{`
         @keyframes featherFloat {
@@ -318,7 +335,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '16px 20px 8px',
-            background: '#FAF8F3'
+            background: isDark ? '#121614' : '#FAF8F3'
           }}>
             <button
               onClick={onOpenMenu}
@@ -330,7 +347,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                 padding: '6px 0',
                 display: 'flex',
                 alignItems: 'center',
-                color: '#1F1C18'
+                color: isDark ? '#F3F0EA' : '#1F1C18'
               }}
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
@@ -344,31 +361,33 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
               fontFamily: 'var(--font-display)',
               fontSize: '20px',
               fontWeight: 600,
-              color: '#1F1C18',
+              color: isDark ? '#F3F0EA' : '#1F1C18',
               margin: 0,
               letterSpacing: '0.015em',
               textAlign: 'center',
               flex: 1
             }}>
-              Japa / Maala
+              {t.japaTitle}
             </h1>
 
-            {/* Quick link to view Progress (Screen 3) */}
-            <button
-              onClick={() => setCurrentView('progress')}
-              title="View Maala Progress"
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: '#1E5E3A',
-                fontSize: '12.5px',
-                fontWeight: 600,
-                padding: '4px 0'
-              }}
-            >
-              Progress
-            </button>
+            {/* Link to view Progress (Screen 3) */}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <button
+                onClick={() => setCurrentView('progress')}
+                title="View Maala Progress"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: isDark ? '#4ADE80' : '#1E5E3A',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  padding: '4px 2px'
+                }}
+              >
+                {t.progressTitle}
+              </button>
+            </div>
           </header>
 
           <div style={{ padding: '0 20px' }}>
@@ -376,10 +395,10 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
             <p style={{
               margin: '4px 0 14px',
               fontSize: '13px',
-              color: '#706C64',
+              color: isDark ? '#A6A095' : '#706C64',
               fontWeight: 400
             }}>
-              108 repetitions- A meditative practice
+              {t.japaSubtitle}
             </p>
 
             {/* Mantra Dropdown Selector */}
@@ -391,25 +410,25 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  background: '#FFFFFF',
-                  border: isDropdownOpen ? '1px solid #1E5E3A' : '1px solid #E5DFD5',
+                  background: isDark ? '#1E2621' : '#FFFFFF',
+                  border: isDropdownOpen ? (isDark ? '1px solid #4ADE80' : '1px solid #1E5E3A') : (isDark ? '1px solid #29342D' : '1px solid #E5DFD5'),
                   borderRadius: '12px',
                   padding: '12px 16px',
                   fontSize: '14.5px',
                   fontWeight: 500,
-                  color: '#1F1C18',
+                  color: isDark ? '#F3F0EA' : '#1F1C18',
                   cursor: 'pointer',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                  boxShadow: isDark ? '0 1px 4px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.02)',
                   transition: 'all 0.15s ease'
                 }}
               >
-                <span>{currentMantra.shortName || currentMantra.name}</span>
+                <span>{(language === 'hi' ? currentMantra.shortNameHi || currentMantra.nameHi : null) || currentMantra.shortName || currentMantra.name}</span>
                 <svg
                   width="14"
                   height="14"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="#706C64"
+                  stroke={isDark ? '#A6A095' : '#706C64'}
                   strokeWidth="2.2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -429,10 +448,10 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                   top: 'calc(100% + 6px)',
                   left: 0,
                   right: 0,
-                  background: '#FFFFFF',
-                  border: '1px solid #ECE6DD',
+                  background: isDark ? '#1E2621' : '#FFFFFF',
+                  border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
                   borderRadius: '14px',
-                  boxShadow: '0 8px 24px rgba(30, 25, 20, 0.1)',
+                  boxShadow: isDark ? '0 8px 24px rgba(0, 0, 0, 0.4)' : '0 8px 24px rgba(30, 25, 20, 0.1)',
                   zIndex: 90,
                   overflow: 'hidden',
                   padding: '6px 0'
@@ -450,7 +469,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                           width: '100%',
                           textAlign: 'left',
                           padding: '11px 16px',
-                          background: isSelected ? 'rgba(30, 94, 58, 0.08)' : 'transparent',
+                          background: isSelected ? (isDark ? 'rgba(74, 222, 128, 0.15)' : 'rgba(30, 94, 58, 0.08)') : 'transparent',
                           border: 'none',
                           display: 'flex',
                           alignItems: 'center',
@@ -462,13 +481,13 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                           <div style={{
                             fontSize: '14px',
                             fontWeight: isSelected ? 600 : 500,
-                            color: isSelected ? '#1E5E3A' : '#1F1C18'
+                            color: isSelected ? (isDark ? '#4ADE80' : '#1E5E3A') : (isDark ? '#F3F0EA' : '#1F1C18')
                           }}>
-                            {m.shortName || m.name}
+                            {(language === 'hi' ? m.shortNameHi || m.nameHi : null) || m.shortName || m.name}
                           </div>
                         </div>
                         {isSelected && (
-                          <span style={{ color: '#1E5E3A', fontSize: '15px', fontWeight: 700 }}>✓</span>
+                          <span style={{ color: isDark ? '#4ADE80' : '#1E5E3A', fontSize: '15px', fontWeight: 700 }}>✓</span>
                         )}
                       </button>
                     );
@@ -524,7 +543,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                     cy={CENTER_Y}
                     r={MALA_RADIUS}
                     fill="none"
-                    stroke="#EBE4D8"
+                    stroke={isDark ? '#29342D' : '#EBE4D8'}
                     strokeWidth="1"
                     strokeDasharray="2 3"
                   />
@@ -544,16 +563,16 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                             cy={y}
                             r={BEAD_RADIUS + 2.4}
                             fill="none"
-                            stroke="#1E5E3A"
+                            stroke={isDark ? '#4ADE80' : '#1E5E3A'}
                             strokeWidth="1.2"
-                            opacity="0.75"
+                            opacity="0.85"
                           />
                         )}
                         <circle
                           cx={x}
                           cy={y}
                           r={BEAD_RADIUS + (isCurrent ? 0.4 : 0)}
-                          fill="url(#pearlShine)"
+                          fill={isDark ? '#4ADE80' : 'url(#pearlShine)'}
                           filter="url(#pearlDropShadow)"
                         />
                       </g>
@@ -582,7 +601,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                     fontFamily: 'var(--font-display)',
                     fontSize: '44px',
                     fontWeight: 700,
-                    color: '#1E5E3A',
+                    color: isDark ? '#4ADE80' : '#1E5E3A',
                     lineHeight: 1
                   }}>
                     {count}
@@ -590,7 +609,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                   <div style={{
                     fontSize: '13px',
                     fontWeight: 500,
-                    color: '#8C867D',
+                    color: isDark ? '#A6A095' : '#8C867D',
                     marginTop: '4px'
                   }}>
                     / {BEAD_COUNT}
@@ -603,13 +622,13 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                     e.stopPropagation();
                     toggleSound();
                   }}
-                  title={soundEnabled ? "Sound enabled - Tap to mute" : "Sound muted - Tap to enable"}
+                  title={isSoundOn ? "Sound enabled - Tap to mute" : "Sound muted - Tap to enable"}
                   style={{
                     position: 'absolute',
                     bottom: 24,
                     right: 24,
-                    background: soundEnabled ? '#FFFFFF' : '#FEF2F2',
-                    border: soundEnabled ? '1px solid #ECE6DD' : '1px solid #FCA5A5',
+                    background: isDark ? (isSoundOn ? '#1E2621' : '#2A1818') : (isSoundOn ? '#FFFFFF' : '#FEF2F2'),
+                    border: isDark ? (isSoundOn ? '1px solid #29342D' : '1px solid #7F1D1D') : (isSoundOn ? '1px solid #ECE6DD' : '1px solid #FCA5A5'),
                     borderRadius: '50%',
                     width: 38,
                     height: 38,
@@ -617,13 +636,13 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    boxShadow: soundEnabled ? '0 2px 6px rgba(0,0,0,0.06)' : '0 2px 8px rgba(220, 38, 38, 0.16)',
-                    color: soundEnabled ? '#1E5E3A' : '#DC2626',
+                    boxShadow: isSoundOn ? '0 2px 6px rgba(0,0,0,0.1)' : '0 2px 8px rgba(220, 38, 38, 0.2)',
+                    color: isSoundOn ? (isDark ? '#4ADE80' : '#1E5E3A') : '#DC2626',
                     transition: 'all 0.18s ease',
                     zIndex: 10
                   }}
                 >
-                  {soundEnabled ? (
+                  {isSoundOn ? (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                       <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
@@ -643,13 +662,13 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                     position: 'absolute',
                     bottom: 70,
                     right: 14,
-                    background: '#1F1C18',
+                    background: isDark ? '#29342D' : '#1F1C18',
                     color: '#FFFFFF',
                     fontSize: '12px',
                     fontWeight: 600,
                     padding: '6px 14px',
                     borderRadius: '18px',
-                    boxShadow: '0 4px 14px rgba(0,0,0,0.22)',
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
                     zIndex: 30,
                     pointerEvents: 'none',
                     whiteSpace: 'nowrap'
@@ -670,27 +689,43 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                   fontFamily: 'var(--font-display)',
                   fontSize: '16px',
                   fontWeight: 700,
-                  color: '#1F1C18',
+                  color: isDark ? '#F3F0EA' : '#1F1C18',
                   margin: '0 0 8px 0'
                 }}>
-                  {currentMantra.shortName || currentMantra.name}
+                  {(language === 'hi' ? currentMantra.shortNameHi || currentMantra.nameHi : null) || currentMantra.shortName || currentMantra.name}
                 </h3>
                 <p style={{
                   fontFamily: 'var(--font-display)',
                   fontSize: '13.5px',
-                  color: '#3A3630',
+                  color: isDark ? '#D5CFC5' : '#3A3630',
                   lineHeight: 1.65,
                   margin: 0,
                   whiteSpace: 'pre-line'
                 }}>
-                  {selectedMantraId === 'gayatri-mantra' ? (
-                    "Om Bhur Bhuvah Svah Tat Savitur Varenyam\nBhargo Devasya Dhimahi Dhiyo Yo Nah\nPrachodayat"
-                  ) : selectedMantraId === 'hare-krishna' ? (
-                    "Hare Krishna Hare Krishna Krishna Krishna Hare Hare\nHare Rama Hare Rama Rama Rama Hare Hare"
-                  ) : selectedMantraId === 'radha-radha' ? (
-                    "Radhe Radhe Radhe Shri Radha Radhe Radhe\nRadhe Radhe Govinda Radhe Radhe Gopala"
+                  {language === 'hi' ? (
+                    currentMantra.fullTextHi || (
+                      selectedMantraId === 'gayatri-mantra' ? (
+                        "ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं\nभर्गो देवस्य धीमहि धियो यो नः प्रचोदयात्"
+                      ) : selectedMantraId === 'hare-krishna' ? (
+                        "हरे कृष्ण हरे कृष्ण कृष्ण कृष्ण हरे हरे\nहरे राम हरे राम राम राम हरे हरे"
+                      ) : selectedMantraId === 'radha-radha' ? (
+                        "राधे राधे राधे श्री राधा राधे राधे\nराधे राधे गोविंद राधे राधे गोपाला"
+                      ) : selectedMantraId === 'om-namo-bhagavate' ? (
+                        "ॐ नमो भगवते वासुदेवाय"
+                      ) : (
+                        currentMantra.sanskrit || currentMantra.fullText
+                      )
+                    )
                   ) : (
-                    currentMantra.fullText
+                    selectedMantraId === 'gayatri-mantra' ? (
+                      "Om Bhur Bhuvah Svah Tat Savitur Varenyam\nBhargo Devasya Dhimahi Dhiyo Yo Nah\nPrachodayat"
+                    ) : selectedMantraId === 'hare-krishna' ? (
+                      "Hare Krishna Hare Krishna Krishna Krishna Hare Hare\nHare Rama Hare Rama Rama Rama Hare Hare"
+                    ) : selectedMantraId === 'radha-radha' ? (
+                      "Radhe Radhe Radhe Shri Radha Radhe Radhe\nRadhe Radhe Govinda Radhe Radhe Gopala"
+                    ) : (
+                      currentMantra.fullText
+                    )
                   )}
                 </p>
               </div>
@@ -701,7 +736,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                 style={{
                   width: '100%',
                   maxWidth: 320,
-                  background: '#16532D',
+                  background: isDark ? '#297A4C' : '#16532D',
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: '28px',
@@ -716,7 +751,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                 onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
                 onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
               >
-                Tap to count
+                {t.tapToCount}
               </button>
 
               {/* Reset Option */}
@@ -725,34 +760,14 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#706C64',
+                  color: isDark ? '#A6A095' : '#706C64',
                   fontSize: '13.5px',
                   fontWeight: 500,
                   cursor: 'pointer',
                   padding: '6px 16px'
                 }}
               >
-                Reset
-              </button>
-
-              {/* Dev Test Button to quickly trigger 108 */}
-              <button
-                onClick={() => {
-                  setCount(BEAD_COUNT);
-                  recordCompletedRound();
-                  setCurrentView('complete');
-                }}
-                style={{
-                  marginTop: '10px',
-                  background: 'none',
-                  border: 'none',
-                  color: '#1E5E3A',
-                  fontSize: '11px',
-                  opacity: 0.55,
-                  cursor: 'pointer'
-                }}
-              >
-                [ Test 108 Complete → Screen 2 ]
+                {t.reset}
               </button>
             </div>
           </div>
@@ -785,7 +800,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                color: '#1E5E3A',
+                color: isDark ? '#4ADE80' : '#1E5E3A',
                 fontSize: '14.5px',
                 fontWeight: 600,
                 padding: '4px 0'
@@ -794,20 +809,20 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M15 18l-6-6 6-6" />
               </svg>
-              <span>Back</span>
+              <span>{t.back}</span>
             </button>
 
             <h1 style={{
               fontFamily: 'var(--font-display)',
               fontSize: '20px',
               fontWeight: 600,
-              color: '#1F1C18',
+              color: isDark ? '#F3F0EA' : '#1F1C18',
               margin: 0,
               flex: 1,
               textAlign: 'center',
               paddingRight: '48px'
             }}>
-              Japa
+              {t.japaTitle}
             </h1>
           </header>
 
@@ -832,14 +847,22 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                 width: '140px',
                 height: '140px',
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(30, 94, 58, 0.12) 0%, rgba(250, 248, 243, 0) 70%)',
+                background: isDark
+                  ? 'radial-gradient(circle, rgba(74, 222, 128, 0.22) 0%, rgba(18, 22, 20, 0) 70%)'
+                  : 'radial-gradient(circle, rgba(30, 94, 58, 0.12) 0%, rgba(250, 248, 243, 0) 70%)',
                 pointerEvents: 'none'
               }} />
 
               {/* The user-provided feather image */}
               <img
-                src="/peacock_feather.png"
+                src="./peacock_feather.png"
                 alt="Peacock Feather"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.src.includes('android_asset')) {
+                    target.src = 'file:///android_asset/peacock_feather.png';
+                  }
+                }}
                 style={{
                   width: '125px',
                   height: 'auto',
@@ -856,19 +879,19 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
               fontFamily: 'var(--font-display)',
               fontSize: '24px',
               fontWeight: 700,
-              color: '#1F1C18',
+              color: isDark ? '#F3F0EA' : '#1F1C18',
               margin: '0 0 8px 0',
               letterSpacing: '-0.01em'
             }}>
-              108 repetitions complete
+              {t.completedTitle}
             </h2>
             <p style={{
               fontSize: '14.5px',
-              color: '#706C64',
+              color: isDark ? '#A6A095' : '#706C64',
               margin: 0,
               lineHeight: 1.5
             }}>
-              Take a quiet moment before you continue.
+              {t.completedSubtitle}
             </p>
           </div>
 
@@ -879,20 +902,20 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
               onClick={() => setCurrentView('progress')}
               style={{
                 width: '100%',
-                background: '#FFFFFF',
-                border: '1.5px solid #16532D',
+                background: isDark ? '#1E2621' : '#FFFFFF',
+                border: isDark ? '1.5px solid #4ADE80' : '1.5px solid #16532D',
                 borderRadius: '26px',
                 height: '50px',
                 fontSize: '15px',
                 fontWeight: 600,
-                color: '#16532D',
+                color: isDark ? '#4ADE80' : '#16532D',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(22, 83, 45, 0.04)'}
-              onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+              onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(74, 222, 128, 0.12)' : 'rgba(22, 83, 45, 0.04)'}
+              onMouseLeave={e => e.currentTarget.style.background = isDark ? '#1E2621' : '#FFFFFF'}
             >
-              View progress
+              {t.viewProgress}
             </button>
 
             {/* 2. Start Again (Solid green button) */}
@@ -900,7 +923,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
               onClick={handleStartAgain}
               style={{
                 width: '100%',
-                background: '#16532D',
+                background: isDark ? '#297A4C' : '#16532D',
                 border: 'none',
                 borderRadius: '26px',
                 height: '50px',
@@ -914,7 +937,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
               onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
               onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
             >
-              Start Again
+              {t.startAgain}
             </button>
 
             {/* 3. Done link */}
@@ -923,7 +946,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#706C64',
+                color: isDark ? '#A6A095' : '#706C64',
                 fontSize: '14px',
                 fontWeight: 500,
                 cursor: 'pointer',
@@ -931,7 +954,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                 marginTop: '4px'
               }}
             >
-              Done
+              {t.done}
             </button>
           </div>
         </div>
@@ -963,7 +986,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                color: '#1E5E3A',
+                color: isDark ? '#4ADE80' : '#1E5E3A',
                 fontSize: '14.5px',
                 fontWeight: 600,
                 padding: '4px 0'
@@ -972,20 +995,20 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M15 18l-6-6 6-6" />
               </svg>
-              <span>Back</span>
+              <span>{t.back}</span>
             </button>
 
             <h1 style={{
               fontFamily: 'var(--font-display)',
               fontSize: '20px',
               fontWeight: 600,
-              color: '#1F1C18',
+              color: isDark ? '#F3F0EA' : '#1F1C18',
               margin: 0,
               flex: 1,
               textAlign: 'center',
               paddingRight: '48px'
             }}>
-              Maala Progress
+              {t.malaProgress}
             </h1>
           </header>
 
@@ -1012,7 +1035,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                 opacity: 0.88,
                 marginBottom: '8px'
               }}>
-                TOTAL MALAS
+                {t.totalMalas}
               </div>
               <div style={{
                 fontFamily: 'var(--font-display)',
@@ -1024,25 +1047,25 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
               </div>
             </div>
 
-            {/* Card 2: REPETITIONS (White Card) */}
+            {/* Card 2: REPETITIONS (Card) */}
             <div style={{
               flex: 1,
-              background: '#FFFFFF',
-              border: '1px solid #ECE6DD',
+              background: isDark ? '#1E2621' : '#FFFFFF',
+              border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
               borderRadius: '16px',
               padding: '16px 18px',
-              color: '#1F1C18',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
+              color: isDark ? '#F3F0EA' : '#1F1C18',
+              boxShadow: isDark ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(0, 0, 0, 0.03)'
             }}>
               <div style={{
                 fontSize: '11px',
                 fontWeight: 700,
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
-                color: '#706C64',
+                color: isDark ? '#A6A095' : '#706C64',
                 marginBottom: '8px'
               }}>
-                REPETITIONS
+                {t.repetitions}
               </div>
               <div style={{
                 fontFamily: 'var(--font-display)',
@@ -1062,41 +1085,41 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
               fontWeight: 700,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              color: '#8C867D',
+              color: isDark ? '#A6A095' : '#8C867D',
               marginBottom: '12px'
             }}>
-              HISTORY
+              {t.history}
             </div>
 
             {/* If user hasn't completed any rounds yet */}
             {history.length === 0 ? (
               <div style={{
-                background: '#FFFFFF',
-                border: '1px solid #ECE6DD',
+                background: isDark ? '#1E2621' : '#FFFFFF',
+                border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
                 borderRadius: '18px',
                 padding: '28px 20px',
                 textAlign: 'center',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)'
+                boxShadow: isDark ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(0, 0, 0, 0.02)'
               }}>
                 <div style={{ fontSize: '28px', marginBottom: '10px' }}>📿</div>
                 <div style={{
                   fontSize: '15px',
                   fontWeight: 600,
-                  color: '#1F1C18',
+                  color: isDark ? '#F3F0EA' : '#1F1C18',
                   marginBottom: '6px'
                 }}>
-                  No Japa malas recorded today
+                  {t.noJapaRecorded}
                 </div>
                 <p style={{
                   fontSize: '13px',
-                  color: '#706C64',
+                  color: isDark ? '#A6A095' : '#706C64',
                   margin: 0,
                   lineHeight: 1.5,
                   maxWidth: '280px',
                   marginLeft: 'auto',
                   marginRight: 'auto'
                 }}>
-                  Complete your first round of 108 repetitions to begin recording your daily progress.
+                  {t.noJapaDesc}
                 </p>
               </div>
             ) : (
@@ -1106,11 +1129,11 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                   <div
                     key={item.dateStr || idx}
                     style={{
-                      background: '#FFFFFF',
-                      border: '1px solid #ECE6DD',
+                      background: isDark ? '#1E2621' : '#FFFFFF',
+                      border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
                       borderRadius: '18px',
                       padding: '20px',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
+                      boxShadow: isDark ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(0, 0, 0, 0.03)'
                     }}
                   >
                     {/* Date Title & Summary */}
@@ -1118,16 +1141,16 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                       <div style={{
                         fontSize: '15.5px',
                         fontWeight: 600,
-                        color: '#1F1C18',
+                        color: isDark ? '#F3F0EA' : '#1F1C18',
                         marginBottom: '3px'
                       }}>
                         {item.displayDate}
                       </div>
                       <div style={{
                         fontSize: '12.5px',
-                        color: '#706C64'
+                        color: isDark ? '#A6A095' : '#706C64'
                       }}>
-                        {item.totalMalas} {item.totalMalas === 1 ? 'Mala' : 'Malas'} · {item.totalRepetitions} repetitions
+                        {item.totalMalas} {item.totalMalas === 1 ? t.malaWordSingular : t.malaWordPlural} · {item.totalRepetitions} {t.repetitions.toLowerCase()}
                       </div>
                     </div>
 
@@ -1136,7 +1159,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '10px',
-                      borderTop: '1px solid #F4EFE6',
+                      borderTop: `1px solid ${isDark ? '#29342D' : '#F4EFE6'}`,
                       paddingTop: '12px'
                     }}>
                       {Object.entries(item.mantraCounts).map(([mName, roundCount]) => (
@@ -1151,10 +1174,10 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span style={{ color: '#E28743', fontSize: '16px', lineHeight: 1 }}>•</span>
-                            <span style={{ color: '#2B2723', fontWeight: 500 }}>{mName}</span>
+                            <span style={{ color: isDark ? '#F3F0EA' : '#2B2723', fontWeight: 500 }}>{getMantraDisplayName(mName, language)}</span>
                           </div>
                           <div style={{
-                            color: '#16532D',
+                            color: isDark ? '#4ADE80' : '#16532D',
                             fontWeight: 600,
                             fontSize: '13.5px'
                           }}>
@@ -1165,6 +1188,30 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                     </div>
                   </div>
                 ))}
+
+                {/* Reset Progress History Option */}
+                <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                  <button
+                    onClick={() => {
+                      setHistory([]);
+                      try {
+                        localStorage.removeItem('gita_japa_user_history');
+                      } catch {}
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#EF4444',
+                      fontSize: '12.5px',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      padding: '6px 12px',
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    {language === 'hi' ? 'प्रगति इतिहास रीसेट करें' : 'Reset progress history'}
+                  </button>
+                </div>
               </div>
             )}
           </div>

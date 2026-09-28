@@ -1,5 +1,8 @@
-import argparse,json
+import argparse, json, sys
 from pathlib import Path
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 ROOT=Path(__file__).resolve().parents[1]
 CONTRACT=json.loads((ROOT/"knowledge/llm_response_contract.json").read_text(encoding="utf-8"))
@@ -36,6 +39,7 @@ Required output headings:
 2. What the Gita points toward
 3. Applying it here
 4. Reflection
+5. Daily Practice
 """
 
 def render(packet):

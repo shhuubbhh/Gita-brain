@@ -1,14 +1,38 @@
 import React from 'react';
+import { Language } from '../utils/translations';
 
 interface AboutScreenProps {
   onBack: () => void;
   theme?: 'light' | 'dark';
+  language?: Language;
 }
 
-export const AboutScreen: React.FC<AboutScreenProps> = ({ onBack, theme = 'light' }) => {
+export const AboutScreen: React.FC<AboutScreenProps> = ({ onBack, theme = 'light', language = 'en' }) => {
   const isDark = theme === 'dark';
+  const isHi = language === 'hi';
 
-  const sections = [
+  const sections = isHi ? [
+    {
+      title: "मार्गदर्शन क्या है?",
+      body: "मार्गदर्शन श्रीमद्भगवद्गीता से प्रेरित एक व्यक्तिगत चिंतन और आत्म-मार्गदर्शन ऐप है। यह आपको गीता के प्रामाणिक ज्ञान के माध्यम से वास्तविक जीवन की स्थितियों और भावनाओं को समझने में मदद करता है।"
+    },
+    {
+      title: "शास्त्रों की प्रामाणिकता",
+      body: "मार्गदर्शन में प्रदर्शित प्रत्येक गीता श्लोक सत्यापित अनुवादों से लिया गया है और स्पष्ट रूप से उद्धृत है। यह ऐप कभी भी काल्पनिक श्लोक या संस्कृत पाठ नहीं बनाता।"
+    },
+    {
+      title: "एआई व्याख्याएं",
+      body: "मार्गदर्शन द्वारा प्रदान की गई व्याख्याएं और चिंतन प्रश्न एआई-सहायता प्राप्त व्याख्यात्मक मार्गदर्शन हैं, जो आपको गीता के ज्ञान को जीवन में उतारने में मदद करते हैं।"
+    },
+    {
+      title: "सामग्री के स्रोत",
+      body: "श्लोक अनुवाद स्वामी प्रभुपाद की 'भगवद्गीता यथारूप' और अन्य प्रामाणिक शास्त्रीय स्रोतों पर आधारित हैं।"
+    },
+    {
+      title: "चिकित्सीय विकल्प नहीं",
+      body: "मार्गदर्शन केवल आत्म-चिंतन और सकारात्मक दृष्टिकोण के लिए है। यह पेशेवर मानसिक स्वास्थ्य परामर्श या चिकित्सा सलाह का विकल्प नहीं है।"
+    }
+  ] : [
     {
       title: "What is Maargdarshan?",
       body: "Maargdarshan is a personal reflection and guidance application inspired by the Bhagavad Gita. It helps you explore real-life situations and emotions through verified teachings from the Gita, offering interpretation, reflection, and practical perspective."
@@ -72,7 +96,7 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ onBack, theme = 'light
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          <span>Back</span>
+          <span>{isHi ? 'वापस' : 'Back'}</span>
         </button>
 
         <h1 style={{
@@ -82,7 +106,7 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ onBack, theme = 'light
           color: isDark ? '#F3F0EA' : '#1C1917',
           margin: 0
         }}>
-          About
+          {isHi ? 'मार्गदर्शन के बारे में' : 'About'}
         </h1>
 
         <div style={{ width: 48 }} />
@@ -114,8 +138,14 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ onBack, theme = 'light
             filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08))'
           }}>
             <img
-              src="/peacock_feather.png"
+              src="./peacock_feather.png"
               alt="Maargdarshan Logo"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.src.includes('android_asset')) {
+                  target.src = 'file:///android_asset/peacock_feather.png';
+                }
+              }}
               style={{
                 width: '100%',
                 height: '100%',
@@ -142,10 +172,10 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ onBack, theme = 'light
             marginBottom: 6,
             fontWeight: 500
           }}>
-            Maargdarshan · Version 1.0.0
+            {isHi ? 'मार्गदर्शन · संस्करण 1.0.0' : 'Maargdarshan · Version 1.0.0'}
           </div>
 
-          {/* English Tagline */}
+          {/* Tagline */}
           <p style={{
             fontSize: 13.5,
             color: isDark ? '#A6A095' : '#6F6B64',
@@ -153,7 +183,7 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ onBack, theme = 'light
             lineHeight: 1.45,
             maxWidth: 260
           }}>
-            Find perspective through the wisdom of the Gita.
+            {isHi ? 'गीता के शाश्वत ज्ञान से जीवन में स्पष्टता और शांति पाएं।' : 'Find perspective through the wisdom of the Gita.'}
           </p>
         </div>
 

@@ -7,7 +7,11 @@
     "business fails",
     "career fails",
     "not succeed",
-    "unsuccessful"
+    "unsuccessful",
+    "असफल",
+    "फेल",
+    "हार का डर",
+    "asafal"
   ],
   "career_comparison": [
     "coworker",
@@ -27,25 +31,39 @@
   "breakup": [
     "break up",
     "breakup",
-    "ex",
+    "my ex",
+    "ex-partner",
+    "ex boyfriend",
+    "ex girlfriend",
     "relationship ended",
     "she left",
     "he left",
     "they left me",
-    "lost my relationship"
+    "lost my relationship",
+    "ब्रेकअप"
   ],
   "anger_at_someone": [
     "angry at",
     "mad at",
     "furious with",
     "hate someone",
-    "someone hurt me"
+    "someone hurt me",
+    "गुस्सा",
+    "क्रोध",
+    "धोखा",
+    "नाराज",
+    "gussa",
+    "krodh",
+    "dhokha"
   ],
   "revenge": [
     "revenge",
     "get back at",
     "make them pay",
-    "hurt them back"
+    "hurt them back",
+    "बदला",
+    "सबक सिखाना",
+    "badla"
   ],
   "family_pressure": [
     "parents want",
@@ -57,10 +75,16 @@
   "career_confusion": [
     "career",
     "job",
+    "new job",
     "profession",
     "what should i do",
     "which career",
-    "job choice"
+    "job choice",
+    "नौकरी",
+    "नई नौकरी",
+    "कैरियर",
+    "काम",
+    "naukri"
   ],
   "money_anxiety": [
     "money",
@@ -69,14 +93,19 @@
     "financial",
     "finances",
     "bills",
-    "income"
+    "income",
+    "पैसे की चिंता",
+    "कर्ज"
   ],
   "loneliness": [
     "lonely",
     "alone",
     "no one",
     "nobody",
-    "isolated"
+    "isolated",
+    "अकेला",
+    "अकेलापन",
+    "akela"
   ],
   "grief": [
     "died",
@@ -86,13 +115,29 @@
     "grieving",
     "grief",
     "mourning",
-    "loss"
+    "loss",
+    "उदास",
+    "उदासी",
+    "दुख",
+    "दुखी",
+    "दर्द",
+    "गम",
+    "रोना",
+    "बहुत उदास",
+    "मौत",
+    "निधन",
+    "खो दिया",
+    "udaas",
+    "dukhi",
+    "gham"
   ],
   "guilt": [
     "guilty",
     "guilt",
     "regret what i did",
-    "mistake i made"
+    "mistake i made",
+    "पछतावा",
+    "मेरी गलती"
   ],
   "procrastination": [
     "procrastinate",
@@ -100,7 +145,9 @@
     "keep delaying",
     "can't start",
     "lazy",
-    "putting it off"
+    "putting it off",
+    "आलस",
+    "टालना"
   ],
   "jealousy": [
     "jealous",
@@ -120,40 +167,56 @@
     "have what i want",
     "what they have",
     "why does everyone",
-    "why do they have"
+    "why do they have",
+    "जलन",
+    "ईर्ष्या",
+    "jalan",
+    "irshya"
   ],
   "decision_conflict": [
-  "difficult decision",
-  "important decision",
-  "big decision",
-  "major decision",
-  "can't decide",
-  "cannot decide",
-  "should i",
-  "which should i",
-  "which option",
-  "which path",
-  "wrong choice",
-  "wrong decision",
-  "wrong path",
-  "afraid of choosing",
-  "afraid to choose",
-  "scared of choosing",
-  "scared to choose",
-  "fear of choosing",
-  "fear of making the wrong choice",
-  "fear of making the wrong decision",
-  "torn between",
-  "stuck between",
-  "uncertain decision",
-  "decision paralysis"
-],
+    "difficult decision",
+    "important decision",
+    "big decision",
+    "major decision",
+    "can't decide",
+    "cannot decide",
+    "should i",
+    "which should i",
+    "which option",
+    "which path",
+    "wrong choice",
+    "wrong decision",
+    "wrong path",
+    "afraid of choosing",
+    "afraid to choose",
+    "scared of choosing",
+    "scared to choose",
+    "fear of choosing",
+    "fear of making the wrong choice",
+    "fear of making the wrong decision",
+    "torn between",
+    "stuck between",
+    "uncertain decision",
+    "decision paralysis",
+    "समझ नहीं आ रहा क्या करूँ",
+    "समझ नहीं आ रहा",
+    "क्या करूँ",
+    "दुविधा",
+    "असमंजस",
+    "samajh nahi aa raha",
+    "kya karu"
+  ],
   "purpose_crisis": [
     "purpose",
     "meaning of life",
     "why am i here",
     "what is my purpose",
-    "meaningless"
+    "meaningless",
+    "मार्गदर्शन",
+    "जीवन का उद्देश्य",
+    "रास्ता",
+    "maargdarshan",
+    "margdarshan"
   ],
   "success_attachment": [
     "afraid of losing success",

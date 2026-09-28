@@ -1,276 +1,223 @@
-import React, { useState } from 'react';
-import { CHAPTERS, CHAPTER_DESCRIPTIONS } from '../data/gitaData';
-import { Chapter } from '../types';
+import React from 'react';
+import { Language, TRANSLATIONS } from '../utils/translations';
 
 interface LearnScreenProps {
   onSelectChapterPrompt?: (promptText: string) => void;
+  onOpenMenu?: () => void;
+  language?: Language;
+  theme?: 'light' | 'dark';
 }
 
-export const LearnScreen: React.FC<LearnScreenProps> = ({ onSelectChapterPrompt }) => {
-  const [selectedChapterIndex, setSelectedChapterIndex] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+export const LearnScreen: React.FC<LearnScreenProps> = ({
+  onOpenMenu,
+  language = 'en',
+  theme = 'light'
+}) => {
+  const t = TRANSLATIONS[language] || TRANSLATIONS.en;
+  const isDark = theme === 'dark';
 
-  const currentChapter: Chapter | null =
-    selectedChapterIndex !== null ? CHAPTERS[selectedChapterIndex] : null;
+  return (
+    <div style={{
+      position: 'relative',
+      minHeight: 'calc(100vh - 76px)',
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      background: isDark ? '#121614' : '#FAF7F2',
+      color: isDark ? '#F3F0EA' : '#1F1C18',
+      overflow: 'hidden',
+      boxSizing: 'border-box'
+    }}>
+      {/* Background Decorative Art with Subtle Blur Effect */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        overflow: 'hidden',
+        pointerEvents: 'none',
+        zIndex: 0
+      }}>
+        {/* Soft background glow circles */}
+        <div style={{
+          position: 'absolute',
+          top: '-10%',
+          right: '-15%',
+          width: 320,
+          height: 320,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(30, 94, 58, 0.18) 0%, rgba(212, 160, 80, 0.08) 50%, transparent 70%)',
+          filter: 'blur(32px)'
+        }} />
 
-  const filteredChapters = CHAPTERS.filter(ch => {
-    const q = searchQuery.toLowerCase();
-    return (
-      ch.name.toLowerCase().includes(q) ||
-      ch.theme.toLowerCase().includes(q) ||
-      ch.key.toLowerCase().includes(q) ||
-      String(ch.num).includes(q)
-    );
-  });
+        <div style={{
+          position: 'absolute',
+          bottom: '10%',
+          left: '-15%',
+          width: 340,
+          height: 340,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(200, 150, 60, 0.16) 0%, rgba(30, 94, 58, 0.08) 50%, transparent 70%)',
+          filter: 'blur(36px)'
+        }} />
 
-  // CHAPTER DETAIL VIEW
-  if (currentChapter) {
-    const color = '#1E5E3A';
-    return (
-      <div style={{ padding: '42px 20px 32px', minHeight: '100vh', background: '#FAF7F2' }} className="animate-fade-up">
+        {/* Ambient blurred backdrop layer */}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          background: isDark ? 'rgba(18, 22, 20, 0.75)' : 'rgba(250, 247, 242, 0.65)'
+        }} />
+      </div>
+
+      {/* Screen Header */}
+      <header style={{
+        position: 'relative',
+        zIndex: 10,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '16px 20px',
+        borderBottom: isDark ? '1px solid #29342D' : '1px solid rgba(236, 230, 221, 0.8)'
+      }}>
         <button
-          onClick={() => setSelectedChapterIndex(null)}
+          onClick={onOpenMenu}
+          aria-label="Open menu"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            color: '#6F6B64',
-            fontSize: 13,
             background: 'none',
             border: 'none',
             cursor: 'pointer',
-            padding: 0,
-            marginBottom: 24
+            padding: '6px 0',
+            display: 'flex',
+            alignItems: 'center',
+            color: isDark ? '#F3F0EA' : '#1F1C18'
           }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M19 12H5M12 5l-7 7 7 7" />
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3.5" y1="6.5" x2="20.5" y2="6.5" />
+            <line x1="3.5" y1="12" x2="20.5" y2="12" />
+            <line x1="3.5" y1="17.5" x2="20.5" y2="17.5" />
           </svg>
-          All Chapters
         </button>
 
-        {/* Big subtle number */}
-        <div style={{
+        <h1 style={{
           fontFamily: 'var(--font-display)',
-          fontSize: 80,
-          color: color,
-          opacity: 0.15,
-          lineHeight: 1,
-          fontWeight: 300,
-          marginBottom: -16,
-          userSelect: 'none'
-        }}>
-          {String(currentChapter.num).padStart(2, '0')}
-        </div>
-
-        <div style={{
-          fontSize: 11,
-          color: color,
-          fontWeight: 700,
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          marginBottom: 8
-        }}>
-          Chapter {currentChapter.num}
-        </div>
-
-        <h2 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 28,
-          color: '#1F1C18',
-          lineHeight: 1.25,
-          marginBottom: 6,
-          fontWeight: 600
-        }}>
-          {currentChapter.name}
-        </h2>
-
-        <p style={{ fontSize: 15, color: '#6F6B64', marginBottom: 28 }}>
-          {currentChapter.theme}
-        </p>
-
-        <div style={{ borderTop: '1px solid #ECE6DD', paddingTop: 24, display: 'flex', flexDirection: 'column', gap: 22 }}>
-          <div>
-            <div style={{ fontSize: 11, color: '#1E5E3A', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
-              About This Chapter
-            </div>
-            <p style={{ fontSize: 14.5, color: '#3A3630', lineHeight: 1.75 }}>
-              {CHAPTER_DESCRIPTIONS[currentChapter.num] ||
-                `Chapter ${currentChapter.num} explores the theme of ${currentChapter.theme.toLowerCase()} through Krishna's dialogue with Arjuna. Its teachings remain deeply relevant to modern life and inner growth.`}
-            </p>
-          </div>
-
-          <div>
-            <div style={{ fontSize: 11, color: '#1E5E3A', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
-              Key Themes
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {currentChapter.key.split(', ').map(k => (
-                <span
-                  key={k}
-                  style={{
-                    background: 'rgba(30, 94, 58, 0.08)',
-                    border: '1px solid rgba(30, 94, 58, 0.2)',
-                    borderRadius: 20,
-                    padding: '7px 14px',
-                    color: '#1E5E3A',
-                    fontSize: 13,
-                    fontWeight: 500
-                  }}
-                >
-                  {k}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <button
-            onClick={() => {
-              if (onSelectChapterPrompt) {
-                onSelectChapterPrompt(`What does Chapter ${currentChapter.num} (${currentChapter.name}) teach about ${currentChapter.theme}?`);
-              }
-            }}
-            style={{
-              background: '#1E5E3A',
-              border: 'none',
-              borderRadius: 14,
-              padding: '16px',
-              color: '#FFFFFF',
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: 'pointer',
-              width: '100%',
-              marginTop: 8,
-              boxShadow: '0 4px 14px rgba(30, 94, 58, 0.2)'
-            }}
-          >
-            Explore Wisdom in Chapter {currentChapter.num}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // DEFAULT 18 CHAPTERS LIST
-  return (
-    <div style={{ padding: '36px 18px 24px', minHeight: '100vh', background: '#FAF7F2' }}>
-      <div style={{ marginBottom: 20 }}>
-        <div style={{
-          fontSize: 11,
-          color: '#1E5E3A',
-          fontWeight: 700,
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          marginBottom: 6
-        }}>
-          Explore
-        </div>
-        <h2 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 28,
-          color: '#1F1C18',
-          lineHeight: 1.2,
+          fontSize: '19px',
           fontWeight: 600,
-          marginBottom: 8
+          color: isDark ? '#F3F0EA' : '#1F1C18',
+          margin: 0,
+          letterSpacing: '0.01em',
+          textAlign: 'center',
+          flex: 1
         }}>
-          The Bhagavad Gita
-        </h2>
-        <p style={{ fontSize: 14, color: '#6F6B64', lineHeight: 1.5 }}>
-          18 chapters of eternal wisdom. Each teaching, a window into self-discovery.
-        </p>
-      </div>
+          {t.exploreTitle}
+        </h1>
 
-      {/* Search Input */}
-      <div style={{ position: 'relative', marginBottom: 20 }}>
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#9C978F"
-          strokeWidth="2"
-          strokeLinecap="round"
-          style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)' }}
-        >
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" />
-        </svg>
-        <input
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          placeholder="Search chapters, themes, or Sanskrit names..."
-          style={{
-            width: '100%',
-            background: '#FFFFFF',
-            border: '1px solid #ECE6DD',
-            borderRadius: 14,
-            padding: '13px 16px 13px 44px',
-            color: '#1F1C18',
-            fontSize: 14,
-            fontFamily: 'inherit',
-            outline: 'none',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
-          }}
-          onFocus={e => e.currentTarget.style.borderColor = '#1E5E3A'}
-          onBlur={e => e.currentTarget.style.borderColor = '#ECE6DD'}
-        />
-      </div>
+        <div style={{ width: 22 }} />
+      </header>
 
-      {/* 2-Column Chapter Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 11 }}>
-        {filteredChapters.map((ch) => {
-          const originalIdx = ch.num - 1;
-          return (
-            <button
-              key={ch.num}
-              onClick={() => setSelectedChapterIndex(originalIdx)}
+      {/* Central "Coming Soon" Hero Content with Frosted Glass Panel */}
+      <div style={{
+        position: 'relative',
+        zIndex: 10,
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px 24px',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          maxWidth: 360,
+          width: '100%',
+          background: isDark ? 'rgba(26, 34, 29, 0.85)' : 'rgba(255, 255, 255, 0.72)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: isDark ? '1.5px solid rgba(74, 222, 128, 0.22)' : '1.5px solid rgba(212, 160, 80, 0.28)',
+          borderRadius: 24,
+          padding: '40px 26px 36px',
+          boxShadow: isDark ? '0 12px 40px rgba(0, 0, 0, 0.45)' : '0 8px 32px rgba(30, 94, 58, 0.08), 0 2px 8px rgba(0, 0, 0, 0.02)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          animation: 'fade-up 0.5s ease-out'
+        }}>
+          {/* Stylized Emblem with Peacock Feather */}
+          <div style={{
+            position: 'relative',
+            width: 88,
+            height: 88,
+            borderRadius: '50%',
+            background: isDark ? 'radial-gradient(circle, rgba(74, 222, 128, 0.18) 0%, rgba(200, 150, 60, 0.15) 70%)' : 'radial-gradient(circle, rgba(30, 94, 58, 0.12) 0%, rgba(212, 160, 80, 0.15) 70%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 20,
+            border: isDark ? '1px solid rgba(74, 222, 128, 0.35)' : '1px solid rgba(30, 94, 58, 0.2)'
+          }}>
+            <img
+              src="./peacock_feather.png"
+              alt="Feather Logo"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.src.includes('android_asset')) {
+                  target.src = 'file:///android_asset/peacock_feather.png';
+                }
+              }}
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #ECE6DD',
-                borderRadius: 16,
-                padding: '16px 14px',
-                textAlign: 'left',
-                cursor: 'pointer',
-                transition: 'all 0.18s',
-                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.02)'
+                width: 52,
+                height: 52,
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 4px 10px rgba(0, 0, 0, 0.12))'
               }}
-              onMouseEnter={e => {
-                e.currentTarget.style.borderColor = '#1E5E3A';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(30, 94, 58, 0.08)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.borderColor = '#ECE6DD';
-                e.currentTarget.style.transform = 'none';
-                e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.02)';
-              }}
-            >
-              <div style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 32,
-                color: '#1E5E3A',
-                opacity: 0.35,
-                lineHeight: 1,
-                marginBottom: 8,
-                fontWeight: 400
-              }}>
-                {String(ch.num).padStart(2, '0')}
-              </div>
-              <div style={{
-                fontSize: 13,
-                color: '#1F1C18',
-                fontWeight: 600,
-                lineHeight: 1.35,
-                marginBottom: 4
-              }}>
-                {ch.name.split(' ').slice(0, 3).join(' ')}
-              </div>
-              <div style={{ fontSize: 11.5, color: '#6F6B64', lineHeight: 1.4 }}>
-                {ch.theme}
-              </div>
-            </button>
-          );
-        })}
+            />
+          </div>
+
+          {/* Under Development Badge */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '5px 14px',
+            borderRadius: 20,
+            background: isDark ? 'rgba(74, 222, 128, 0.12)' : 'rgba(30, 94, 58, 0.08)',
+            border: isDark ? '1px solid rgba(74, 222, 128, 0.3)' : '1px solid rgba(30, 94, 58, 0.22)',
+            fontSize: 11.5,
+            fontWeight: 600,
+            color: isDark ? '#4ADE80' : '#1E5E3A',
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            marginBottom: 16
+          }}>
+            <span style={{ fontSize: 13 }}>🪷</span>
+            <span>{t.underDevelopment}</span>
+          </div>
+
+          {/* Title */}
+          <h2 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: '28px',
+            fontWeight: 700,
+            color: isDark ? '#F3F0EA' : '#1F1C18',
+            margin: '0 0 12px 0',
+            letterSpacing: '-0.01em',
+            lineHeight: 1.2
+          }}>
+            {t.comingSoonTitle}
+          </h2>
+
+          {/* Subtitle */}
+          <p style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: '14.5px',
+            color: isDark ? '#9CA3AF' : '#6F6B64',
+            lineHeight: 1.6,
+            margin: 0,
+            maxWidth: 290
+          }}>
+            {t.comingSoonSubtitle}
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -8,9 +8,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.net.Uri;
 import android.webkit.ConsoleMessage;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -18,6 +21,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -64,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowUniversalAccessFromFileURLs(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
 
+        settings.setLoadsImagesAutomatically(true);
+        settings.setBlockNetworkImage(false);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
@@ -76,6 +84,41 @@ public class MainActivity extends AppCompatActivity {
                 }
                 view.loadUrl(url);
                 return true;
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                Uri uri = request.getUrl();
+                String scheme = uri.getScheme();
+                if (scheme != null && scheme.equalsIgnoreCase("file")) {
+                    String path = uri.getPath();
+                    if (path != null) {
+                        String assetPath = path;
+                        if (assetPath.startsWith("/android_asset/")) {
+                            assetPath = assetPath.substring("/android_asset/".length());
+                        } else if (assetPath.startsWith("/")) {
+                            assetPath = assetPath.substring(1);
+                        }
+
+                        try {
+                            InputStream is = getAssets().open(assetPath);
+                            String mimeType = "application/octet-stream";
+                            String lower = assetPath.toLowerCase();
+                            if (lower.endsWith(".png")) mimeType = "image/png";
+                            else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) mimeType = "image/jpeg";
+                            else if (lower.endsWith(".svg")) mimeType = "image/svg+xml";
+                            else if (lower.endsWith(".webp")) mimeType = "image/webp";
+                            else if (lower.endsWith(".js")) mimeType = "text/javascript";
+                            else if (lower.endsWith(".css")) mimeType = "text/css";
+                            else if (lower.endsWith(".html")) mimeType = "text/html";
+                            else if (lower.endsWith(".json")) mimeType = "application/json";
+
+                            return new WebResourceResponse(mimeType, "UTF-8", is);
+                        } catch (IOException ignored) {
+                        }
+                    }
+                }
+                return super.shouldInterceptRequest(view, request);
             }
         });
 

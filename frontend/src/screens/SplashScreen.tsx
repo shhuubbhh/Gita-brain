@@ -1,10 +1,14 @@
 import React from 'react';
+import { Language, TRANSLATIONS } from '../utils/translations';
 
 interface SplashScreenProps {
   onProceed: () => void;
+  language?: Language;
 }
 
-export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed }) => {
+export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed, language = 'en' }) => {
+  const t = TRANSLATIONS[language] || TRANSLATIONS.en;
+
   return (
     <div style={{
       position: 'relative',
@@ -23,12 +27,27 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed }) => {
       <div style={{
         position: 'absolute',
         inset: 0,
-        backgroundImage: 'url(/splash_krishna_bg.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center top',
-        filter: 'brightness(0.78) contrast(1.06)',
-        zIndex: 1
-      }} />
+        zIndex: 1,
+        overflow: 'hidden'
+      }}>
+        <img
+          src="./splash_krishna_bg.jpg"
+          alt="Krishna Artwork"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.src.includes('android_asset')) {
+              target.src = 'file:///android_asset/splash_krishna_bg.jpg';
+            }
+          }}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center top',
+            filter: 'brightness(0.78) contrast(1.06)'
+          }}
+        />
+      </div>
 
       {/* Atmospheric Spiritual Dark Vignette & Gradient Overlay */}
       <div style={{
@@ -41,7 +60,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed }) => {
       {/* Subtle Mystical Radial Glow behind center content */}
       <div style={{
         position: 'absolute',
-        top: '42%',
+        top: '38%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: 340,
@@ -52,7 +71,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed }) => {
       }} />
 
       {/* Upper Spacer */}
-      <div style={{ zIndex: 10, height: 60 }} />
+      <div style={{ zIndex: 10, height: 24 }} />
 
       {/* Center Branding Content: Peacock Feather + Maargdarshan + Subtitle */}
       <div style={{
@@ -62,6 +81,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed }) => {
         alignItems: 'center',
         textAlign: 'center',
         padding: '0 24px',
+        transform: 'translateY(-14px)',
         animation: 'fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards'
       }}>
         {/* Stylized Peacock Feather Emblem */}
@@ -75,8 +95,14 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed }) => {
           filter: 'drop-shadow(0 6px 18px rgba(0, 0, 0, 0.6))'
         }}>
           <img
-            src="/peacock_feather.png"
+            src="./peacock_feather.png"
             alt="Maargdarshan Feather"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (!target.src.includes('android_asset')) {
+                target.src = 'file:///android_asset/peacock_feather.png';
+              }
+            }}
             style={{
               width: '100%',
               height: '100%',
@@ -95,7 +121,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed }) => {
           margin: '0 0 10px 0',
           textShadow: '0 2px 12px rgba(0, 0, 0, 0.6)'
         }}>
-          Maargdarshan
+          {t.drawerTitle}
         </h1>
 
         {/* Subtitle */}
@@ -109,14 +135,14 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed }) => {
           margin: 0,
           textShadow: '0 1px 8px rgba(0, 0, 0, 0.5)'
         }}>
-          Find perspective through the wisdom of the Gita.
+          {t.splashSubtitle}
         </p>
       </div>
 
       {/* Lower Action: Glowing Halo Ripple with Central Arrow Button */}
       <div style={{
         zIndex: 10,
-        marginBottom: 72,
+        marginBottom: 108,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -148,7 +174,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed }) => {
         {/* Center Interactive Circular Button */}
         <button
           onClick={onProceed}
-          aria-label="Enter Maargdarshan"
+          aria-label={t.splashEnterAria}
           style={{
             position: 'relative',
             width: 64,

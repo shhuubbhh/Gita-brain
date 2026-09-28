@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -7,6 +8,21 @@ from urllib import request, error
 from api.answer_guard import validate_answer
 
 ROOT = Path(__file__).resolve().parents[1]
+
+# Load local .env if present
+env_file = ROOT / ".env"
+if env_file.exists():
+    try:
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                k_clean = k.strip()
+                v_clean = v.strip().strip('"').strip("'")
+                if k_clean and k_clean not in os.environ:
+                    os.environ[k_clean] = v_clean
+    except Exception:
+        pass
 
 
 def _run_json(script, args):
@@ -49,6 +65,18 @@ def build_prompt(evidence):
             tmp.unlink()
 
 
+def _sanitize_error(msg: str) -> str:
+    if not msg:
+        return ""
+    # Mask Bearer tokens
+    msg = re.sub(r'Bearer\s+[A-Za-z0-9_\-\.]+', 'Bearer [REDACTED]', msg)
+    # Mask API keys in URL query params
+    msg = re.sub(r'key=[A-Za-z0-9_\-\.]+', 'key=[REDACTED]', msg)
+    # Mask OpenAI style sk- keys
+    msg = re.sub(r'sk-[A-Za-z0-9_\-\.]+', 'sk-[REDACTED]', msg)
+    return msg
+
+
 def _http_json(url, payload, headers):
     req = request.Request(
         url,
@@ -61,9 +89,18 @@ def _http_json(url, payload, headers):
             return json.loads(r.read().decode("utf-8"))
     except error.HTTPError as e:
         body = e.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"LLM API error {e.code}: {body}") from e
+        clean_body = _sanitize_error(body)
+        err_msg = f"LLM API error {e.code}: {clean_body}"
+        if e.code == 401:
+            err_msg = f"LLM API authentication failed (401 Unauthorized): Check API key. {clean_body}"
+        elif e.code == 429:
+            err_msg = f"LLM API rate limit or quota exceeded (429): {clean_body}"
+        exc = RuntimeError(err_msg)
+        exc.status_code = e.code
+        raise exc from e
     except error.URLError as e:
-        raise RuntimeError(f"LLM network error: {e}") from e
+        clean_msg = _sanitize_error(str(e))
+        raise RuntimeError(f"LLM network error: {clean_msg}") from e
 
 
 def _extract_openai_compatible(data):
@@ -93,20 +130,38 @@ def _extract_openai_compatible(data):
     raise RuntimeError("LLM response contained no text")
 
 
-def _call_openai_compatible(prompt, key, model, base_url):
-    payload = {"model": model, "input": prompt}
-    return _extract_openai_compatible(_http_json(
-        base_url.rstrip("/") + "/responses",
-        payload,
-        {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-    ))
+def _call_openai(prompt, key, model, base_url):
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json"
+    }
+    # 1. Attempt OpenAI /responses endpoint
+    responses_url = base_url.rstrip("/") + "/responses"
+    payload_responses = {"model": model, "input": prompt}
+    try:
+        data = _http_json(responses_url, payload_responses, headers)
+        return _extract_openai_compatible(data)
+    except RuntimeError as err:
+        status = getattr(err, "status_code", None)
+        # Fall back to /chat/completions if /responses is not supported or fails with 400/404/405
+        if status in (400, 404, 405):
+            chat_url = base_url.rstrip("/") + "/chat/completions"
+            payload_chat = {
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.2
+            }
+            chat_data = _http_json(chat_url, payload_chat, headers)
+            return _extract_openai_compatible(chat_data)
+        raise
 
 
 def _call_groq(prompt, key, model, base_url):
     # Groq exposes an OpenAI-compatible chat-completions endpoint.
     payload = {
         "model": model,
-        "messages": [{"role": "user", "content": prompt}]
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.2
     }
     data = _http_json(
         base_url.rstrip("/") + "/chat/completions",
@@ -144,6 +199,30 @@ def _call_gemini(prompt, key, model, base_url):
     raise RuntimeError("Gemini response contained no text")
 
 
+def get_active_model(provider: str) -> str:
+    prov = provider.strip().lower()
+    if prov == "gemini":
+        return os.environ.get("GEMINI_MODEL") or os.environ.get("GITA_BRAIN_MODEL") or "gemini-2.5-flash"
+    if prov == "openai":
+        openai_model = os.environ.get("OPENAI_MODEL")
+        if openai_model:
+            return openai_model.strip()
+        brain_model = os.environ.get("GITA_BRAIN_MODEL", "").strip()
+        # Avoid carrying over gemini or groq model names if set globally
+        if brain_model and not brain_model.lower().startswith("gemini-") and not brain_model.lower().startswith("llama-"):
+            return brain_model
+        return "gpt-4o"
+    if prov == "groq":
+        groq_model = os.environ.get("GROQ_MODEL")
+        if groq_model:
+            return groq_model.strip()
+        brain_model = os.environ.get("GITA_BRAIN_MODEL", "").strip()
+        if brain_model and not brain_model.lower().startswith("gemini-") and not brain_model.lower().startswith("gpt-"):
+            return brain_model
+        return "llama-3.3-70b-versatile"
+    return os.environ.get("GITA_BRAIN_MODEL", "")
+
+
 def call_llm(prompt):
     provider = os.environ.get("GITA_BRAIN_PROVIDER", "gemini").strip().lower()
 
@@ -151,7 +230,7 @@ def call_llm(prompt):
         key = os.environ.get("GEMINI_API_KEY")
         if not key:
             raise RuntimeError("GEMINI_API_KEY is not configured on the server")
-        model = os.environ.get("GITA_BRAIN_MODEL", "gemini-2.5-flash")
+        model = get_active_model("gemini")
         base_url = os.environ.get(
             "GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta"
         )
@@ -161,15 +240,15 @@ def call_llm(prompt):
         key = os.environ.get("OPENAI_API_KEY")
         if not key:
             raise RuntimeError("OPENAI_API_KEY is not configured on the server")
-        model = os.environ.get("GITA_BRAIN_MODEL", "gpt-5.6")
+        model = get_active_model("openai")
         base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
-        return _call_openai_compatible(prompt, key, model, base_url)
+        return _call_openai(prompt, key, model, base_url)
 
     if provider == "groq":
         key = os.environ.get("GROQ_API_KEY")
         if not key:
             raise RuntimeError("GROQ_API_KEY is not configured on the server")
-        model = os.environ.get("GITA_BRAIN_MODEL", "llama-3.3-70b-versatile")
+        model = get_active_model("groq")
         base_url = os.environ.get("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
         return _call_groq(prompt, key, model, base_url)
 
@@ -179,9 +258,12 @@ def call_llm(prompt):
     )
 
 
-# Backward-compatible name for existing callers.
+# Backward-compatible names for existing callers.
 def call_openai(prompt):
     return call_llm(prompt)
+
+
+_call_openai_compatible = _call_openai
 
 
 def generate_answer(mood, thought, top_k=3):
@@ -197,10 +279,11 @@ def generate_answer(mood, thought, top_k=3):
             "; ".join(guard["problems"])
         )
 
+    provider = os.environ.get("GITA_BRAIN_PROVIDER", "gemini").lower()
     return {
         "answer": answer,
-        "provider": os.environ.get("GITA_BRAIN_PROVIDER", "gemini").lower(),
-        "model": os.environ.get("GITA_BRAIN_MODEL", ""),
+        "provider": provider,
+        "model": get_active_model(provider),
         "situation": evidence["understanding"]["situation"],
         "concepts": evidence["understanding"]["concepts"],
         "sources": [x["verse_id"] for x in evidence["gita_evidence"]],

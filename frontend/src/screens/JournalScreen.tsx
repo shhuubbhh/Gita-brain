@@ -2,21 +2,42 @@ import React, { useState, useMemo } from 'react';
 import { JournalEntry, MoodItem } from '../types';
 import { JOURNAL_MOODS } from '../data/gitaData';
 
+import { Language, TRANSLATIONS } from '../utils/translations';
+
 interface JournalScreenProps {
   entries: JournalEntry[];
   onSaveEntry: (entry: { date: string; mood: string; reflection: string; teaching?: string }) => void;
   onDeleteEntry?: (id: string) => void;
   onOpenMenu?: () => void;
+  language?: Language;
+  theme?: 'light' | 'dark';
 }
 
 type SubScreen = 'landing' | 'write' | 'calendar' | 'history';
 
-const MONTH_NAMES = [
+const MONTH_NAMES_EN = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-const WEEKDAY_NAMES = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+const MONTH_NAMES_HI = [
+  'जनवरी', 'फ़रवरी', 'मार्च', 'अप्रैल', 'मई', 'जून',
+  'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर'
+];
+
+const WEEKDAY_NAMES_EN = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+const WEEKDAY_NAMES_HI = ['र', 'सो', 'मं', 'बु', 'गु', 'शु', 'श'];
+
+const MOOD_LABELS_HI: Record<string, string> = {
+  Sad: 'उदास',
+  Happy: 'प्रसन्न',
+  Excited: 'उत्साहित',
+  Confused: 'असमंजस',
+  Anxious: 'चिंतित',
+  Stressed: 'तनावग्रस्त',
+  Angry: 'क्रोधित',
+  Neutral: 'सामान्य'
+};
 
 // Gita teaching for the monthly reflection card & modal
 const FEATURED_MONTHLY_TEACHING = {
@@ -55,20 +76,35 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
   entries,
   onSaveEntry,
   onDeleteEntry,
-  onOpenMenu
+  onOpenMenu,
+  language = 'en',
+  theme = 'light'
 }) => {
+  const isDark = theme === 'dark';
+  const t = TRANSLATIONS[language] || TRANSLATIONS.en;
+
   // Navigation between the 4 screens: 'landing' (1) -> 'write' (2) -> 'calendar' (3) -> 'history' (4)
   const [currentScreen, setCurrentScreen] = useState<SubScreen>('landing');
 
-  // Today reference (defaults to September 23, 2026 to harmonize with app corpus)
-  const today = useMemo(() => new Date(2026, 8, 23), []);
+  // Helper to format Date as "YYYY-MM-DD" local system date
+  const getSystemDateStr = () => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
 
-  // Calendar view month & year state
-  const [viewYear, setViewYear] = useState<number>(2026);
-  const [viewMonth, setViewMonth] = useState<number>(8); // September = 8 (0-indexed)
+  // Real system date for today
+  const today = useMemo(() => new Date(), []);
+  const todayStr = useMemo(() => getSystemDateStr(), []);
 
-  // Write reflection state
-  const [selectedDateStr, setSelectedDateStr] = useState<string>("2026-09-23");
+  // Calendar view month & year state (defaults to real current system month & year)
+  const [viewYear, setViewYear] = useState<number>(() => new Date().getFullYear());
+  const [viewMonth, setViewMonth] = useState<number>(() => new Date().getMonth());
+
+  // Write reflection state (always defaults to system date)
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(() => getSystemDateStr());
   const [selectedMood, setSelectedMood] = useState<string>("Happy");
   const [reflectionText, setReflectionText] = useState<string>("");
   const [validationError, setValidationError] = useState<string>("");
@@ -76,6 +112,13 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
   // Modals state
   const [showFullTeachingModal, setShowFullTeachingModal] = useState<boolean>(false);
   const [selectedDayEntryModal, setSelectedDayEntryModal] = useState<JournalEntry | null>(null);
+
+  // Toast feedback
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 2400);
+  };
 
   // Month navigation helpers
   const handlePrevMonth = () => {
@@ -148,28 +191,33 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
   // Formatted date string for write screen
   const formattedSelectedDate = useMemo(() => {
     try {
-      const [y, m, d] = selectedDateStr.split('-').map(Number);
+      const [y, m, d] = (selectedDateStr || todayStr).split('-').map(Number);
       const dateObj = new Date(y, m - 1, d);
-      return dateObj.toLocaleDateString('en-GB', {
+      return dateObj.toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', {
         day: 'numeric',
         month: 'long',
         year: 'numeric'
       });
     } catch {
-      return "23 September 2026";
+      return new Date().toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
     }
-  }, [selectedDateStr]);
+  }, [selectedDateStr, todayStr, language]);
 
-  // Handle Save Reflection from Screen 2
+  // Handle Save Reflection from Screen 2 (Always saved for today's system date)
   const handleSaveReflection = () => {
     if (!reflectionText.trim()) {
-      setValidationError("Please write a few words about your day before saving.");
+      setValidationError(t.validationError);
       return;
     }
 
     setValidationError("");
+    // Crucial: ALWAYS save for system today!
     onSaveEntry({
-      date: selectedDateStr,
+      date: todayStr,
       mood: selectedMood,
       reflection: reflectionText.trim(),
       teaching: FEATURED_MONTHLY_TEACHING.ref
@@ -207,18 +255,21 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
     }
   };
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // SCREEN 1: My Journal Landing
-  // ─────────────────────────────────────────────────────────────────────────────
-  if (currentScreen === 'landing') {
+  const renderScreenContent = () => {
+    // ─────────────────────────────────────────────────────────────────────────────
+    // SCREEN 1: My Journal Landing
+    // ─────────────────────────────────────────────────────────────────────────────
+    if (currentScreen === 'landing') {
     return (
       <div style={{
-        background: '#FAF7F2',
-        minHeight: '100%',
+        background: isDark ? '#121614' : '#FAF7F2',
+        minHeight: 'calc(100vh - 76px)',
+        flex: 1,
         padding: '24px 18px 40px',
-        color: '#1C1917',
+        color: isDark ? '#F3F0EA' : '#1C1917',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        boxSizing: 'border-box'
       }}>
         {/* Header: Hamburger | Title | + New */}
         <div style={{
@@ -234,7 +285,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: '#1C1917',
+              color: isDark ? '#F3F0EA' : '#1C1917',
               padding: '6px',
               display: 'flex',
               alignItems: 'center',
@@ -252,17 +303,20 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
           <h1 style={{
             fontFamily: 'var(--font-display)',
             fontSize: 20,
-            color: '#1C1917',
+            color: isDark ? '#F3F0EA' : '#1C1917',
             fontWeight: 600,
             margin: 0
           }}>
-            My Journal
+            {t.journalTitle}
           </h1>
 
           <button
-            onClick={() => setCurrentScreen('write')}
+            onClick={() => {
+              setSelectedDateStr(todayStr);
+              setCurrentScreen('write');
+            }}
             style={{
-              background: '#1E5E3A',
+              background: isDark ? '#297A4C' : '#1E5E3A',
               color: '#FFFFFF',
               border: 'none',
               borderRadius: 20,
@@ -277,38 +331,38 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               transition: 'transform 0.15s ease'
             }}
           >
-            + New
+            {language === 'hi' ? '+ नया' : '+ New'}
           </button>
         </div>
 
         {/* Informational Guidance Banner Card */}
         <div style={{
-          background: '#FFF9EE',
-          border: '1px solid #EFE4D0',
+          background: isDark ? '#1E2621' : '#FFF9EE',
+          border: isDark ? '1px solid #29342D' : '1px solid #EFE4D0',
           borderRadius: 20,
           padding: '24px 20px',
           marginBottom: 36,
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)'
+          boxShadow: isDark ? '0 2px 10px rgba(0, 0, 0, 0.2)' : '0 2px 10px rgba(0, 0, 0, 0.02)'
         }}>
           <p style={{
             fontSize: 14.5,
             lineHeight: 1.6,
-            color: '#2A2621',
+            color: isDark ? '#E5E0D8' : '#2A2621',
             margin: '0 0 14px 0'
           }}>
-            Journal your thoughts and experiences each day.
+            {language === 'hi' ? 'प्रतिदिन अपने विचार और अनुभव डायरी में लिखें।' : 'Journal your thoughts and experiences each day.'}
           </p>
           <p style={{
             fontSize: 14.5,
             lineHeight: 1.6,
-            color: '#2A2621',
+            color: isDark ? '#E5E0D8' : '#2A2621',
             margin: 0
           }}>
-            At the end of the month, reflect on your overall mood and receive a{' '}
-            <strong style={{ fontWeight: 600, color: '#1C1917' }}>
-              personalized, relevant Gita teaching
+            {language === 'hi' ? 'महीने के अंत में, अपने समग्र भाव पर विचार करें और अपनी यात्रा को समझने व अधिक स्पष्टता के साथ आगे बढ़ने के लिए ' : 'At the end of the month, reflect on your overall mood and receive a '}
+            <strong style={{ fontWeight: 600, color: isDark ? '#4ADE80' : '#1C1917' }}>
+              {language === 'hi' ? 'श्रीमद्भगवद्गीता का प्रासंगिक उपदेश' : 'personalized, relevant Gita teaching'}
             </strong>{' '}
-            to help you understand your journey and move forward with greater clarity.
+            {language === 'hi' ? 'प्राप्त करें।' : 'to help you understand your journey and move forward with greater clarity.'}
           </p>
         </div>
 
@@ -334,32 +388,49 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
           <h2 style={{
             fontFamily: 'var(--font-display)',
             fontSize: 19,
-            color: '#1C1917',
+            color: isDark ? '#F3F0EA' : '#1C1917',
             fontWeight: 500,
             marginBottom: 8
           }}>
-            {entries.length === 0 ? 'No reflections yet' : `${entries.length} reflections recorded`}
+            {entries.length === 0
+              ? (language === 'hi' ? 'अभी तक कोई चिंतन नहीं' : 'No reflections yet')
+              : (language === 'hi' ? `${entries.length} चिंतन दर्ज किए गए` : `${entries.length} reflections recorded`)}
           </h2>
 
           <p style={{
             fontSize: 13.5,
-            color: '#78716C',
+            color: isDark ? '#A6A095' : '#78716C',
             lineHeight: 1.5,
             maxWidth: 260,
             marginBottom: 28
           }}>
             {entries.length === 0
-              ? 'Your thoughts can become a place to pause and understand yourself.'
-              : 'Keep nurturing your daily reflections to cultivate inner equanimity.'}
+              ? (language === 'hi'
+                  ? 'आपके विचार आत्म-चिंतन और स्वयं को समझने का एक शांत स्थान बन सकते हैं।'
+                  : 'Your thoughts can become a place to pause and understand yourself.')
+              : (language === 'hi'
+                  ? 'आंतरिक समत्व विकसित करने के लिए अपने दैनिक चिंतन को जारी रखें।'
+                  : 'Keep nurturing your daily reflections to cultivate inner equanimity.')}
           </p>
 
           {/* Primary Action Button */}
           <button
-            onClick={() => setCurrentScreen('write')}
+            onClick={() => {
+              const todayEntry = entriesByDate[todayStr];
+              if (todayEntry) {
+                setSelectedMood(todayEntry.mood);
+                setReflectionText(todayEntry.reflection);
+              } else {
+                setSelectedMood("Happy");
+                setReflectionText("");
+              }
+              setSelectedDateStr(todayStr);
+              setCurrentScreen('write');
+            }}
             style={{
               width: '100%',
               maxWidth: 340,
-              background: '#1E5E3A',
+              background: isDark ? '#297A4C' : '#1E5E3A',
               color: '#FFFFFF',
               border: 'none',
               borderRadius: 24,
@@ -374,7 +445,11 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               transition: 'opacity 0.2s ease, transform 0.15s ease'
             }}
           >
-            {entries.length === 0 ? 'Write your first reflection' : 'Write your reflection'}
+            {entries.length === 0
+              ? (language === 'hi' ? 'पहला चिंतन लिखें' : 'Write your first reflection')
+              : entriesByDate[todayStr]
+              ? (language === 'hi' ? 'आज का चिंतन संपादित करें' : "Edit today's reflection")
+              : (language === 'hi' ? 'आज का चिंतन लिखें' : 'Write your reflection')}
           </button>
         </div>
 
@@ -382,16 +457,17 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
         <button
           onClick={() => setCurrentScreen('calendar')}
           style={{
-            background: '#FFFFFF',
-            border: '1px solid #ECE6DD',
+            background: isDark ? '#1E2621' : '#FFFFFF',
+            border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
             borderRadius: 16,
             padding: '16px 20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
-            transition: 'background 0.15s ease'
+            boxShadow: isDark ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(0, 0, 0, 0.02)',
+            transition: 'background 0.15s ease',
+            marginTop: 'auto'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -402,8 +478,8 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               width: 24,
               height: 24,
               borderRadius: 6,
-              background: '#E0F2FE',
-              color: '#0284C7'
+              background: isDark ? 'rgba(2, 132, 199, 0.2)' : '#E0F2FE',
+              color: '#38BDF8'
             }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -415,13 +491,13 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
             <span style={{
               fontSize: 14,
               fontWeight: 500,
-              color: '#1C1917'
+              color: isDark ? '#F3F0EA' : '#1C1917'
             }}>
-              View mood calendar
+              {language === 'hi' ? 'भाव कैलेंडर देखें' : 'View mood calendar'}
             </span>
           </div>
 
-          <span style={{ fontSize: 16, color: '#A8A29E' }}>→</span>
+          <span style={{ fontSize: 16, color: isDark ? '#A6A095' : '#A8A29E' }}>→</span>
         </button>
       </div>
     );
@@ -433,12 +509,14 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
   if (currentScreen === 'write') {
     return (
       <div style={{
-        background: '#FAF7F2',
-        minHeight: '100%',
+        background: isDark ? '#121614' : '#FAF7F2',
+        minHeight: 'calc(100vh - 76px)',
+        flex: 1,
         padding: '24px 18px 40px',
-        color: '#1C1917',
+        color: isDark ? '#F3F0EA' : '#1C1917',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        boxSizing: 'border-box'
       }}>
         {/* Header: Back / Hamburger | Title */}
         <div style={{
@@ -454,7 +532,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: '#1C1917',
+              color: isDark ? '#F3F0EA' : '#1C1917',
               padding: '6px',
               display: 'flex',
               alignItems: 'center',
@@ -470,11 +548,11 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
           <h1 style={{
             fontFamily: 'var(--font-display)',
             fontSize: 20,
-            color: '#1C1917',
+            color: isDark ? '#F3F0EA' : '#1C1917',
             fontWeight: 600,
             margin: 0
           }}>
-            My Journal
+            {t.journalTitle}
           </h1>
 
           <div style={{ width: 32 }} />
@@ -482,7 +560,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
 
         {/* Date capsule bar matching screenshot: "Today" | "23 September 2026" */}
         <div style={{
-          background: '#F1ECE3',
+          background: isDark ? '#19201C' : '#F1ECE3',
           borderRadius: 20,
           padding: '5px 14px',
           display: 'flex',
@@ -491,21 +569,21 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
           marginBottom: 16
         }}>
           <span style={{
-            background: '#FFFFFF',
+            background: isDark ? '#253028' : '#FFFFFF',
             borderRadius: 14,
             padding: '3px 12px',
             fontSize: 12,
             fontWeight: 600,
-            color: '#1C1917',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+            color: isDark ? '#F3F0EA' : '#1C1917',
+            boxShadow: isDark ? '0 1px 3px rgba(0, 0, 0, 0.2)' : '0 1px 3px rgba(0, 0, 0, 0.05)'
           }}>
-            Today
+            {t.todayLabel}
           </span>
 
           <span style={{
             fontSize: 13,
             fontWeight: 500,
-            color: '#57534E'
+            color: isDark ? '#A6A095' : '#57534E'
           }}>
             {formattedSelectedDate}
           </span>
@@ -513,11 +591,11 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
 
         {/* Main Writing & Emotion Card */}
         <div style={{
-          background: '#FFFFFF',
-          border: '1px solid #ECE6DD',
+          background: isDark ? '#1E2621' : '#FFFFFF',
+          border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
           borderRadius: 20,
           padding: '18px 18px 20px',
-          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.02)',
+          boxShadow: isDark ? '0 2px 12px rgba(0, 0, 0, 0.2)' : '0 2px 12px rgba(0, 0, 0, 0.02)',
           marginBottom: 18,
           flex: 1,
           display: 'flex',
@@ -530,7 +608,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               setReflectionText(e.target.value);
               if (validationError) setValidationError("");
             }}
-            placeholder="Write what's on your mind..."
+            placeholder={t.writePlaceholder}
             style={{
               width: '100%',
               minHeight: 180,
@@ -539,7 +617,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               outline: 'none',
               fontSize: 15,
               lineHeight: 1.6,
-              color: '#1C1917',
+              color: isDark ? '#F3F0EA' : '#1C1917',
               fontFamily: 'inherit',
               resize: 'none',
               marginBottom: 16
@@ -552,7 +630,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               color: '#DC2626',
               marginBottom: 12,
               padding: '6px 12px',
-              background: '#FEE2E2',
+              background: isDark ? 'rgba(220, 38, 38, 0.2)' : '#FEE2E2',
               borderRadius: 8
             }}>
               {validationError}
@@ -561,19 +639,19 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
 
           {/* Emotion / Mood Selector Header */}
           <div style={{
-            borderTop: '1px solid #F4EFE6',
+            borderTop: `1px solid ${isDark ? '#29342D' : '#F4EFE6'}`,
             paddingTop: 16,
             marginTop: 'auto'
           }}>
             <div style={{
               fontSize: 12,
               fontWeight: 600,
-              color: '#78716C',
+              color: isDark ? '#A6A095' : '#78716C',
               textTransform: 'uppercase',
               letterSpacing: '0.06em',
               marginBottom: 10
             }}>
-              How are you feeling today?
+              {t.howWasDay}
             </div>
 
             {/* 8 Emotions Grid matching requirements: sad, happy, excited, confused, anxious, stressed, angry, neutral */}
@@ -584,6 +662,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
             }}>
               {JOURNAL_MOODS.map(m => {
                 const isSelected = selectedMood === m.label;
+                const displayLabel = language === 'hi' ? (MOOD_LABELS_HI[m.label] || m.label) : m.label;
                 return (
                   <button
                     key={m.key}
@@ -596,8 +675,12 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                       justifyContent: 'center',
                       padding: '8px 4px',
                       borderRadius: 14,
-                      border: isSelected ? '1.5px solid #1E5E3A' : '1px solid #ECE6DD',
-                      background: isSelected ? 'rgba(30, 94, 58, 0.08)' : '#FAF8F5',
+                      border: isSelected
+                        ? (isDark ? '1.5px solid #4ADE80' : '1.5px solid #1E5E3A')
+                        : (isDark ? '1px solid #29342D' : '1px solid #ECE6DD'),
+                      background: isSelected
+                        ? (isDark ? 'rgba(74, 222, 128, 0.15)' : 'rgba(30, 94, 58, 0.08)')
+                        : (isDark ? '#19201C' : '#FAF8F5'),
                       cursor: 'pointer',
                       transition: 'all 0.15s ease'
                     }}
@@ -606,9 +689,9 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                     <span style={{
                       fontSize: 11,
                       fontWeight: isSelected ? 600 : 500,
-                      color: isSelected ? '#1E5E3A' : '#57534E'
+                      color: isSelected ? (isDark ? '#4ADE80' : '#1E5E3A') : (isDark ? '#E5E0D8' : '#57534E')
                     }}>
-                      {m.label}
+                      {displayLabel}
                     </span>
                   </button>
                 );
@@ -627,7 +710,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
             onClick={handleSaveReflection}
             style={{
               flex: 1,
-              background: '#1E5E3A',
+              background: isDark ? '#297A4C' : '#1E5E3A',
               color: '#FFFFFF',
               border: 'none',
               borderRadius: 24,
@@ -638,16 +721,18 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               boxShadow: '0 3px 12px rgba(30, 94, 58, 0.22)'
             }}
           >
-            Save
+            {entriesByDate[todayStr]
+              ? (language === 'hi' ? 'चिंतन अपडेट करें' : 'Update Reflection')
+              : t.saveReflection}
           </button>
 
           <button
             onClick={() => setCurrentScreen('landing')}
             style={{
               flex: 1,
-              background: '#FFFFFF',
-              color: '#1E5E3A',
-              border: '1.5px solid #1E5E3A',
+              background: isDark ? '#1E2621' : '#FFFFFF',
+              color: isDark ? '#4ADE80' : '#1E5E3A',
+              border: isDark ? '1.5px solid #4ADE80' : '1.5px solid #1E5E3A',
               borderRadius: 24,
               height: 48,
               fontSize: 15,
@@ -655,7 +740,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               cursor: 'pointer'
             }}
           >
-            Cancel
+            {t.cancel}
           </button>
         </div>
 
@@ -663,14 +748,15 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
         <button
           onClick={() => setCurrentScreen('calendar')}
           style={{
-            background: '#FFFFFF',
-            border: '1px solid #ECE6DD',
+            background: isDark ? '#1E2621' : '#FFFFFF',
+            border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
             borderRadius: 16,
             padding: '14px 18px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            marginTop: 'auto'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -681,8 +767,8 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               width: 22,
               height: 22,
               borderRadius: 6,
-              background: '#E0F2FE',
-              color: '#0284C7'
+              background: isDark ? 'rgba(2, 132, 199, 0.2)' : '#E0F2FE',
+              color: '#38BDF8'
             }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -691,11 +777,11 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                 <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
             </span>
-            <span style={{ fontSize: 13.5, fontWeight: 500, color: '#1C1917' }}>
-              View mood calendar
+            <span style={{ fontSize: 13.5, fontWeight: 500, color: isDark ? '#F3F0EA' : '#1C1917' }}>
+              {language === 'hi' ? 'भाव कैलेंडर देखें' : 'View mood calendar'}
             </span>
           </div>
-          <span style={{ fontSize: 15, color: '#A8A29E' }}>→</span>
+          <span style={{ fontSize: 15, color: isDark ? '#A6A095' : '#A8A29E' }}>→</span>
         </button>
       </div>
     );
@@ -707,12 +793,14 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
   if (currentScreen === 'calendar') {
     return (
       <div style={{
-        background: '#FAF7F2',
-        minHeight: '100%',
+        background: isDark ? '#121614' : '#FAF7F2',
+        minHeight: 'calc(100vh - 76px)',
+        flex: 1,
         padding: '24px 18px 40px',
-        color: '#1C1917',
+        color: isDark ? '#F3F0EA' : '#1C1917',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        boxSizing: 'border-box'
       }}>
         {/* Header: Back / Hamburger | Title: Calendar | + New button */}
         <div style={{
@@ -728,7 +816,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: '#1C1917',
+              color: isDark ? '#F3F0EA' : '#1C1917',
               padding: '6px',
               display: 'flex',
               alignItems: 'center'
@@ -745,17 +833,28 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
           <h1 style={{
             fontFamily: 'var(--font-display)',
             fontSize: 20,
-            color: '#1C1917',
+            color: isDark ? '#F3F0EA' : '#1C1917',
             fontWeight: 600,
             margin: 0
           }}>
-            Calendar
+            {t.calendarTab}
           </h1>
 
           <button
-            onClick={() => setCurrentScreen('write')}
+            onClick={() => {
+              const todayEntry = entriesByDate[todayStr];
+              if (todayEntry) {
+                setSelectedMood(todayEntry.mood);
+                setReflectionText(todayEntry.reflection);
+              } else {
+                setSelectedMood("Happy");
+                setReflectionText("");
+              }
+              setSelectedDateStr(todayStr);
+              setCurrentScreen('write');
+            }}
             style={{
-              background: '#1E5E3A',
+              background: isDark ? '#297A4C' : '#1E5E3A',
               color: '#FFFFFF',
               border: 'none',
               borderRadius: 20,
@@ -765,7 +864,9 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               cursor: 'pointer'
             }}
           >
-            + New
+            {entriesByDate[todayStr]
+              ? (language === 'hi' ? 'संपादित करें' : 'Edit')
+              : (language === 'hi' ? '+ नया' : '+ New')}
           </button>
         </div>
 
@@ -780,13 +881,13 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
           <button
             onClick={handlePrevMonth}
             style={{
-              background: '#FFFFFF',
-              border: '1px solid #ECE6DD',
+              background: isDark ? '#1E2621' : '#FFFFFF',
+              border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
               borderRadius: '50%',
               width: 32,
               height: 32,
               cursor: 'pointer',
-              color: '#57534E',
+              color: isDark ? '#F3F0EA' : '#57534E',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -799,23 +900,23 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
           <h2 style={{
             fontFamily: 'var(--font-display)',
             fontSize: 18,
-            color: '#1C1917',
+            color: isDark ? '#F3F0EA' : '#1C1917',
             fontWeight: 600,
             margin: 0
           }}>
-            {MONTH_NAMES[viewMonth]} {viewYear}
+            {(language === 'hi' ? MONTH_NAMES_HI : MONTH_NAMES_EN)[viewMonth]} {viewYear}
           </h2>
 
           <button
             onClick={handleNextMonth}
             style={{
-              background: '#FFFFFF',
-              border: '1px solid #ECE6DD',
+              background: isDark ? '#1E2621' : '#FFFFFF',
+              border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
               borderRadius: '50%',
               width: 32,
               height: 32,
               cursor: 'pointer',
-              color: '#57534E',
+              color: isDark ? '#F3F0EA' : '#57534E',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -828,11 +929,11 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
 
         {/* Calendar Grid Container */}
         <div style={{
-          background: '#FFFFFF',
-          border: '1px solid #ECE6DD',
+          background: isDark ? '#1E2621' : '#FFFFFF',
+          border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
           borderRadius: 20,
           padding: '16px 12px 18px',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)',
+          boxShadow: isDark ? '0 2px 10px rgba(0, 0, 0, 0.2)' : '0 2px 10px rgba(0, 0, 0, 0.02)',
           marginBottom: 20
         }}>
           {/* Weekday Row */}
@@ -842,13 +943,13 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
             textAlign: 'center',
             marginBottom: 10
           }}>
-            {WEEKDAY_NAMES.map(day => (
+            {(language === 'hi' ? WEEKDAY_NAMES_HI : WEEKDAY_NAMES_EN).map(day => (
               <div
                 key={day}
                 style={{
                   fontSize: 11.5,
                   fontWeight: 600,
-                  color: '#A8A29E',
+                  color: isDark ? '#A6A095' : '#A8A29E',
                   padding: '4px 0'
                 }}
               >
@@ -877,11 +978,23 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                   key={item.dateStr}
                   type="button"
                   onClick={() => {
-                    if (item.entry) {
-                      setSelectedDayEntryModal(item.entry);
-                    } else if (item.dateStr) {
-                      setSelectedDateStr(item.dateStr);
+                    if (item.isToday) {
+                      // Today: user can edit or write today's reflection
+                      if (item.entry) {
+                        setSelectedMood(item.entry.mood);
+                        setReflectionText(item.entry.reflection);
+                      } else {
+                        setSelectedMood("Happy");
+                        setReflectionText("");
+                      }
+                      setSelectedDateStr(todayStr);
                       setCurrentScreen('write');
+                    } else if (item.entry) {
+                      // Previous date with an entry: view-only in modal (no edits allowed)
+                      setSelectedDayEntryModal(item.entry);
+                    } else {
+                      // Previous date without an entry: cannot write for previous days
+                      showToast(language === 'hi' ? 'केवल आज का ही चिंतन लिख सकते हैं' : 'Reflections can only be written for today');
                     }
                   }}
                   style={{
@@ -890,15 +1003,11 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: hasEntry
-                      ? '#FAF6EE'
-                      : isToday
-                      ? 'rgba(30, 94, 58, 0.04)'
+                    background: isToday
+                      ? (isDark ? 'rgba(74, 222, 128, 0.15)' : 'rgba(30, 94, 58, 0.08)')
                       : 'transparent',
-                    border: hasEntry
-                      ? '1.5px solid #C89B3C'
-                      : isToday
-                      ? '1px dashed #1E5E3A'
+                    border: isToday
+                      ? (isDark ? '1.5px solid #4ADE80' : '1.5px solid #1E5E3A')
                       : '1.5px solid transparent',
                     borderRadius: 12,
                     cursor: 'pointer',
@@ -909,14 +1018,16 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                 >
                   <span style={{
                     fontSize: 13,
-                    fontWeight: hasEntry || isToday ? 600 : 400,
-                    color: hasEntry ? '#1C1917' : isToday ? '#1E5E3A' : '#44403C',
+                    fontWeight: isToday ? 700 : 500,
+                    color: isToday
+                      ? (isDark ? '#4ADE80' : '#1E5E3A')
+                      : (isDark ? '#E5E0D8' : '#332F2B'),
                     lineHeight: 1
                   }}>
                     {item.dayNum}
                   </span>
 
-                  {/* Display recorded mood emoji under the date as shown in the screenshot! */}
+                  {/* Display recorded mood emoji under the date */}
                   {hasEntry ? (
                     <span style={{ fontSize: 13, marginTop: 2, lineHeight: 1 }}>
                       {item.entry?.emoji || '😊'}
@@ -926,7 +1037,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                       width: 4,
                       height: 4,
                       borderRadius: '50%',
-                      background: '#1E5E3A',
+                      background: isDark ? '#4ADE80' : '#1E5E3A',
                       marginTop: 3
                     }} />
                   ) : (
@@ -940,28 +1051,28 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
 
         {/* THIS MONTH'S TEACHING Card */}
         <div style={{
-          background: '#FFF9EE',
-          border: '1px solid #F3EBDD',
+          background: isDark ? '#1E2621' : '#FFF9EE',
+          border: isDark ? '1px solid #29342D' : '1px solid #F3EBDD',
           borderRadius: 20,
           padding: '20px',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)',
+          boxShadow: isDark ? '0 2px 10px rgba(0, 0, 0, 0.2)' : '0 2px 10px rgba(0, 0, 0, 0.02)',
           marginBottom: 16
         }}>
           <div style={{
             fontSize: 10.5,
             fontWeight: 700,
             letterSpacing: '0.08em',
-            color: '#B45309',
+            color: isDark ? '#E5B466' : '#B45309',
             textTransform: 'uppercase',
             marginBottom: 6
           }}>
-            THIS MONTH'S TEACHING
+            {t.thisMonthTeaching}
           </div>
 
           <div style={{
             fontSize: 14,
             fontWeight: 600,
-            color: '#1C1917',
+            color: isDark ? '#F3F0EA' : '#1C1917',
             marginBottom: 8
           }}>
             {FEATURED_MONTHLY_TEACHING.ref}
@@ -971,7 +1082,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
             fontSize: 13.5,
             fontStyle: 'italic',
             lineHeight: 1.6,
-            color: '#44403C',
+            color: isDark ? '#D5CFC5' : '#44403C',
             margin: '0 0 16px 0'
           }}>
             "{FEATURED_MONTHLY_TEACHING.shortQuote}"
@@ -992,7 +1103,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               boxShadow: '0 3px 10px rgba(200, 138, 44, 0.25)'
             }}
           >
-            View full teaching
+            {language === 'hi' ? 'पूरा उपदेश पढ़ें' : 'View full teaching'}
           </button>
         </div>
 
@@ -1000,9 +1111,9 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
         <button
           onClick={() => setCurrentScreen('history')}
           style={{
-            background: '#FFFFFF',
-            border: '1.5px solid #1E5E3A',
-            color: '#1E5E3A',
+            background: isDark ? '#1E2621' : '#FFFFFF',
+            border: isDark ? '1.5px solid #4ADE80' : '1.5px solid #1E5E3A',
+            color: isDark ? '#4ADE80' : '#1E5E3A',
             borderRadius: 20,
             padding: '15px 20px',
             display: 'flex',
@@ -1011,13 +1122,13 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
             cursor: 'pointer',
             fontWeight: 600,
             fontSize: 14.5,
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
+            boxShadow: isDark ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(0, 0, 0, 0.02)',
             transition: 'background 0.15s ease'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 18 }}>📖</span>
-            <span>Journal History</span>
+            <span>{t.historyTitle}</span>
           </div>
           <span style={{ fontSize: 16 }}>→</span>
         </button>
@@ -1036,14 +1147,15 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
             zIndex: 300
           }}>
             <div style={{
-              background: '#FAF7F2',
+              background: isDark ? '#1E2621' : '#FAF7F2',
+              border: isDark ? '1px solid #29342D' : 'none',
               borderRadius: 24,
               width: '100%',
               maxWidth: 400,
               maxHeight: '85vh',
               overflowY: 'auto',
               padding: '24px 22px',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
               position: 'relative'
             }}>
               <div style={{
@@ -1053,10 +1165,10 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                 marginBottom: 16
               }}>
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
-                    Gita Teaching for {MONTH_NAMES[viewMonth]}
+                  <div style={{ fontSize: 11, fontWeight: 700, color: isDark ? '#E5B466' : '#B45309', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+                    {language === 'hi' ? `${MONTH_NAMES_HI[viewMonth]} माह का उपदेश` : `Gita Teaching for ${MONTH_NAMES_EN[viewMonth]}`}
                   </div>
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 19, color: '#1C1917', margin: 0 }}>
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 19, color: isDark ? '#F3F0EA' : '#1C1917', margin: 0 }}>
                     {FEATURED_MONTHLY_TEACHING.ref}
                   </h3>
                 </div>
@@ -1064,7 +1176,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                 <button
                   onClick={() => setShowFullTeachingModal(false)}
                   style={{
-                    background: '#EAE5DB',
+                    background: isDark ? '#29342D' : '#EAE5DB',
                     border: 'none',
                     borderRadius: '50%',
                     width: 32,
@@ -1073,7 +1185,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#57534E'
+                    color: isDark ? '#F3F0EA' : '#57534E'
                   }}
                 >
                   ✕
@@ -1082,8 +1194,8 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
 
               {/* Sanskrit Verse Card */}
               <div style={{
-                background: '#FFF9EE',
-                border: '1px solid #EFE4D0',
+                background: isDark ? '#18201B' : '#FFF9EE',
+                border: isDark ? '1px solid #29342D' : '1px solid #EFE4D0',
                 borderRadius: 16,
                 padding: '16px',
                 textAlign: 'center',
@@ -1092,7 +1204,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                 <div style={{
                   fontFamily: 'Georgia, serif',
                   fontSize: 16,
-                  color: '#78350F',
+                  color: isDark ? '#E5B466' : '#78350F',
                   fontWeight: 600,
                   lineHeight: 1.8,
                   whiteSpace: 'pre-line',
@@ -1103,7 +1215,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                 <div style={{
                   fontSize: 12.5,
                   fontStyle: 'italic',
-                  color: '#92400E',
+                  color: isDark ? '#F2BD59' : '#92400E',
                   lineHeight: 1.5,
                   whiteSpace: 'pre-line'
                 }}>
@@ -1113,20 +1225,20 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
 
               {/* Translation */}
               <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 11.5, fontWeight: 700, color: '#78716C', textTransform: 'uppercase', marginBottom: 6 }}>
-                  English Translation
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: isDark ? '#A6A095' : '#78716C', textTransform: 'uppercase', marginBottom: 6 }}>
+                  {language === 'hi' ? 'अनुवाद' : 'English Translation'}
                 </div>
-                <p style={{ fontSize: 14, fontStyle: 'italic', color: '#1C1917', lineHeight: 1.6, margin: 0 }}>
+                <p style={{ fontSize: 14, fontStyle: 'italic', color: isDark ? '#F3F0EA' : '#1C1917', lineHeight: 1.6, margin: 0 }}>
                   "{FEATURED_MONTHLY_TEACHING.fullQuote}"
                 </p>
               </div>
 
               {/* Practical Guidance */}
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 11.5, fontWeight: 700, color: '#78716C', textTransform: 'uppercase', marginBottom: 6 }}>
-                  Wisdom for Your Reflections
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: isDark ? '#A6A095' : '#78716C', textTransform: 'uppercase', marginBottom: 6 }}>
+                  {language === 'hi' ? 'आपके चिंतन के लिए मार्गदर्शन' : 'Wisdom for Your Reflections'}
                 </div>
-                <p style={{ fontSize: 13, color: '#57534E', lineHeight: 1.65, margin: 0 }}>
+                <p style={{ fontSize: 13, color: isDark ? '#D5CFC5' : '#57534E', lineHeight: 1.65, margin: 0 }}>
                   {FEATURED_MONTHLY_TEACHING.practicalWisdom}
                 </p>
               </div>
@@ -1135,7 +1247,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                 onClick={() => setShowFullTeachingModal(false)}
                 style={{
                   width: '100%',
-                  background: '#1E5E3A',
+                  background: isDark ? '#297A4C' : '#1E5E3A',
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: 20,
@@ -1145,381 +1257,504 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                   cursor: 'pointer'
                 }}
               >
-                Close
+                {language === 'hi' ? 'बंद करें' : 'Close'}
               </button>
             </div>
           </div>
         )}
 
         {/* Modal: View Single Day Entry */}
-        {selectedDayEntryModal && (
-          <div style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(20, 18, 14, 0.55)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 18,
-            zIndex: 300
-          }}>
+        {selectedDayEntryModal && (() => {
+          const isModalToday = selectedDayEntryModal.date === todayStr;
+          return (
             <div style={{
-              background: '#FAF7F2',
-              borderRadius: 22,
-              width: '100%',
-              maxWidth: 380,
-              padding: '22px 20px',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)'
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(20, 18, 14, 0.65)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 18,
+              zIndex: 300
             }}>
               <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 14
+                background: isDark ? '#1E2621' : '#FAF7F2',
+                border: isDark ? '1px solid #29342D' : 'none',
+                borderRadius: 22,
+                width: '100%',
+                maxWidth: 380,
+                padding: '22px 20px',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 24 }}>{selectedDayEntryModal.emoji}</span>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#1C1917' }}>
-                      {selectedDayEntryModal.mood}
-                    </div>
-                    <div style={{ fontSize: 12, color: '#78716C' }}>
-                      {formatHistoryDate(selectedDayEntryModal.date)}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 14
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 24 }}>{selectedDayEntryModal.emoji}</span>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#F3F0EA' : '#1C1917' }}>
+                        {language === 'hi' ? (MOOD_LABELS_HI[selectedDayEntryModal.mood] || selectedDayEntryModal.mood) : selectedDayEntryModal.mood}
+                      </div>
+                      <div style={{ fontSize: 12, color: isDark ? '#A6A095' : '#78716C' }}>
+                        {formatHistoryDate(selectedDayEntryModal.date)} {isModalToday && (
+                          <span style={{ color: isDark ? '#4ADE80' : '#1E5E3A', fontWeight: 600, marginLeft: 4 }}>
+                            ({t.todayLabel})
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <button
-                  onClick={() => setSelectedDayEntryModal(null)}
-                  style={{
-                    background: '#EAE5DB',
-                    border: 'none',
-                    borderRadius: '50%',
-                    width: 30,
-                    height: 30,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#57534E'
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div style={{
-                background: '#FFFFFF',
-                border: '1px solid #ECE6DD',
-                borderRadius: 14,
-                padding: '14px 16px',
-                fontSize: 14,
-                color: '#292524',
-                lineHeight: 1.6,
-                marginBottom: 16,
-                maxHeight: 220,
-                overflowY: 'auto'
-              }}>
-                {selectedDayEntryModal.reflection}
-              </div>
-
-              <div style={{ display: 'flex', gap: 10 }}>
-                {onDeleteEntry && (
                   <button
-                    onClick={() => {
-                      onDeleteEntry(selectedDayEntryModal.id);
-                      setSelectedDayEntryModal(null);
-                    }}
+                    onClick={() => setSelectedDayEntryModal(null)}
                     style={{
-                      flex: 1,
-                      background: 'transparent',
-                      border: '1px solid #FCA5A5',
-                      color: '#DC2626',
-                      borderRadius: 16,
-                      height: 40,
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: 'pointer'
+                      background: isDark ? '#29342D' : '#EAE5DB',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: 30,
+                      height: 30,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: isDark ? '#F3F0EA' : '#57534E'
                     }}
                   >
-                    Delete Entry
+                    ✕
                   </button>
+                </div>
+
+                <div style={{
+                  background: isDark ? '#18201B' : '#FFFFFF',
+                  border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
+                  borderRadius: 14,
+                  padding: '14px 16px',
+                  fontSize: 14,
+                  color: isDark ? '#F3F0EA' : '#292524',
+                  lineHeight: 1.6,
+                  marginBottom: 16,
+                  maxHeight: 220,
+                  overflowY: 'auto'
+                }}>
+                  {selectedDayEntryModal.reflection}
+                </div>
+
+                {!isModalToday && (
+                  <div style={{
+                    fontSize: 12,
+                    color: isDark ? '#A6A095' : '#78716C',
+                    fontStyle: 'italic',
+                    textAlign: 'center',
+                    marginBottom: 14,
+                    padding: '6px 10px',
+                    background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+                    borderRadius: 10
+                  }}>
+                    {language === 'hi'
+                      ? '🔒 केवल आज का चिंतन ही संपादित किया जा सकता है।'
+                      : '🔒 Reflections can only be edited on the day they are written.'}
+                  </div>
                 )}
-                <button
-                  onClick={() => setSelectedDayEntryModal(null)}
-                  style={{
-                    flex: 1,
-                    background: '#1E5E3A',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: 16,
-                    height: 40,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Done
-                </button>
+
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {isModalToday ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          setSelectedMood(selectedDayEntryModal.mood);
+                          setReflectionText(selectedDayEntryModal.reflection);
+                          setSelectedDateStr(todayStr);
+                          setSelectedDayEntryModal(null);
+                          setCurrentScreen('write');
+                        }}
+                        style={{
+                          flex: 1,
+                          background: isDark ? '#297A4C' : '#1E5E3A',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: 16,
+                          height: 40,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {language === 'hi' ? '✏️ संपादित करें' : '✏️ Edit Reflection'}
+                      </button>
+                      {onDeleteEntry && (
+                        <button
+                          onClick={() => {
+                            onDeleteEntry(selectedDayEntryModal.id);
+                            setSelectedDayEntryModal(null);
+                            showToast(language === 'hi' ? 'चिंतन हटा दिया गया' : 'Reflection deleted');
+                          }}
+                          style={{
+                            background: 'transparent',
+                            border: '1px solid #EF4444',
+                            color: '#EF4444',
+                            borderRadius: 16,
+                            padding: '0 14px',
+                            height: 40,
+                            fontSize: 13,
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {language === 'hi' ? 'हटाएं' : 'Delete'}
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setSelectedDayEntryModal(null)}
+                      style={{
+                        flex: 1,
+                        background: isDark ? '#297A4C' : '#1E5E3A',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: 16,
+                        height: 40,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {t.done}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     );
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // SCREEN 4: Journal History
-  // ─────────────────────────────────────────────────────────────────────────────
-  return (
-    <div style={{
-      background: '#FAF7F2',
-      minHeight: '100%',
-      padding: '24px 18px 40px',
-      color: '#1C1917',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
-      {/* Header: < Back | Title: Journal history */}
+    // ─────────────────────────────────────────────────────────────────────────────
+    // SCREEN 4: Journal History
+    // ─────────────────────────────────────────────────────────────────────────────
+    return (
       <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 20,
-        paddingTop: 8
-      }}>
-        <button
-          onClick={() => setCurrentScreen('calendar')}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#1C1917',
-            padding: '6px 0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            fontSize: 14,
-            fontWeight: 500
-          }}
-          aria-label="Back to Calendar"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          <span>Back</span>
-        </button>
-
-        <h1 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 19,
-          color: '#1C1917',
-          fontWeight: 600,
-          margin: 0
-        }}>
-          Journal history
-        </h1>
-
-        <div style={{ width: 44 }} />
-      </div>
-
-      {/* Streak Banner Card matching Screenshot: Dark Green with big number and flame */}
-      <div style={{
-        background: '#1E5E3A',
-        borderRadius: 18,
-        padding: '18px 22px',
-        color: '#FFFFFF',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 24,
-        boxShadow: '0 4px 16px rgba(30, 94, 58, 0.25)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            fontSize: 36,
-            fontWeight: 700,
-            lineHeight: 1
-          }}>
-            {streakCount}
-          </div>
-
-          <div style={{
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: '0.08em',
-            lineHeight: 1.4,
-            color: 'rgba(255, 255, 255, 0.9)'
-          }}>
-            DAYS<br />JOURNALING STREAK
-          </div>
-        </div>
-
-        <div style={{ fontSize: 30, lineHeight: 1 }}>
-          🔥
-        </div>
-      </div>
-
-      {/* Section Title: HISTORY */}
-      <div style={{
-        fontSize: 11,
-        fontWeight: 700,
-        letterSpacing: '0.08em',
-        color: '#78716C',
-        textTransform: 'uppercase',
-        marginBottom: 12,
-        paddingLeft: 4
-      }}>
-        HISTORY
-      </div>
-
-      {/* History Entries List: Empty initially until user writes their first reflection */}
-      <div style={{
+        background: isDark ? '#121614' : '#FAF7F2',
+        minHeight: 'calc(100vh - 76px)',
         flex: 1,
+        padding: '24px 18px 40px',
+        color: isDark ? '#F3F0EA' : '#1C1917',
         display: 'flex',
         flexDirection: 'column',
-        gap: 12,
-        marginBottom: 20
+        boxSizing: 'border-box'
       }}>
-        {sortedHistoryEntries.length === 0 ? (
-          <div style={{
-            background: '#FFFFFF',
-            border: '1px solid #ECE6DD',
-            borderRadius: 18,
-            padding: '36px 20px',
-            textAlign: 'center',
-            color: '#78716C'
-          }}>
-            <div style={{ fontSize: 36, marginBottom: 10 }}>📖</div>
-            <div style={{
-              fontSize: 15,
-              fontWeight: 600,
-              color: '#1C1917',
-              marginBottom: 6
-            }}>
-              No reflections recorded yet
-            </div>
-            <p style={{
-              fontSize: 13,
-              color: '#78716C',
-              lineHeight: 1.5,
-              maxWidth: 240,
-              margin: '0 auto 20px auto'
-            }}>
-              Write your first reflection to start your journal history and build your streak.
-            </p>
-            <button
-              onClick={() => setCurrentScreen('write')}
-              style={{
-                background: '#1E5E3A',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: 20,
-                padding: '10px 20px',
-                fontSize: 13.5,
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              Write your first reflection
-            </button>
-          </div>
-        ) : (
-          sortedHistoryEntries.map(entry => (
-            <div
-              key={entry.id}
-              style={{
-                background: '#FFFFFF',
-                border: '1px solid #ECE6DD',
-                borderRadius: 16,
-                padding: '16px 18px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)'
-              }}
-            >
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 8
-              }}>
-                <div style={{
-                  fontSize: 13.5,
-                  fontWeight: 600,
-                  color: '#1C1917'
-                }}>
-                  {formatHistoryDate(entry.date)}
-                </div>
-
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  background: '#F5F2EB',
-                  padding: '3px 8px',
-                  borderRadius: 12,
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: '#44403C'
-                }}>
-                  <span>{entry.emoji}</span>
-                  <span>{entry.mood}</span>
-                </div>
-              </div>
-
-              <p style={{
-                fontSize: 13.5,
-                color: '#44403C',
-                lineHeight: 1.6,
-                margin: 0
-              }}>
-                {entry.reflection}
-              </p>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Bottom Action: View mood calendar */}
-      <button
-        onClick={() => setCurrentScreen('calendar')}
-        style={{
-          background: '#FFFFFF',
-          border: '1px solid #ECE6DD',
-          borderRadius: 16,
-          padding: '14px 18px',
+        {/* Header: < Back | Title: Journal history */}
+        <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          cursor: 'pointer',
-          marginTop: 'auto'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{
+          marginBottom: 20,
+          paddingTop: 8
+        }}>
+          <button
+            onClick={() => setCurrentScreen('calendar')}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: isDark ? '#F3F0EA' : '#1C1917',
+              padding: '6px 0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              fontSize: 14,
+              fontWeight: 500
+            }}
+            aria-label="Back to Calendar"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            <span>{t.back}</span>
+          </button>
+
+          <h1 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 19,
+            color: isDark ? '#F3F0EA' : '#1C1917',
+            fontWeight: 600,
+            margin: 0
+          }}>
+            {t.historyTitle}
+          </h1>
+
+          <div style={{ width: 44 }} />
+        </div>
+
+        {/* Streak Banner Card matching Screenshot: Dark Green with big number and flame */}
+        <div style={{
+          background: '#1E5E3A',
+          borderRadius: 18,
+          padding: '18px 22px',
+          color: '#FFFFFF',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 24,
+          boxShadow: '0 4px 16px rgba(30, 94, 58, 0.25)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              fontSize: 36,
+              fontWeight: 700,
+              lineHeight: 1
+            }}>
+              {streakCount}
+            </div>
+
+            <div style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              lineHeight: 1.4,
+              color: 'rgba(255, 255, 255, 0.9)'
+            }}>
+              {language === 'hi' ? <>दिन<br />लगातार चिंतन</> : <>DAYS<br />JOURNALING STREAK</>}
+            </div>
+          </div>
+
+          <div style={{ fontSize: 30, lineHeight: 1 }}>
+            🔥
+          </div>
+        </div>
+
+        {/* Section Title: HISTORY */}
+        <div style={{
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: '0.08em',
+          color: isDark ? '#A6A095' : '#78716C',
+          textTransform: 'uppercase',
+          marginBottom: 12,
+          paddingLeft: 4
+        }}>
+          {t.history}
+        </div>
+
+        {/* History Entries List: Empty initially until user writes their first reflection */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          marginBottom: 20
+        }}>
+          {sortedHistoryEntries.length === 0 ? (
+            <div style={{
+              background: isDark ? '#1E2621' : '#FFFFFF',
+              border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
+              borderRadius: 18,
+              padding: '36px 20px',
+              textAlign: 'center',
+              color: isDark ? '#A6A095' : '#78716C'
+            }}>
+              <div style={{ fontSize: 36, marginBottom: 10 }}>📖</div>
+              <div style={{
+                fontSize: 15,
+                fontWeight: 600,
+                color: isDark ? '#F3F0EA' : '#1C1917',
+                marginBottom: 6
+              }}>
+                {t.noReflectionsSaved}
+              </div>
+              <p style={{
+                fontSize: 13,
+                color: isDark ? '#A6A095' : '#78716C',
+                lineHeight: 1.5,
+                maxWidth: 240,
+                margin: '0 auto 20px auto'
+              }}>
+                {language === 'hi'
+                  ? 'अपने चिंतन का इतिहास और निरंतरता बनाने के लिए पहला चिंतन लिखें।'
+                  : 'Write your first reflection to start your journal history and build your streak.'}
+              </p>
+              <button
+                onClick={() => {
+                  setSelectedDateStr(todayStr);
+                  setCurrentScreen('write');
+                }}
+                style={{
+                  background: isDark ? '#297A4C' : '#1E5E3A',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: 20,
+                  padding: '10px 20px',
+                  fontSize: 13.5,
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                {language === 'hi' ? 'पहला चिंतन लिखें' : 'Write your first reflection'}
+              </button>
+            </div>
+          ) : (
+            sortedHistoryEntries.map(entry => (
+              <div
+                key={entry.id}
+                style={{
+                  background: isDark ? '#1E2621' : '#FFFFFF',
+                  border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
+                  borderRadius: 16,
+                  padding: '16px 18px',
+                  boxShadow: isDark ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(0, 0, 0, 0.02)'
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 8
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{
+                      fontSize: 13.5,
+                      fontWeight: 600,
+                      color: isDark ? '#F3F0EA' : '#1C1917'
+                    }}>
+                      {formatHistoryDate(entry.date)}
+                    </div>
+                    {entry.date === todayStr && (
+                      <button
+                        onClick={() => {
+                          setSelectedMood(entry.mood);
+                          setReflectionText(entry.reflection);
+                          setSelectedDateStr(todayStr);
+                          setCurrentScreen('write');
+                        }}
+                        style={{
+                          background: isDark ? 'rgba(74, 222, 128, 0.15)' : 'rgba(30, 94, 58, 0.08)',
+                          border: `1px solid ${isDark ? '#4ADE80' : '#1E5E3A'}`,
+                          color: isDark ? '#4ADE80' : '#1E5E3A',
+                          borderRadius: 12,
+                          padding: '2px 8px',
+                          fontSize: 11,
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {language === 'hi' ? 'संपादित करें' : 'Edit'}
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    background: isDark ? '#253028' : '#F5F2EB',
+                    padding: '3px 8px',
+                    borderRadius: 12,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: isDark ? '#E5E0D8' : '#44403C'
+                  }}>
+                    <span>{entry.emoji}</span>
+                    <span>{language === 'hi' ? (MOOD_LABELS_HI[entry.mood] || entry.mood) : entry.mood}</span>
+                  </div>
+                </div>
+
+                <p style={{
+                  fontSize: 13.5,
+                  color: isDark ? '#E5E0D8' : '#44403C',
+                  lineHeight: 1.6,
+                  margin: 0
+                }}>
+                  {entry.reflection}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Bottom Action: View mood calendar */}
+        <button
+          onClick={() => setCurrentScreen('calendar')}
+          style={{
+            background: isDark ? '#1E2621' : '#FFFFFF',
+            border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
+            borderRadius: 16,
+            padding: '14px 18px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            width: 22,
-            height: 22,
-            borderRadius: 6,
-            background: '#E0F2FE',
-            color: '#0284C7'
-          }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-          </span>
-          <span style={{ fontSize: 13.5, fontWeight: 500, color: '#1C1917' }}>
-            View mood calendar
-          </span>
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            marginTop: 'auto'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 22,
+              height: 22,
+              borderRadius: 6,
+              background: isDark ? 'rgba(2, 132, 199, 0.2)' : '#E0F2FE',
+              color: '#38BDF8'
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </span>
+            <span style={{ fontSize: 13.5, fontWeight: 500, color: isDark ? '#F3F0EA' : '#1C1917' }}>
+              {language === 'hi' ? 'भाव कैलेंडर देखें' : 'View mood calendar'}
+            </span>
+          </div>
+          <span style={{ fontSize: 15, color: isDark ? '#A6A095' : '#A8A29E' }}>→</span>
+        </button>
+      </div>
+    );
+  };
+
+  return (
+    <div style={{
+      position: 'relative',
+      minHeight: 'calc(100vh - 76px)',
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      background: isDark ? '#121614' : '#FAF7F2',
+      color: isDark ? '#F3F0EA' : '#1C1917',
+      boxSizing: 'border-box'
+    }}>
+      {renderScreenContent()}
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          bottom: 74,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: isDark ? '#29342D' : '#1C1917',
+          color: '#FFFFFF',
+          padding: '10px 18px',
+          borderRadius: 24,
+          fontSize: 13,
+          fontWeight: 500,
+          zIndex: 9999,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+          textAlign: 'center',
+          maxWidth: '85%',
+          pointerEvents: 'none'
+        }}>
+          {toastMessage}
         </div>
-        <span style={{ fontSize: 15, color: '#A8A29E' }}>→</span>
-      </button>
+      )}
     </div>
   );
 };

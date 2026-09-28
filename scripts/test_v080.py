@@ -12,7 +12,7 @@ failed=0
 for mood,text,sid,want in cases:
  p=subprocess.run([sys.executable,str(ROOT/"scripts/build_evidence_pack.py"),
                    "--mood",mood,"--text",text,"--top-k","3"],
-                  capture_output=True,text=True)
+                  capture_output=True,text=True,encoding="utf-8",errors="replace")
  if p.returncode:
   print(sid+": ERROR"); print(p.stderr); failed+=1; continue
  d=json.loads(p.stdout)
@@ -24,13 +24,13 @@ for mood,text,sid,want in cases:
 # Prompt smoke test.
 p=subprocess.run([sys.executable,str(ROOT/"scripts/build_evidence_pack.py"),
                   "--mood","anxious","--text","I'm scared my business will fail.","--top-k","3"],
-                 capture_output=True,text=True)
+                 capture_output=True,text=True,encoding="utf-8",errors="replace")
 if not p.returncode:
  d=json.loads(p.stdout)
  with tempfile.TemporaryDirectory() as td:
   ev=Path(td)/"evidence.json"; ev.write_text(json.dumps(d,ensure_ascii=False),encoding="utf-8")
   q=subprocess.run([sys.executable,str(ROOT/"scripts/build_llm_prompt.py"),
-                    "--evidence",str(ev)],capture_output=True,text=True)
+                    "--evidence",str(ev)],capture_output=True,text=True,encoding="utf-8",errors="replace")
   prompt=q.stdout
   normalized_prompt=" ".join(prompt.split())
   prompt_ok=("ONLY the supplied Gita evidence" in normalized_prompt and
