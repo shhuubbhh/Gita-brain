@@ -8,9 +8,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.net.Uri;
 import android.webkit.ConsoleMessage;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -18,6 +21,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -32,16 +37,17 @@ public class MainActivity extends AppCompatActivity {
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(Color.parseColor("#0E0C1B"));
-        window.setNavigationBarColor(Color.parseColor("#141124"));
+        window.setStatusBarColor(Color.parseColor("#FAF7F2"));
+        window.setNavigationBarColor(Color.parseColor("#FAF7F2"));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             View decor = window.getDecorView();
-            decor.setSystemUiVisibility(0); // White text on dark status bar
+            decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
 
         webView = new WebView(this);
-        webView.setBackgroundColor(Color.parseColor("#0E0C1B"));
+        webView.setFitsSystemWindows(true);
+        webView.setBackgroundColor(Color.parseColor("#FAF7F2"));
         setContentView(webView);
 
         // Request audio recording permission if needed for speech recognition
@@ -64,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowUniversalAccessFromFileURLs(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
 
+        settings.setLoadsImagesAutomatically(true);
+        settings.setBlockNetworkImage(false);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
@@ -76,6 +85,41 @@ public class MainActivity extends AppCompatActivity {
                 }
                 view.loadUrl(url);
                 return true;
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                Uri uri = request.getUrl();
+                String scheme = uri.getScheme();
+                if (scheme != null && scheme.equalsIgnoreCase("file")) {
+                    String path = uri.getPath();
+                    if (path != null) {
+                        String assetPath = path;
+                        if (assetPath.startsWith("/android_asset/")) {
+                            assetPath = assetPath.substring("/android_asset/".length());
+                        } else if (assetPath.startsWith("/")) {
+                            assetPath = assetPath.substring(1);
+                        }
+
+                        try {
+                            InputStream is = getAssets().open(assetPath);
+                            String mimeType = "application/octet-stream";
+                            String lower = assetPath.toLowerCase();
+                            if (lower.endsWith(".png")) mimeType = "image/png";
+                            else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) mimeType = "image/jpeg";
+                            else if (lower.endsWith(".svg")) mimeType = "image/svg+xml";
+                            else if (lower.endsWith(".webp")) mimeType = "image/webp";
+                            else if (lower.endsWith(".js")) mimeType = "text/javascript";
+                            else if (lower.endsWith(".css")) mimeType = "text/css";
+                            else if (lower.endsWith(".html")) mimeType = "text/html";
+                            else if (lower.endsWith(".json")) mimeType = "application/json";
+
+                            return new WebResourceResponse(mimeType, "UTF-8", is);
+                        } catch (IOException ignored) {
+                        }
+                    }
+                }
+                return super.shouldInterceptRequest(view, request);
             }
         });
 
@@ -99,8 +143,25 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
+        if (webView != null) {
+            webView.evaluateJavascript(
+                "(function() { return (typeof window.handleAppBackButton === 'function') ? window.handleAppBackButton() : false; })()",
+                value -> {
+                    boolean handled = "true".equalsIgnoreCase(value);
+                    if (!handled) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (webView.canGoBack()) {
+                                    webView.goBack();
+                                } else {
+                                    MainActivity.super.onBackPressed();
+                                }
+                            }
+                        });
+                    }
+                }
+            );
         } else {
             super.onBackPressed();
         }

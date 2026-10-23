@@ -8,7 +8,7 @@ if exist .env (
 )
 
 if "%GITA_BRAIN_MODEL%"=="" (
-    set "GITA_BRAIN_MODEL=gemini-3.6-flash"
+    set "GITA_BRAIN_MODEL=gemini-flash-latest"
 )
 set "PYTHONIOENCODING=utf-8"
 set "PYTHONUTF8=1"

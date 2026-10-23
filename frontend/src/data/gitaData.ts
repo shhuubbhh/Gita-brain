@@ -114,62 +114,53 @@ export const INITIAL_REFLECTIONS: ReflectionEntry[] = [
   }
 ];
 
-export const INITIAL_SAVED_TEACHINGS: SavedTeaching[] = [
-  {
-    id: "teach-1",
-    chapter: 2,
-    verse: 47,
-    preview: "You have the right to perform your duties, but you are not entitled to the fruits of your actions...",
-    sanskrit: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन |\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ||",
-    transliteration: "karmaṇy-evādhikāras te mā phaleṣhu kadāchana | mā karma-phala-hetur bhūr mā te saṅgo 'stv akarmaṇi",
-    translation: "You have the right to act, never to the fruits of action. Never let the fruit be your motive, and never let inaction be your refuge."
-  },
-  {
-    id: "teach-2",
-    chapter: 3,
-    verse: 35,
-    preview: "It is far better to perform one's own duties imperfectly than to perform another's duties perfectly...",
-    sanskrit: "श्रेयान्स्वधर्मो विगुणः परधर्मात्स्वनुष्ठितात् |\nस्वधर्मे निधनं श्रेयः परधर्मो भयावहः ||",
-    transliteration: "śhreyān swa-dharmo viguṇaḥ para-dharmāt sv-anuṣhṭhitāt | swa-dharme nidhanaṁ śhreyaḥ para-dharmo bhayāvahaḥ",
-    translation: "It is far better to perform one's own duties imperfectly than to perform another's duties perfectly. Acting in another's role brings danger and fear."
-  },
-  {
-    id: "teach-3",
-    chapter: 6,
-    verse: 5,
-    preview: "Elevate yourself through the power of your mind, and do not degrade yourself...",
-    sanskrit: "उद्धरेदात्मनात्मानं नात्मानमवसादयेत् |\nआत्मैव ह्यात्मनो बन्धुरात्मैव रिपुरात्मनः ||",
-    transliteration: "uddhared ātmanātmānaṁ nātmānam avasādayet | ātmaiva hy ātmano bandhur ātmaiva ripur ātmanaḥ",
-    translation: "Elevate yourself through the power of your mind, and do not degrade yourself, for the mind can be the friend and also the enemy of the self."
-  },
-  {
-    id: "teach-4",
-    chapter: 4,
-    verse: 38,
-    preview: "In this world, there is nothing as purifying as divine knowledge...",
-    sanskrit: "न हि ज्ञानेन सदृशं पवित्रमिह विद्यते |\nतत्स्वयं योगसंसिद्धः कालेनात्मनि विन्दति ||",
-    transliteration: "na hi jñānena sadṛiśhaṁ pavitram iha vidyate | tat svayaṁ yoga-sansiddhaḥ kālenātmani vindati",
-    translation: "In this world, there is nothing as purifying as divine knowledge. One who has attained purity through yoga finds this wisdom within in due course."
-  }
-];
+export const INITIAL_SAVED_TEACHINGS: SavedTeaching[] = [];
 
 export const FALLBACK_GUIDANCE: Record<string, GuidanceData> = {
   default: {
-    emotion: "Seeking + Reflection",
-    situation: "A moment of honest searching",
-    understanding: "There is a quiet courage in simply pausing and looking inward. You don't need to have it all figured out — the Gita meets you exactly where you are.",
+    emotion: "Seeking + Clarity",
+    situation: "Seeking direction and inner calm",
+    understanding: "There is a quiet courage in simply pausing and looking inward. You don't need to have all the answers right now — the Gita meets you exactly where you are.",
     chapter: 6,
     verse: 5,
     sanskrit: "उद्धरेदात्मनात्मानं नात्मानमवसादयेत् |\nआत्मैव ह्यात्मनो बन्धुरात्मैव रिपुरात्मनः ||",
     transliteration: "uddhared ātmanātmānaṁ nātmānam avasādayet | ātmaiva hy ātmano bandhur ātmaiva ripur ātmanaḥ",
     translation: "Elevate yourself through the power of your mind, and do not degrade yourself, for the mind can be the friend and also the enemy of the self.",
-    meaning: "Krishna places the responsibility of our inner life squarely within ourselves — not as a burden, but as a recognition of our profound capacity. The same mind that creates suffering can be trained to create peace. You are not trapped by your thoughts; you are their author.",
-    application: "Whatever you are going through, you carry within you the capacity to meet it — not by suppressing it, but by understanding it and choosing how to respond. The mind is your most powerful tool. Tend to it.",
-    reflection: "In what ways are you being a friend to yourself today, and in what ways an enemy?",
-    action: "Choose one small act of self-compassion today — something you would offer a close friend who was going through exactly what you are."
+    meaning: "Krishna places the responsibility of our inner state within ourselves — not as a burden, but as a recognition of our profound potential. The mind that worries can also be guided into stillness and wisdom.",
+    application: "Whatever you are navigating today, remember you carry within you the capacity to respond with patience and wisdom rather than reaction.",
+    reflection: "In what small way can you be a true friend to yourself today?",
+    action: "Take three mindful breaths. Choose one small constructive task and approach it with quiet sincerity."
+  },
+  anger: {
+    emotion: "Anger + Release",
+    situation: "Experiencing frustration, resentment, or broken trust",
+    understanding: "When hurt, betrayal, or unmet expectations arise, anger naturally burns in the mind. The Gita teaches us to look underneath the flame of anger.",
+    chapter: 2,
+    verse: 62,
+    sanskrit: "ध्यायतो विषयान्पुंसः सङ्गस्तेषूपजायते |\nसङ्गात्संजायते कामः कामात्क्रोधोऽभिजायते ||",
+    transliteration: "dhyāyato viṣhayān puṁsaḥ saṅgas teṣhūpajāyate | saṅgāt sañjāyate kāmaḥ kāmāt krodho 'bhijāyate",
+    translation: "When a person constantly dwells on external objects or expectations, attachment is born. From attachment arises burning desire, and when desire is obstructed, anger blazes forth.",
+    meaning: "Krishna reveals that anger is never the root — it is the smoke of an obstructed expectation. By understanding what expectation you were clinging to, the fury loses its power over your judgment.",
+    application: "Do not let the actions of others hijack your inner dignity. Step back from the heat of the moment before reacting or retaliating.",
+    reflection: "What expectation or desire sitting underneath this anger can you surrender for your own peace?",
+    action: "Pause before speaking or deciding. Drink water, take a walk, and choose not to let resentment poison your day."
+  },
+  sadness: {
+    emotion: "Sorrow + Comfort",
+    situation: "Walking through grief, deep sorrow, or emotional pain",
+    understanding: "Grief and sadness are not signs of weakness; they show how deeply you value love and life. The Gita wraps your heart in eternal perspective.",
+    chapter: 2,
+    verse: 20,
+    sanskrit: "न जायते म्रियते वा कदाचिन्\nनायं भूत्वा भविता वा न भूयः |\nअजो नित्यः शाश्वतोऽयं पुराणो\nन हन्यते हन्यमाने शरीरे ||",
+    transliteration: "na jāyate mriyate vā kadāchin nāyaṁ bhūtvā bhavitā vā na bhūyaḥ | ajo nityaḥ śhāśhvato 'yaṁ purāṇo na hanyate hanyamāne śharīre",
+    translation: "The soul is never born nor does it ever die; nor having once been, does it ever cease to be. It is unborn, eternal, ever-existing, and primeval. It is not slain when the body is slain.",
+    meaning: "Krishna consoles Arjuna in his deepest sorrow by showing him that the core essence of being — consciousness itself — is indestructible and eternal. Pain belongs to the shifting forms of life, but peace belongs to the eternal self.",
+    application: "Allow yourself to grieve without self-reproach, yet know with certainty that the dark cloud will pass. Your inner spirit remains unbroken.",
+    reflection: "Can you offer gentle compassion to yourself as you heal from this sorrow?",
+    action: "Place your hand on your heart, take a slow deep breath, and whisper: 'This pain is passing; my inner strength endures.'"
   },
   anxiety: {
-    emotion: "Anxiety + Fear",
+    emotion: "Anxiety + Surrender",
     situation: "Worry about future outcomes and uncertainty",
     understanding: "There is a heavy weight in uncertainty, especially when decisions carry consequence. It is natural to feel hesitance when facing what you cannot control.",
     chapter: 2,
@@ -181,8 +172,120 @@ export const FALLBACK_GUIDANCE: Record<string, GuidanceData> = {
     application: "The future you fear lives only in anticipation. The only thing truly yours is the sincere quality of what you do in this present moment.",
     reflection: "What is the single most constructive step you can take today that is genuinely within your control?",
     action: "Take one clear, well-intentioned step forward today without measuring the ultimate result. Release the need for immediate certainty."
+  },
+  failure: {
+    emotion: "Resilience + Equanimity",
+    situation: "Facing setback, exam/job disappointment, or feeling inadequate",
+    understanding: "A temporary setback does not define your worth or potential. In the arena of life, every valiant seeker meets moments that test their resolve.",
+    chapter: 2,
+    verse: 48,
+    sanskrit: "योगस्थः कुरु कर्माणि सङ्गं त्यक्त्वा धनञ्जय |\nसिद्ध्यसिद्ध्योः समो भूत्वा समत्वं योग उच्यते ||",
+    transliteration: "yoga-sthaḥ kuru karmāṇi saṅgaṁ tyaktvā dhanañjaya | siddhy-asiddhyoḥ samo bhūtvā samatvaṁ yoga uchyate",
+    translation: "Be steadfast in yoga, O Arjuna. Perform your duty without attachment to outcome, remaining poised and equal in both success and failure. Such equanimity of mind is called Yoga.",
+    meaning: "Krishna redefines success: true mastery is not winning every contest, but keeping the heart unbroken and balanced whether you meet praise or defeat.",
+    application: "Treat this setback as a lesson and a stepping stone. Failure is an event in time, not an identity.",
+    reflection: "What insight or inner resilience did this setback uncover within you?",
+    action: "Dust off your feet, forgive yourself for any mistakes, and begin anew with quiet determination."
+  },
+  confusion: {
+    emotion: "Purpose + Dharma",
+    situation: "Dilemma about career, life path, or ethical decision",
+    understanding: "Standing at the crossroads of life brings legitimate tension. Arjuna stood in the same paralysis before Krishna illuminated his path.",
+    chapter: 3,
+    verse: 35,
+    sanskrit: "श्रेयान्स्वधर्मो विगुणः परधर्मात्स्वनुष्ठितात् |\nस्वधर्मे निधनं श्रेयः परधर्मो भयावहः ||",
+    transliteration: "śhreyān swa-dharmo viguṇaḥ para-dharmāt sv-anuṣhṭhitāt | swa-dharme nidhanaṁ śhreyaḥ para-dharmo bhayāvahaḥ",
+    translation: "It is far better to perform one's own natural duty, though imperfectly, than to attempt another's duty perfectly. By fulfilling your own nature, you find true peace.",
+    meaning: "Krishna cautions against living life to satisfy other people's standards or imitating someone else's path. Your own calling, lived authentically, leads to fulfillment.",
+    application: "Stop comparing your journey to others. Focus on what aligns with your genuine skills, responsibilities, and values.",
+    reflection: "What does your own inner compass say is your authentic duty right now?",
+    action: "Write down the two choices before you. Choose the one that serves your long-term character and peace rather than short-term ego."
+  },
+  mind: {
+    emotion: "Peace + Mindfulness",
+    situation: "Restless overthinking, distracted focus, or mental fatigue",
+    understanding: "When thousands of racing thoughts crowd your mind, it feels exhausting. The Gita treats the restless mind with understanding, not harsh judgment.",
+    chapter: 6,
+    verse: 26,
+    sanskrit: "यतो यतो निश्चरति मनश्चञ्चलमस्थिरम् |\nततस्ततो नियम्यैतदात्मन्येव वशं नयेत् ||",
+    transliteration: "yato yato niśhcharati manaśh chañchalam asthiram | tatas tato niyamyaitad ātmany eva vaśhaṁ nayet",
+    translation: "From whatever direction the restless, wandering mind strays, one should gently rein it in and bring it back under the refuge of the self.",
+    meaning: "Krishna emphasizes the word 'gently' (tatas tato). You do not battle the mind with violence; you notice it wandering without shame, and kindly guide it back to the present.",
+    application: "You do not have to believe every thought your mind generates. Notice the thoughts like passing clouds.",
+    reflection: "Can you permit your mind to rest right now, knowing this moment is enough?",
+    action: "Close your eyes for 60 seconds. Notice each breath moving in and out, returning gently whenever a thought appears."
+  },
+  devotion: {
+    emotion: "Grace + Gratitude",
+    situation: "Seeking spiritual connection, surrender, or divine shelter",
+    understanding: "When you open your heart in sincere reverence, you recognize that you are held by a cosmic intelligence greater than your individual worries.",
+    chapter: 9,
+    verse: 22,
+    sanskrit: "अनन्याश्चिन्तयन्तो मां ये जनाः पर्युपासते |\nतेषां नित्याभियुक्तानां योगक्षेमं वहाम्यहम् ||",
+    transliteration: "ananyāśh chintayanto māṁ ye janāḥ paryupāsate | teṣhāṁ nityābhiyuktānāṁ yoga-kṣhemaṁ vahāmy aham",
+    translation: "To those who always remember Me with singular devotion and meditation, I carry what they lack and preserve what they already possess.",
+    meaning: "Krishna offers the ultimate assurance: when your heart is anchored in love and surrender, divine grace supports and preserves your welfare.",
+    application: "Rest your anxieties at the feet of the divine. You do not have to carry the entire universe on your shoulders.",
+    reflection: "What can you gratefully surrender to the care of the divine today?",
+    action: "Chant a mantra or take a quiet moment of gratitude for the gift of life and the blessings already given to you."
   }
 };
+
+/**
+ * Intelligent helper to match user text and mood to appropriate Gita guidance
+ * Ensures the app responds relevantly even when offline or during server startup.
+ */
+export function getGuidanceForThought(thought: string, mood = 'neutral'): GuidanceData {
+  const t = (thought || '').toLowerCase();
+  const m = (mood || '').toLowerCase();
+
+  // 1. Anger cues
+  if (m === 'angry' || /anger|angry|furious|rage|betray|cheat|lied|disrespect|unfair|fight|quarrel|mad at/i.test(t)) {
+    return FALLBACK_GUIDANCE.anger;
+  }
+
+  // 2. Grief / sorrow / loss cues
+  if (/crying|death|died|loss|grief|sorrow|passed away|mourning|heartbroken|depressed|lost someone/i.test(t)) {
+    return FALLBACK_GUIDANCE.sadness;
+  }
+
+  // 3. Sadness / feeling down
+  if (m === 'sad' || /sad|unhappy|hopeless|gloomy|lonely|down|hurting|empty/i.test(t)) {
+    return FALLBACK_GUIDANCE.sadness;
+  }
+
+  // 4. Failure / setback cues
+  if (/fail|failed|failure|exam|interview|rejection|rejected|loser|incompetent|disappointment|loss/i.test(t)) {
+    return FALLBACK_GUIDANCE.failure;
+  }
+
+  // 5. Confusion / career / decision cues
+  if (m === 'confused' || /confus|career|choice|what should i do|what to do|dilemma|path|purpose|future job|lost in life/i.test(t)) {
+    return FALLBACK_GUIDANCE.confusion;
+  }
+
+  // 6. Overthinking / mind / focus cues
+  if (/mind|overthink|racing thoughts|focus|concentrat|meditat|distract|headache|mental peace|peace of mind/i.test(t)) {
+    return FALLBACK_GUIDANCE.mind;
+  }
+
+  // 7. Anxiety / fear cues
+  if (m === 'anxious' || m === 'stressed' || /anxious|anxiety|fear|scared|worried|worry|nervous|panic|stress|overwhelm/i.test(t)) {
+    return FALLBACK_GUIDANCE.anxiety;
+  }
+
+  // 8. Gratitude / devotion cues
+  if (m === 'happy' || m === 'excited' || /thank|grateful|gratitude|bhakti|krishna|god|divine|prayer|love|joy|blessed/i.test(t)) {
+    return FALLBACK_GUIDANCE.devotion;
+  }
+
+  // 9. Comparison / jealousy cues
+  if (/jealous|envy|compare|comparing|inferior|better than me/i.test(t)) {
+    return FALLBACK_GUIDANCE.confusion;
+  }
+
+  return FALLBACK_GUIDANCE[m] || FALLBACK_GUIDANCE.default;
+}
 
 export const JAPA_MANTRAS: Mantra[] = [
   {
@@ -191,7 +294,11 @@ export const JAPA_MANTRAS: Mantra[] = [
     shortName: "Hare Krishna",
     fullText: "Hare Krishna Hare Krishna, Krishna Krishna Hare Hare, Hare Rama Hare Rama, Rama Rama Hare Hare",
     sanskrit: "हरे कृष्ण हरे कृष्ण, कृष्ण कृष्ण हरे हरे",
-    meaning: "The Maha-mantra for inner peace, pure love, and transcendental consciousness."
+    meaning: "The Maha-mantra for inner peace, pure love, and transcendental consciousness.",
+    nameHi: "हरे कृष्ण हरे कृष्ण, कृष्ण कृष्ण हरे हरे",
+    shortNameHi: "हरे कृष्ण",
+    fullTextHi: "हरे कृष्ण हरे कृष्ण कृष्ण कृष्ण हरे हरे\nहरे राम हरे राम राम राम हरे हरे",
+    meaningHi: "आंतरिक शांति, दिव्य प्रेम और परम चेतना के लिए महामंत्र।"
   },
   {
     id: "gayatri-mantra",
@@ -199,7 +306,11 @@ export const JAPA_MANTRAS: Mantra[] = [
     shortName: "Gayatri Mantra",
     fullText: "Om Bhur Bhuvaḥ Svaḥ, Tat-savitur Vareṇyaṁ Bhargo Devasya Dhīmahi, Dhiyo Yo Naḥ Prachodayāt",
     sanskrit: "ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं भर्गो देवस्य धीमहि धियो यो नः प्रचोदयात्",
-    meaning: "A universal prayer for spiritual illumination, wisdom, and clarity of mind."
+    meaning: "A universal prayer for spiritual illumination, wisdom, and clarity of mind.",
+    nameHi: "गायत्री मंत्र",
+    shortNameHi: "गायत्री मंत्र",
+    fullTextHi: "ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं\nभर्गो देवस्य धीमहि धियो यो नः प्रचोदयात्",
+    meaningHi: "आध्यात्मिक प्रकाश, सद्बुद्धि और मानसिक स्पष्टता के लिए सार्वभौमिक प्रार्थना।"
   },
   {
     id: "radha-radha",
@@ -207,7 +318,11 @@ export const JAPA_MANTRAS: Mantra[] = [
     shortName: "Radha Radha",
     fullText: "Radhe Radhe Radhe, Shri Radha Radhe Radhe",
     sanskrit: "श्री राधा राधे राधे, राधे राधे",
-    meaning: "An intimate remembrance of divine devotion, sweet grace, and surrender."
+    meaning: "An intimate remembrance of divine devotion, sweet grace, and surrender.",
+    nameHi: "राधा नाम",
+    shortNameHi: "राधा राधा",
+    fullTextHi: "राधे राधे राधे श्री राधा राधे राधे\nराधे राधे गोविंद राधे राधे गोपाला",
+    meaningHi: "दिव्य भक्ति, कृपा और आत्म-समर्पण का पावन स्मरण।"
   },
   {
     id: "om-namo-bhagavate",
@@ -215,7 +330,11 @@ export const JAPA_MANTRAS: Mantra[] = [
     shortName: "Om Namo Bhagavate",
     fullText: "Om Namo Bhagavate Vasudevaya",
     sanskrit: "ॐ नमो भगवते वासुदेवाय",
-    meaning: "Salutations to the Supreme Lord Sri Krishna who resides within all living beings."
+    meaning: "Salutations to the Supreme Lord Sri Krishna who resides within all living beings.",
+    nameHi: "ॐ नमो भगवते वासुदेवाय",
+    shortNameHi: "ॐ नमो भगवते",
+    fullTextHi: "ॐ नमो भगवते वासुदेवाय",
+    meaningHi: "सभी जीवों के हृदय में वास करने वाले परम प्रभु श्री कृष्ण को सादर नमन।"
   }
 ];
 

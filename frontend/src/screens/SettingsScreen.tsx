@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { TRANSLATIONS } from '../utils/translations';
 
 interface SettingsScreenProps {
   onBack: () => void;
@@ -7,9 +8,7 @@ interface SettingsScreenProps {
   language: 'en' | 'hi';
   onLanguageChange: (lang: 'en' | 'hi') => void;
   journalEntriesCount: number;
-  savedTeachingsCount: number;
   onClearJournalEntries: () => void;
-  onClearSavedTeachings: () => void;
   japaSoundEnabled: boolean;
   onToggleJapaSound: (enabled: boolean) => void;
   onOpenPrivacy: () => void;
@@ -23,22 +22,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   language,
   onLanguageChange,
   journalEntriesCount,
-  savedTeachingsCount,
   onClearJournalEntries,
-  onClearSavedTeachings,
   japaSoundEnabled,
   onToggleJapaSound,
   onOpenPrivacy,
   onOpenAbout
 }) => {
-  // Notification toggles state
-  const [dailyShlokEnabled, setDailyShlokEnabled] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('gita_daily_shlok') !== 'false';
-    } catch {
-      return true;
-    }
-  });
+  const t = TRANSLATIONS[language] || TRANSLATIONS.en;
 
   const [reflectionReminderEnabled, setReflectionReminderEnabled] = useState<boolean>(() => {
     try {
@@ -48,9 +38,26 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
   });
 
+  const [reflectionReminderTime, setReflectionReminderTime] = useState<string>(() => {
+    try {
+      return localStorage.getItem('gita_reflection_reminder_time') || '20:00';
+    } catch {
+      return '20:00';
+    }
+  });
+
+  const formatTime12h = (time24: string) => {
+    if (!time24) return '';
+    const [hStr, mStr] = time24.split(':');
+    const h = parseInt(hStr, 10);
+    const m = mStr || '00';
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${m} ${ampm}`;
+  };
+
   // Modal states
   const [showClearJournalModal, setShowClearJournalModal] = useState<boolean>(false);
-  const [showClearTeachingsModal, setShowClearTeachingsModal] = useState<boolean>(false);
 
   // Toast feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -62,17 +69,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }, 2400);
   };
 
-  const handleToggleDailyShlok = () => {
-    setDailyShlokEnabled(prev => {
-      const next = !prev;
-      try {
-        localStorage.setItem('gita_daily_shlok', String(next));
-      } catch {}
-      showToast(next ? "Daily Shlok notifications: Enabled 🌅" : "Daily Shlok notifications: Disabled");
-      return next;
-    });
-  };
-
   const handleToggleReflectionReminder = () => {
     setReflectionReminderEnabled(prev => {
       const next = !prev;
@@ -82,27 +78,42 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           Notification.requestPermission();
         }
       } catch {}
-      showToast(next ? "Reflection Reminder: Set for 8:00 PM 🪷" : "Reflection Reminder: Disabled");
+      showToast(
+        next
+          ? (language === 'hi' ? `दैनिक चिंतन अनुस्मारक: ${formatTime12h(reflectionReminderTime)}` : `Reflection Reminder: Set for ${formatTime12h(reflectionReminderTime)}`)
+          : (language === 'hi' ? "दैनिक चिंतन अनुस्मारक: बंद" : "Reflection Reminder: Disabled")
+      );
       return next;
     });
+  };
+
+  const handleChangeReflectionTime = (newTime: string) => {
+    if (!newTime) return;
+    setReflectionReminderTime(newTime);
+    try {
+      localStorage.setItem('gita_reflection_reminder_time', newTime);
+    } catch {}
+    showToast(
+      language === 'hi'
+        ? `अनुस्मारक समय: ${formatTime12h(newTime)}`
+        : `Reminder time set for ${formatTime12h(newTime)}`
+    );
   };
 
   const handleToggleSound = () => {
     const next = !japaSoundEnabled;
     onToggleJapaSound(next);
-    showToast(next ? "Japa Sound: ON 🔔" : "Japa Sound: MUTED 🔇");
+    showToast(
+      next
+        ? (language === 'hi' ? "जप ध्वनि: चालू" : "Japa Sound: Enabled")
+        : (language === 'hi' ? "जप ध्वनि: म्यूट" : "Japa Sound: Muted")
+    );
   };
 
   const handleConfirmClearJournal = () => {
     onClearJournalEntries();
     setShowClearJournalModal(false);
     showToast("All journal reflections cleared");
-  };
-
-  const handleConfirmClearTeachings = () => {
-    onClearSavedTeachings();
-    setShowClearTeachingsModal(false);
-    showToast("All saved teachings cleared");
   };
 
   const isDark = theme === 'dark';
@@ -158,7 +169,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         alignItems: 'center',
         justifyContent: 'space-between',
         marginBottom: 24,
-        paddingTop: 8
+        paddingTop: 'max(16px, calc(env(safe-area-inset-top, 0px) + 12px))'
       }}>
         <button
           onClick={onBack}
@@ -179,7 +190,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          <span>Back</span>
+          <span>{t.back}</span>
         </button>
 
         <h1 style={{
@@ -189,7 +200,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           color: isDark ? '#F3F0EA' : '#1C1917',
           margin: 0
         }}>
-          Settings
+          {t.settingsTitle}
         </h1>
 
         <div style={{ width: 48 }} />
@@ -207,7 +218,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         marginBottom: 8,
         paddingLeft: 4
       }}>
-        APPEARANCE
+        {t.appearanceSection}
       </div>
 
       <div style={{
@@ -228,7 +239,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#F3F0EA' : '#1C1917' }}>
-              Theme
+              {t.themeLabel}
             </div>
           </div>
 
@@ -254,7 +265,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 transition: 'all 0.18s ease'
               }}
             >
-              Light
+              {t.themeLight}
             </button>
             <button
               onClick={() => onThemeChange('dark')}
@@ -270,7 +281,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 transition: 'all 0.18s ease'
               }}
             >
-              Dark
+              {t.themeDark}
             </button>
           </div>
         </div>
@@ -284,10 +295,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#F3F0EA' : '#1C1917' }}>
-              Language
+              {t.languageLabel}
             </div>
             <div style={{ fontSize: 12, color: isDark ? '#928C82' : '#78716C', marginTop: 2 }}>
-              Content language preference
+              {t.languageDesc}
             </div>
           </div>
 
@@ -340,7 +351,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         marginBottom: 8,
         paddingLeft: 4
       }}>
-        NOTIFICATIONS
+        {t.notificationsSection}
       </div>
 
       <div style={{
@@ -351,38 +362,68 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
         marginBottom: 22
       }}>
-        {/* Daily Shlok */}
+        {/* Reflection reminder */}
         <div style={{
-          padding: '14px 18px',
+          padding: '16px 18px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottom: `1px solid ${isDark ? '#26312A' : '#F3EDE4'}`
+          gap: 12
         }}>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#F3F0EA' : '#1C1917' }}>
-              Daily Shlok
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14.5, fontWeight: 600, color: isDark ? '#F3F0EA' : '#1C1917' }}>
+              {t.reflectionReminderLabel}
             </div>
             <div style={{ fontSize: 12, color: isDark ? '#928C82' : '#78716C', marginTop: 2 }}>
-              A teaching each morning
+              {t.reflectionReminderDesc}
             </div>
-          </div>
-          {renderToggle(dailyShlokEnabled, handleToggleDailyShlok)}
-        </div>
 
-        {/* Reflection reminder */}
-        <div style={{
-          padding: '14px 18px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#F3F0EA' : '#1C1917' }}>
-              Reflection reminder
-            </div>
-            <div style={{ fontSize: 12, color: isDark ? '#928C82' : '#78716C', marginTop: 2 }}>
-              Gentle nudge to journal
+            {/* Time Selection */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+              <span style={{ fontSize: 12.5, color: isDark ? '#9CA3AF' : '#6F6B64' }}>
+                {reflectionReminderEnabled
+                  ? (language === 'hi' ? 'निर्धारित समय:' : 'Scheduled for:')
+                  : (language === 'hi' ? 'अनुस्मारक बंद हैं' : 'Reminders muted')}
+              </span>
+
+              {reflectionReminderEnabled && (
+                <label
+                  style={{
+                    position: 'relative',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    background: isDark ? 'rgba(74, 222, 128, 0.15)' : 'rgba(30, 94, 58, 0.08)',
+                    border: `1px solid ${isDark ? 'rgba(74, 222, 128, 0.35)' : 'rgba(30, 94, 58, 0.22)'}`,
+                    borderRadius: 14,
+                    padding: '3px 10px',
+                    cursor: 'pointer',
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: isDark ? '#4ADE80' : '#1E5E3A'
+                  }}
+                  title={language === 'hi' ? 'समय बदलने के लिए टैप करें' : 'Tap to change reminder time'}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <span>{formatTime12h(reflectionReminderTime)}</span>
+                  <input
+                    type="time"
+                    value={reflectionReminderTime}
+                    onChange={e => handleChangeReflectionTime(e.target.value)}
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      opacity: 0,
+                      cursor: 'pointer',
+                      width: '100%',
+                      height: '100%'
+                    }}
+                  />
+                </label>
+              )}
             </div>
           </div>
           {renderToggle(reflectionReminderEnabled, handleToggleReflectionReminder)}
@@ -401,7 +442,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         marginBottom: 8,
         paddingLeft: 4
       }}>
-        SOUND
+        {t.soundSection}
       </div>
 
       <div style={{
@@ -421,7 +462,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#F3F0EA' : '#1C1917' }}>
-              Japa sounds
+              {t.japaSoundsLabel}
             </div>
           </div>
           {renderToggle(japaSoundEnabled, handleToggleSound)}
@@ -440,7 +481,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         marginBottom: 8,
         paddingLeft: 4
       }}>
-        PRIVACY & DATA
+        {t.privacySection}
       </div>
 
       <div style={{
@@ -468,7 +509,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           }}
         >
           <span style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#F3F0EA' : '#1C1917' }}>
-            Privacy policy
+            {t.privacyPolicyLabel}
           </span>
           <span style={{ fontSize: 15, color: isDark ? '#4ADE80' : '#1E5E3A' }}>→</span>
         </button>
@@ -478,15 +519,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           padding: '14px 18px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: `1px solid ${isDark ? '#26312A' : '#F3EDE4'}`
+          justifyContent: 'space-between'
         }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#F3F0EA' : '#1C1917' }}>
-              Journal entries
+              {t.journalEntriesLabel}
             </div>
             <div style={{ fontSize: 12, color: isDark ? '#928C82' : '#78716C', marginTop: 2 }}>
-              {journalEntriesCount} stored on this device
+              {journalEntriesCount} {t.storedOnDevice}
             </div>
           </div>
 
@@ -504,41 +544,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               transition: 'background 0.15s ease'
             }}
           >
-            Clear
-          </button>
-        </div>
-
-        {/* Saved teachings clear row */}
-        <div style={{
-          padding: '14px 18px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#F3F0EA' : '#1C1917' }}>
-              Saved teachings
-            </div>
-            <div style={{ fontSize: 12, color: isDark ? '#928C82' : '#78716C', marginTop: 2 }}>
-              {savedTeachingsCount} stored on this device
-            </div>
-          </div>
-
-          <button
-            onClick={() => setShowClearTeachingsModal(true)}
-            style={{
-              background: 'transparent',
-              border: '1px solid #DC2626',
-              color: '#DC2626',
-              borderRadius: 10,
-              padding: '5px 14px',
-              fontSize: 12.5,
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'background 0.15s ease'
-            }}
-          >
-            Clear
+            {t.clearButton}
           </button>
         </div>
       </div>
@@ -555,7 +561,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         marginBottom: 8,
         paddingLeft: 4
       }}>
-        ABOUT
+        {t.aboutSection}
       </div>
 
       <div style={{
@@ -583,7 +589,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           }}
         >
           <span style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#F3F0EA' : '#1C1917' }}>
-            About Maargdarshan
+            {t.aboutLabel}
           </span>
           <span style={{ fontSize: 15, color: '#A8A29E' }}>→</span>
         </button>
@@ -597,7 +603,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           borderBottom: `1px solid ${isDark ? '#26312A' : '#F3EDE4'}`
         }}>
           <span style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#F3F0EA' : '#1C1917' }}>
-            App version
+            {t.appVersionLabel}
           </span>
           <span style={{ fontSize: 13, color: isDark ? '#9E988E' : '#78716C' }}>
             1.0.0
@@ -615,7 +621,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             lineHeight: 1.55,
             margin: 0
           }}>
-            AI explanations are interpretive and distinct from verified scripture. All Gita verses are attributed to their sources.
+            {language === 'hi'
+              ? 'एआई व्याख्याएं व्याख्यात्मक हैं और प्रामाणिक धर्मग्रंथों से भिन्न हैं। सभी गीता श्लोक उनके मूल स्रोतों को समर्पित हैं।'
+              : 'AI explanations are interpretive and distinct from verified scripture. All Gita verses are attributed to their sources.'}
           </p>
         </div>
       </div>
@@ -653,7 +661,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               color: isDark ? '#F3F0EA' : '#1C1917',
               margin: '0 0 10px 0'
             }}>
-              Clear All Journal Entries?
+              {t.clearJournalTitle}
             </h3>
             <p style={{
               fontSize: 13.5,
@@ -661,7 +669,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               lineHeight: 1.55,
               margin: '0 0 20px 0'
             }}>
-              This will permanently delete all {journalEntriesCount} written reflections stored locally on this device. This action cannot be undone.
+              {t.clearJournalDesc}
             </p>
 
             <div style={{ display: 'flex', gap: 10 }}>
@@ -679,7 +687,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   cursor: 'pointer'
                 }}
               >
-                Cancel
+                {t.cancel}
               </button>
 
               <button
@@ -696,91 +704,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   cursor: 'pointer'
                 }}
               >
-                Clear All
+                {t.clearAllConfirm}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal: Clear Saved Teachings Confirmation */}
-      {showClearTeachingsModal && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(15, 18, 16, 0.65)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 20,
-          zIndex: 400
-        }}>
-          <div style={{
-            background: isDark ? '#1C241F' : '#FAF7F2',
-            borderRadius: 22,
-            width: '100%',
-            maxWidth: 380,
-            padding: '24px 22px',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-            border: `1px solid ${isDark ? '#2A362E' : '#ECE6DD'}`
-          }}>
-            <h3 style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 18,
-              fontWeight: 600,
-              color: isDark ? '#F3F0EA' : '#1C1917',
-              margin: '0 0 10px 0'
-            }}>
-              Clear Saved Teachings?
-            </h3>
-            <p style={{
-              fontSize: 13.5,
-              color: isDark ? '#A6A095' : '#57534E',
-              lineHeight: 1.55,
-              margin: '0 0 20px 0'
-            }}>
-              This will permanently delete all {savedTeachingsCount} bookmarked Gita verses and teachings from this device.
-            </p>
 
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                onClick={() => setShowClearTeachingsModal(false)}
-                style={{
-                  flex: 1,
-                  background: isDark ? '#253028' : '#EFEAE3',
-                  color: isDark ? '#F3F0EA' : '#292524',
-                  border: 'none',
-                  borderRadius: 16,
-                  height: 42,
-                  fontWeight: 600,
-                  fontSize: 13.5,
-                  cursor: 'pointer'
-                }}
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={handleConfirmClearTeachings}
-                style={{
-                  flex: 1,
-                  background: '#DC2626',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: 16,
-                  height: 42,
-                  fontWeight: 600,
-                  fontSize: 13.5,
-                  cursor: 'pointer'
-                }}
-              >
-                Clear All
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Floating Feedback Toast */}
       {toastMessage && (

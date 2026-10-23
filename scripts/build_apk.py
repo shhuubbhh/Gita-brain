@@ -60,21 +60,25 @@ print("Gradle build succeeded!")
 apk_source = ANDROID_DIR / "app" / "build" / "outputs" / "apk" / "debug" / "app-debug.apk"
 
 if apk_source.exists():
-    output_apk = ROOT / "gita-companion-debug.apk"
+    output_apk = ROOT / "maargdarshan-debug.apk"
+    legacy_apk = ROOT / "gita-companion-debug.apk"
     shutil.copy2(apk_source, output_apk)
+    shutil.copy2(apk_source, legacy_apk)
     size_mb = output_apk.stat().st_size / (1024 * 1024)
 
     # Also copy to Downloads folder if accessible
-    user_downloads = Path.home() / "Downloads" / "gita-companion-debug.apk"
+    user_downloads = Path.home() / "Downloads" / "maargdarshan-debug.apk"
+    legacy_downloads = Path.home() / "Downloads" / "gita-companion-debug.apk"
     try:
         shutil.copy2(apk_source, user_downloads)
+        shutil.copy2(apk_source, legacy_downloads)
     except Exception:
         pass
 
     print("=" * 60)
-    print(f"SUCCESS: Android APK created successfully!")
-    print(f"Project Folder: {output_apk}")
-    print(f"Downloads Folder: {user_downloads}")
+    print(f"SUCCESS: Android APK created successfully for MaargDarshan!")
+    print(f"MaargDarshan APK: {user_downloads}")
+    print(f"Legacy Alias: {legacy_downloads}")
     print(f"File Size: {size_mb:.2f} MB")
     print("=" * 60)
 else:

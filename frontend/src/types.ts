@@ -10,10 +10,11 @@ export interface GuidanceData {
   emotion: string;
   situation: string;
   understanding: string;
-  meaning: string;
-  application: string;
+  meaning?: string;
+  application?: string;
   reflection: string;
   action: string;
+  guidance?: string;
   chapter: number;
   verse: number;
   sanskrit: string;
@@ -77,5 +78,9 @@ export interface Mantra {
   fullText: string;
   sanskrit: string;
   meaning?: string;
+  nameHi?: string;
+  shortNameHi?: string;
+  fullTextHi?: string;
+  meaningHi?: string;
 }
 

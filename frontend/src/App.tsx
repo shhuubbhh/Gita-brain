@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HomeScreen } from './screens/HomeScreen';
 import { LearnScreen } from './screens/LearnScreen';
 import { JournalScreen } from './screens/JournalScreen';
 import { JapaScreen } from './screens/JapaScreen';
-import { ProfileScreen } from './screens/ProfileScreen';
 import { SplashScreen } from './screens/SplashScreen';
 import { InformationScreen } from './screens/InformationScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { AboutScreen } from './screens/AboutScreen';
 import { PrivacyScreen } from './screens/PrivacyScreen';
-import { INITIAL_REFLECTIONS, INITIAL_SAVED_TEACHINGS, INITIAL_JOURNAL_ENTRIES, JOURNAL_MOODS } from './data/gitaData';
-import { ReflectionEntry, SavedTeaching, JournalEntry } from './types';
+import { INITIAL_REFLECTIONS, INITIAL_JOURNAL_ENTRIES, JOURNAL_MOODS } from './data/gitaData';
+import { ReflectionEntry, JournalEntry } from './types';
+import { Language, TRANSLATIONS } from './utils/translations';
 
 // Tab Icons matching the user's screenshot
 const HomeIcon: React.FC<{ active: boolean }> = ({ active }) => (
@@ -49,7 +49,7 @@ const TABS = [
   { id: 'explore', label: 'Explore', Icon: ExploreIcon }
 ] as const;
 
-type TabId = typeof TABS[number]['id'] | 'profile' | 'settings' | 'about' | 'privacy';
+type TabId = typeof TABS[number]['id'] | 'settings' | 'about' | 'privacy';
 type AppFlowState = 'splash' | 'info' | 'main';
 
 export const App: React.FC = () => {
@@ -74,6 +74,8 @@ export const App: React.FC = () => {
       return 'en';
     }
   });
+
+  const t = TRANSLATIONS[language] || TRANSLATIONS.en;
 
   const [japaSoundEnabled, setJapaSoundEnabled] = useState<boolean>(() => {
     try {
@@ -115,14 +117,69 @@ export const App: React.FC = () => {
     }
   });
 
-  const [savedTeachings, setSavedTeachings] = useState<SavedTeaching[]>(() => {
-    try {
-      const saved = localStorage.getItem('gita_saved_teachings');
-      return saved ? JSON.parse(saved) : INITIAL_SAVED_TEACHINGS;
-    } catch {
-      return INITIAL_SAVED_TEACHINGS;
-    }
-  });
+  // Refs to always have current values in the hardware back button handler
+  const isDrawerOpenRef = useRef(isDrawerOpen);
+  isDrawerOpenRef.current = isDrawerOpen;
+
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+
+  const previousTabRef = useRef(previousTab);
+  previousTabRef.current = previousTab;
+
+  // Handle hardware back button from Android WebView & browser popstate
+  useEffect(() => {
+    (window as any).handleAppBackButton = (): boolean => {
+      // 1. If drawer (hamburger menu) is open, close it and consume event!
+      if (isDrawerOpenRef.current) {
+        setIsDrawerOpen(false);
+        return true;
+      }
+      // 2. If viewing a sub-screen (About / Privacy), go back to Settings
+      if (activeTabRef.current === 'about' || activeTabRef.current === 'privacy') {
+        setActiveTab('settings');
+        return true;
+      }
+      // 3. If viewing Settings, return to the previous screen or home
+      if (activeTabRef.current === 'settings') {
+        setActiveTab(previousTabRef.current || 'home');
+        return true;
+      }
+      // 4. If viewing any non-home tab (Journal, Japa, Explore), return to Home
+      if (activeTabRef.current !== 'home') {
+        setActiveTab('home');
+        return true;
+      }
+      // 5. On Home with drawer closed -> return false so Android can minimize/exit
+      return false;
+    };
+
+    const handlePopState = () => {
+      if (isDrawerOpenRef.current) {
+        setIsDrawerOpen(false);
+        return;
+      }
+      if (activeTabRef.current === 'about' || activeTabRef.current === 'privacy') {
+        setActiveTab('settings');
+        return;
+      }
+      if (activeTabRef.current === 'settings') {
+        setActiveTab(previousTabRef.current || 'home');
+        return;
+      }
+      if (activeTabRef.current !== 'home') {
+        setActiveTab('home');
+        return;
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      delete (window as any).handleAppBackButton;
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -135,12 +192,6 @@ export const App: React.FC = () => {
       localStorage.setItem('gita_reflections', JSON.stringify(reflections));
     } catch {}
   }, [reflections]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('gita_saved_teachings', JSON.stringify(savedTeachings));
-    } catch {}
-  }, [savedTeachings]);
 
   // Handle saving a journal entry from JournalScreen
   const handleSaveJournalEntry = (entry: { date: string; mood: string; reflection: string; teaching?: string }) => {
@@ -225,19 +276,6 @@ export const App: React.FC = () => {
     setReflections(prev => [newLegacyEntry, ...prev]);
   };
 
-  const handleSaveTeaching = (teaching: { chapter: number; verse: number; preview: string }) => {
-    const exists = savedTeachings.some(t => t.chapter === teaching.chapter && t.verse === teaching.verse);
-    if (!exists) {
-      const newTeaching: SavedTeaching = {
-        id: `teach-${Date.now()}`,
-        chapter: teaching.chapter,
-        verse: teaching.verse,
-        preview: teaching.preview
-      };
-      setSavedTeachings(prev => [newTeaching, ...prev]);
-    }
-  };
-
   const handleSplashProceed = () => {
     try {
       const hasSeenInfo = localStorage.getItem('gita_seen_info_screen') === 'true';
@@ -273,13 +311,6 @@ export const App: React.FC = () => {
     } catch {}
   };
 
-  const handleClearSavedTeachings = () => {
-    setSavedTeachings([]);
-    try {
-      localStorage.removeItem('gita_saved_teachings');
-    } catch {}
-  };
-
   return (
     <div style={{
       background: theme === 'dark' ? '#0A0D0B' : '#EAE6DD',
@@ -304,7 +335,10 @@ export const App: React.FC = () => {
       }}>
         {/* 1. Splash Screen */}
         {appFlow === 'splash' && (
-          <SplashScreen onProceed={handleSplashProceed} />
+          <SplashScreen
+            onProceed={handleSplashProceed}
+            language={language}
+          />
         )}
 
         {/* 2. Information Screen (Shown once on first launch) */}
@@ -318,14 +352,19 @@ export const App: React.FC = () => {
             {/* Main Content Area */}
             <div style={{
               flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
               overflowY: 'auto',
-              paddingBottom: ['settings', 'about', 'privacy'].includes(activeTab) ? 0 : 76
+              paddingBottom: ['settings', 'about', 'privacy'].includes(activeTab)
+                ? 'max(16px, env(safe-area-inset-bottom, 0px))'
+                : 'calc(80px + env(safe-area-inset-bottom, 0px))'
             }}>
               {activeTab === 'home' && (
                 <HomeScreen
-                  onSaveTeaching={handleSaveTeaching}
                   onAddReflection={handleAddReflectionFromHome}
                   onOpenMenu={() => setIsDrawerOpen(true)}
+                  language={language}
+                  theme={theme}
                 />
               )}
               {activeTab === 'journal' && (
@@ -334,23 +373,27 @@ export const App: React.FC = () => {
                   onSaveEntry={handleSaveJournalEntry}
                   onDeleteEntry={handleDeleteJournalEntry}
                   onOpenMenu={() => setIsDrawerOpen(true)}
+                  language={language}
+                  theme={theme}
                 />
               )}
               {activeTab === 'japa' && (
                 <JapaScreen
                   onOpenMenu={() => setIsDrawerOpen(true)}
+                  soundEnabled={japaSoundEnabled}
+                  onToggleSound={handleToggleJapaSound}
+                  language={language}
+                  theme={theme}
                 />
               )}
               {activeTab === 'explore' && (
                 <LearnScreen
+                  language={language}
+                  theme={theme}
+                  onOpenMenu={() => setIsDrawerOpen(true)}
                   onSelectChapterPrompt={() => {
                     setActiveTab('home');
                   }}
-                />
-              )}
-              {activeTab === 'profile' && (
-                <ProfileScreen
-                  savedTeachings={savedTeachings}
                 />
               )}
               {activeTab === 'settings' && (
@@ -366,9 +409,7 @@ export const App: React.FC = () => {
                     } catch {}
                   }}
                   journalEntriesCount={journalEntries.length}
-                  savedTeachingsCount={savedTeachings.length}
                   onClearJournalEntries={handleClearJournalEntries}
-                  onClearSavedTeachings={handleClearSavedTeachings}
                   japaSoundEnabled={japaSoundEnabled}
                   onToggleJapaSound={handleToggleJapaSound}
                   onOpenPrivacy={() => setActiveTab('privacy')}
@@ -379,12 +420,14 @@ export const App: React.FC = () => {
                 <AboutScreen
                   onBack={() => setActiveTab('settings')}
                   theme={theme}
+                  language={language}
                 />
               )}
               {activeTab === 'privacy' && (
                 <PrivacyScreen
                   onBack={() => setActiveTab('settings')}
                   theme={theme}
+                  language={language}
                 />
               )}
             </div>
@@ -435,7 +478,17 @@ export const App: React.FC = () => {
                     justifyContent: 'space-between'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <img src="/peacock_feather.png" alt="Logo" style={{ width: '34px', height: '34px', objectFit: 'contain' }} />
+                      <img
+                        src="./peacock_feather.png"
+                        alt="Logo"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.src.includes('android_asset')) {
+                            target.src = 'file:///android_asset/peacock_feather.png';
+                          }
+                        }}
+                        style={{ width: '34px', height: '34px', objectFit: 'contain' }}
+                      />
                       <div>
                         <h2 style={{
                           fontFamily: 'var(--font-display)',
@@ -444,10 +497,10 @@ export const App: React.FC = () => {
                           margin: 0,
                           fontWeight: 600
                         }}>
-                          Maargdarshan
+                          {t.drawerTitle}
                         </h2>
                         <p style={{ fontSize: '11.5px', color: theme === 'dark' ? '#9E988E' : '#6F6B64', margin: 0 }}>
-                          Eternal Gita Wisdom
+                          {t.drawerSubtitle}
                         </p>
                       </div>
                     </div>
@@ -472,12 +525,11 @@ export const App: React.FC = () => {
                   {/* Drawer Links */}
                   <div style={{ padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
                     {[
-                      { id: 'home', label: 'Home Screen', icon: '🏠' },
-                      { id: 'journal', label: 'Journal & Reflections', icon: '📖' },
-                      { id: 'japa', label: 'Japa Mala Counter', icon: '📿' },
-                      { id: 'explore', label: 'Explore 18 Chapters', icon: '🧭' },
-                      { id: 'profile', label: 'Saved Teachings', icon: '🔖' },
-                      { id: 'settings', label: 'Settings', icon: '⚙️' }
+                      { id: 'home', label: t.drawerHome },
+                      { id: 'journal', label: t.drawerJournal },
+                      { id: 'japa', label: t.navJapa },
+                      { id: 'explore', label: t.navExplore },
+                      { id: 'settings', label: t.drawerSettings }
                     ].map(item => {
                       const isCurrent = activeTab === item.id;
                       return (
@@ -493,7 +545,6 @@ export const App: React.FC = () => {
                           style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '12px',
                             padding: '12px 16px',
                             borderRadius: '12px',
                             background: isCurrent ? (theme === 'dark' ? 'rgba(41, 122, 76, 0.2)' : 'rgba(30, 94, 58, 0.08)') : 'transparent',
@@ -501,12 +552,11 @@ export const App: React.FC = () => {
                             border: 'none',
                             cursor: 'pointer',
                             fontSize: '14.5px',
-                            fontWeight: isCurrent ? 600 : 400,
+                            fontWeight: isCurrent ? 600 : 500,
                             textAlign: 'left',
                             transition: 'background 0.15s'
                           }}
                         >
-                          <span style={{ fontSize: '18px' }}>{item.icon}</span>
                           <span>{item.label}</span>
                         </button>
                       );
@@ -524,7 +574,6 @@ export const App: React.FC = () => {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '12px',
                         padding: '10px 16px',
                         borderRadius: '12px',
                         background: 'transparent',
@@ -535,31 +584,7 @@ export const App: React.FC = () => {
                         textAlign: 'left'
                       }}
                     >
-                      <span style={{ fontSize: '17px' }}>🛡️</span>
-                      <span>Privacy & Data Protection</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setAppFlow('splash');
-                        setIsDrawerOpen(false);
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        padding: '10px 16px',
-                        borderRadius: '12px',
-                        background: 'transparent',
-                        color: theme === 'dark' ? '#B3ACA1' : '#44403C',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '13.5px',
-                        textAlign: 'left'
-                      }}
-                    >
-                      <span style={{ fontSize: '17px' }}>🪷</span>
-                      <span>View Splash Screen</span>
+                      <span>{t.drawerPrivacy}</span>
                     </button>
                   </div>
 
@@ -601,7 +626,7 @@ export const App: React.FC = () => {
                         }}
                         title="Reset first-time intro to test both splash & info screens again"
                       >
-                        Reset intro
+                        {t.drawerResetIntro}
                       </button>
                     </div>
                   </div>
@@ -627,12 +652,14 @@ export const App: React.FC = () => {
                 display: 'flex',
                 zIndex: 100,
                 backdropFilter: 'blur(12px)',
-                paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-                height: '66px',
+                paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)',
+                minHeight: '66px',
+                height: 'calc(66px + env(safe-area-inset-bottom, 0px))',
                 boxSizing: 'border-box'
               }}>
-                {TABS.map(({ id, label, Icon }) => {
+                {TABS.map(({ id, Icon }) => {
                   const isActive = activeTab === id;
+                  const label = id === 'home' ? t.navHome : id === 'journal' ? t.navJournal : id === 'japa' ? t.navJapa : t.navExplore;
                   return (
                     <button
                       key={id}
@@ -643,7 +670,7 @@ export const App: React.FC = () => {
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        padding: '6px 0 8px',
+                        padding: '6px 0 4px',
                         gap: 3,
                         color: isActive ? (theme === 'dark' ? '#4ADE80' : '#1E5E3A') : (theme === 'dark' ? '#827B70' : '#5C5750'),
                         background: 'none',

@@ -1,5 +1,5 @@
 import { GuidanceData } from '../types';
-import { FALLBACK_GUIDANCE } from '../data/gitaData';
+import { FALLBACK_GUIDANCE, getGuidanceForThought } from '../data/gitaData';
 
 const DEFAULT_SERVER_URL = 'https://gita-brain.onrender.com';
 const STORAGE_KEY_SERVER_URL = 'gita_brain_server_url';
@@ -28,10 +28,10 @@ export async function checkServerHealth(
     // 50s timeout for Render free tier spin-up
     const timeout = setTimeout(() => controller.abort(), 50000);
 
-    // After 3 seconds, let the user know the server may be waking up
+    // After 3 seconds, let the user know the server is connecting
     const warmNotice = setTimeout(() => {
       if (onStatusUpdate) {
-        onStatusUpdate('Waking up server on Render... (may take 30-45s on free tier)');
+        onStatusUpdate('Connecting to server... Please wait a moment');
       }
     }, 3000);
 
@@ -51,7 +51,7 @@ export async function checkServerHealth(
     return {
       ok: false,
       statusText: err.name === 'AbortError'
-        ? 'Connection timed out (Render server took >50s to wake up)'
+        ? 'Connection timed out. Please try again later.'
         : 'Cannot reach server'
     };
   }
@@ -151,8 +151,8 @@ export async function askGita(thought: string, mood = 'neutral'): Promise<Guidan
       return await attemptFetch(45000);
     } catch (retryError: any) {
       console.warn('Gita Brain retry also failed:', retryError);
-      // Offline fallback so app never crashes
-      const fallback = FALLBACK_GUIDANCE[mood] || FALLBACK_GUIDANCE.default;
+      // Contextual offline fallback so app never crashes and always answers relevantly
+      const fallback = getGuidanceForThought(thought, mood);
       return {
         ...fallback,
         understanding: `${fallback.understanding}\n\n(Note: Operating in offline mode. Ensure Gita server is running at ${base} or check Settings)`
