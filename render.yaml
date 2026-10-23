@@ -9,11 +9,18 @@ services:
     envVars:
       - key: PORT
         value: 10000
+      - key: GITA_BRAIN_PROVIDER
+        value: gemini
       - key: GEMINI_API_KEY
         sync: false
       - key: GITA_BRAIN_MODEL
-        value: gemini-3.6-flash
+        value: gemini-2.5-flash
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o
       - key: PYTHONIOENCODING
         value: utf-8
       - key: PYTHONUTF8
         value: "1"
+

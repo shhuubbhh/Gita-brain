@@ -9,7 +9,18 @@
       "cry",
       "empty",
       "heartbroken",
-      "hopeless"
+      "hopeless",
+      "उदास",
+      "उदासी",
+      "दुख",
+      "दुखी",
+      "दर्द",
+      "गम",
+      "रोना",
+      "udaas",
+      "dukhi",
+      "dard",
+      "gham"
     ],
     "concepts": [
       "grief_of_loss",
@@ -26,7 +37,14 @@
       "mad",
       "rage",
       "revenge",
-      "hate"
+      "hate",
+      "गुस्सा",
+      "क्रोध",
+      "नाराज",
+      "नाराजगी",
+      "gussa",
+      "krodh",
+      "naraz"
     ],
     "concepts": [
       "anger",
@@ -42,7 +60,15 @@
       "lost",
       "uncertain",
       "don't know",
-      "unsure"
+      "unsure",
+      "समझ नहीं",
+      "क्या करूँ",
+      "दुविधा",
+      "भ्रमित",
+      "असमंजस",
+      "samajh nahi",
+      "kya karu",
+      "duvidha"
     ],
     "concepts": [
       "uncertainty",
@@ -61,7 +87,16 @@
       "stress",
       "scared",
       "afraid",
-      "fear"
+      "fear",
+      "चिंता",
+      "डर",
+      "घबराहट",
+      "तनाव",
+      "भय",
+      "chinta",
+      "dar",
+      "ghabrahat",
+      "tanav"
     ],
     "concepts": [
       "anxiety",
@@ -78,7 +113,11 @@
       "envy",
       "envied",
       "comparison",
-      "compare"
+      "compare",
+      "जलन",
+      "ईर्ष्या",
+      "jalan",
+      "irshya"
     ],
     "concepts": [
       "jealousy",
@@ -95,7 +134,14 @@
       "joy",
       "excited",
       "peaceful",
-      "content"
+      "content",
+      "खुश",
+      "प्रसन्न",
+      "शांति",
+      "आनंद",
+      "khush",
+      "shanti",
+      "anand"
     ],
     "concepts": [
       "equanimity",

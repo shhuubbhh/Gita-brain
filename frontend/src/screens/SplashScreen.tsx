@@ -60,7 +60,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed, language 
       {/* Subtle Mystical Radial Glow behind center content */}
       <div style={{
         position: 'absolute',
-        top: '38%',
+        top: '32%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: 340,
@@ -71,7 +71,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed, language 
       }} />
 
       {/* Upper Spacer */}
-      <div style={{ zIndex: 10, height: 24 }} />
+      <div style={{ zIndex: 10, height: 16 }} />
 
       {/* Center Branding Content: Peacock Feather + Maargdarshan + Subtitle */}
       <div style={{
@@ -81,7 +81,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed, language 
         alignItems: 'center',
         textAlign: 'center',
         padding: '0 24px',
-        transform: 'translateY(-14px)',
+        transform: 'translateY(-65px)',
         animation: 'fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards'
       }}>
         {/* Stylized Peacock Feather Emblem */}
@@ -142,7 +142,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed, language 
       {/* Lower Action: Glowing Halo Ripple with Central Arrow Button */}
       <div style={{
         zIndex: 10,
-        marginBottom: 108,
+        marginBottom: 165,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

@@ -1,5 +1,8 @@
-import argparse,json,re
+import argparse, json, re, sys
 from pathlib import Path
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 ROOT=Path(__file__).resolve().parents[1]
 MOODS=json.loads((ROOT/"knowledge/mood_profiles.json").read_text(encoding="utf-8"))
 ALIASES=json.loads((ROOT/"knowledge/situation_aliases.json").read_text(encoding="utf-8"))
@@ -7,6 +10,11 @@ SITU=json.loads((ROOT/"knowledge/situations.json").read_text(encoding="utf-8"))
 CUES=json.loads((ROOT/"knowledge/concept_cues.json").read_text(encoding="utf-8"))
 
 def norm(s): return re.sub(r"\s+"," ",s.lower().strip())
+
+def phrase_in_text(phrase, text):
+    if re.match(r"^[A-Za-z0-9_]+$", phrase):
+        return bool(re.search(r"\b" + re.escape(phrase) + r"\b", text, re.I))
+    return phrase in text
 
 CHAPTER_CONCEPTS = {
     1: ["duty", "grief_of_loss", "attachment", "discernment"],
@@ -35,7 +43,7 @@ def analyze(mood,text):
     # detected mood for diagnostics.
     mood_hits={}
     for m,p in MOODS.items():
-        hits=[x for x in p["signals"] if x in t]
+        hits=[x for x in p["signals"] if phrase_in_text(x, t)]
         mood_hits[m]=hits
     detected=max(mood_hits,key=lambda x:len(mood_hits[x])) if any(mood_hits.values()) else "neutral"
     if mood in MOODS and mood!="neutral": detected=mood
@@ -59,7 +67,7 @@ def analyze(mood,text):
     # Situation phrase matching.
     sit_scores=[]
     for sid,aliases in ALIASES.items():
-        hits=[a for a in aliases if a in t]
+        hits=[a for a in aliases if phrase_in_text(a, t)]
         if hits:
             # Specific multi-word phrases carry more situation evidence than
             # broad one-word matches such as "career" or "loss".
@@ -77,7 +85,7 @@ def analyze(mood,text):
     # Concept cues. Multi-word cues naturally carry semantic weight.
     concept_hits=[]
     for cid,cues in CUES.items():
-        hits=[c for c in cues if c in t]
+        hits=[c for c in cues if phrase_in_text(c, t)]
         if hits:
             score=sum(2.0 if " " in h else 1.0 for h in hits)
             concept_hits.append((score,cid,hits))

@@ -25,7 +25,7 @@ if env_file.exists():
         pass
 
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from api.answer_engine import generate_answer
+from api.answer_engine import generate_answer, get_active_model, _sanitize_error
 
 MAX_TEXT = 4000
 
@@ -52,19 +52,25 @@ def parse_structured_answer(raw_text, situation, evidence):
     - reflection
     - action
     """
-    # Regex to split sections by ### headers
+    # Regex to split sections by ### headers or markdown bold headers
     sections = {}
     current_key = "intro"
     lines = raw_text.splitlines()
     buffer = []
 
     for line in lines:
-        match = re.match(r"^###\s+(?:\d+\.\s+)?(.*)", line.strip())
-        if match:
+        line_clean = line.strip()
+        match = re.match(r"^(?:#{1,4}\s+|\*\*)?(?:\d+[\.\)]\s+)?(.*)", line_clean)
+        header_candidate = match.group(1).lower().strip().rstrip(":*# ") if match else ""
+        is_known_heading = any(k in header_candidate for k in (
+            "understand", "points toward", "wisdom", "teaching", "mean",
+            "apply", "situation", "here", "reflect", "action", "practice", "daily", "verse"
+        ))
+        if match and (line_clean.startswith("#") or (is_known_heading and len(header_candidate) < 60)):
             if buffer:
                 sections[current_key] = "\n".join(buffer).strip()
                 buffer = []
-            header = match.group(1).lower().strip()
+            header = header_candidate
             if "understand" in header:
                 current_key = "understanding"
             elif "points toward" in header or "wisdom" in header or "teaching" in header or "mean" in header:
@@ -73,7 +79,7 @@ def parse_structured_answer(raw_text, situation, evidence):
                 current_key = "application"
             elif "reflect" in header:
                 current_key = "reflection"
-            elif "action" in header:
+            elif "action" in header or "practice" in header or "daily" in header:
                 current_key = "action"
             else:
                 current_key = header
@@ -127,8 +133,14 @@ def parse_structured_answer(raw_text, situation, evidence):
     if ref_match:
         reflection_prompt = ref_match.group(1).strip()
 
-    # Generate one small action if not explicitly parsed
-    action_text = sections.get("action", "")
+    # Dynamic action parsing: prioritize parsed action/daily practice, then dynamic takeaway from application
+    action_text = sections.get("action", "").strip()
+    if not action_text:
+        app_text = sections.get("application", "").strip()
+        if app_text:
+            sentences = [s.strip() for s in re.split(r'[.!?\n]+', app_text) if len(s.strip()) > 20]
+            if sentences:
+                action_text = sentences[-1] + "."
     if not action_text:
         action_text = "Take 3 mindful breaths, focus on your sincere duty today, and release the anxious attachment to future outcomes."
 
@@ -163,10 +175,13 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path in ("/", "/v1/health"):
+            provider = os.environ.get("GITA_BRAIN_PROVIDER", "gemini").strip().lower()
             self._json(200, {
                 "status": "ok",
                 "service": "gita-brain",
-                "version": "0.8.0"
+                "version": "0.8.0",
+                "provider": provider,
+                "model": get_active_model(provider)
             })
             return
         self._json(404, {"error": "not_found"})
@@ -197,8 +212,9 @@ class Handler(BaseHTTPRequestHandler):
             )
             self._json(200, result)
         except Exception as e:
-            print(f"[ERROR] Request failed: {e}")
-            self._json(400, {"error": str(e)})
+            safe_err = _sanitize_error(str(e))
+            print(f"[ERROR] Request failed: {safe_err}")
+            self._json(400, {"error": safe_err})
 
 
 if __name__ == "__main__":
