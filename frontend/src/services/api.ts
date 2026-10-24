@@ -1,12 +1,18 @@
 import { GuidanceData } from '../types';
 import { FALLBACK_GUIDANCE, getGuidanceForThought } from '../data/gitaData';
+import { Language } from '../utils/translations';
 
 const DEFAULT_SERVER_URL = 'https://gita-brain.onrender.com';
 const STORAGE_KEY_SERVER_URL = 'gita_brain_server_url';
 
 export function getServerUrl(): string {
-  if (typeof window !== 'undefined' && window.localStorage) {
-    return localStorage.getItem(STORAGE_KEY_SERVER_URL) || DEFAULT_SERVER_URL;
+  if (typeof window !== 'undefined') {
+    const saved = window.localStorage ? localStorage.getItem(STORAGE_KEY_SERVER_URL) : null;
+    if (saved) return saved;
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:8080';
+    }
+    return DEFAULT_SERVER_URL;
   }
   return DEFAULT_SERVER_URL;
 }
@@ -74,7 +80,7 @@ export function wakeUpServer(): void {
   }
 }
 
-export async function askGita(thought: string, mood = 'neutral'): Promise<GuidanceData> {
+export async function askGita(thought: string, mood = 'neutral', language: Language = 'en'): Promise<GuidanceData> {
   const base = getServerUrl().replace(/\/+$/, '');
 
   const attemptFetch = async (timeoutMs = 60000): Promise<GuidanceData> => {
@@ -89,7 +95,8 @@ export async function askGita(thought: string, mood = 'neutral'): Promise<Guidan
       body: JSON.stringify({
         thought,
         mood,
-        top_k: 3
+        top_k: 3,
+        language
       }),
       signal: controller.signal
     });
@@ -105,35 +112,65 @@ export async function askGita(thought: string, mood = 'neutral'): Promise<Guidan
     // If backend returns structured format
     if (data.structured) {
       const s = data.structured;
-      const v = s.verse || {};
+      const evList = Array.isArray(data.evidence) ? data.evidence : [];
+      const firstEv = evList[0] || {};
+      const v = (s.verse && s.verse.sanskrit) ? s.verse : (firstEv.sanskrit ? firstEv : (s.verse || firstEv));
+      
+      const chapter = Number(v.chapter || firstEv.chapter || 2);
+      const verse = Number(v.verse || firstEv.verse || 47);
+      const sanskrit = v.sanskrit || firstEv.sanskrit || '';
+      const transliteration = v.transliteration || firstEv.transliteration || '';
+      const translation = v.translation || firstEv.translation || '';
+      
       return {
-        emotion: s.emotion || 'Seeking + Reflection',
-        situation: s.situation || 'A moment of honest searching',
+        emotion: s.emotion || (language === 'hi' ? 'मार्गदर्शन एवं विचार' : 'Seeking + Reflection'),
+        situation: s.situation || (language === 'hi' ? 'आंतरिक स्पष्टता' : 'A moment of honest searching'),
         understanding: s.understanding || '',
         meaning: s.meaning || '',
+        guidance: s.meaning || s.application || s.understanding || '',
         application: s.application || '',
-        reflection: s.reflection || 'What choice will you make today that honours your highest self?',
-        action: s.action || 'Take a deep breath, ground yourself in your duty, and proceed with courage.',
-        chapter: v.chapter || 2,
-        verse: v.verse || 47,
-        sanskrit: v.sanskrit || '',
-        transliteration: v.transliteration || '',
-        translation: v.translation || ''
+        reflection: s.reflection || (language === 'hi' ? 'आज आप अपने जीवन में कौन सा सकारात्मक निर्णय ले सकते हैं?' : 'What choice will you make today that honours your highest self?'),
+        action: s.action || (language === 'hi' ? '3 गहरी शांत सांसें लें, अपने कर्तव्य पर ध्यान केंद्रित करें, और चिंता को ईश्वर पर छोड़ दें।' : 'Take a deep breath, ground yourself in your duty, and proceed with courage.'),
+        chapter,
+        verse,
+        sanskrit,
+        transliteration,
+        translation
       };
     }
 
     // Fallback parsing if structured not directly attached
-    const firstEvidence = data.evidence?.[0] || {};
+    const evList = Array.isArray(data.evidence) ? data.evidence : [];
+    const firstEvidence = evList[0] || {};
+    const primarySituation = (data.situation?.primary || (language === 'hi' ? 'आंतरिक स्पष्टता' : 'Seeking Clarity'))
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (c: string) => c.toUpperCase());
+    
+    const rawAnswer = data.answer || '';
+    let parsedUnderstanding = '';
+    let parsedMeaning = '';
+    let parsedApplication = '';
+    
+    const underMatch = rawAnswer.match(/(?:###|\*\*)\s*(?:\d+[\.\)]\s+)?(?:Understanding|समझ)[\s:*#\n]*([\s\S]*?)(?=(?:###|\*\*)\s*(?:\d+[\.\)]\s+)?(?:What the Gita|गीता का मार्गदर्शन|Applying|जीवन में अनुप्रयोग|Reflection|चिंतन|Daily Practice|दैनिक अभ्यास)|$)/i);
+    if (underMatch) parsedUnderstanding = underMatch[1].trim();
+    
+    const meaningMatch = rawAnswer.match(/(?:###|\*\*)\s*(?:\d+[\.\)]\s+)?(?:What the Gita points toward|Wisdom|Meaning|गीता का मार्गदर्शन|मार्गदर्शन)[\s:*#\n]*([\s\S]*?)(?=(?:###|\*\*)\s*(?:\d+[\.\)]\s+)?(?:Applying|जीवन में अनुप्रयोग|Reflection|चिंतन|Daily Practice|दैनिक अभ्यास)|$)/i);
+    if (meaningMatch) parsedMeaning = meaningMatch[1].trim();
+    
+    const applyMatch = rawAnswer.match(/(?:###|\*\*)\s*(?:\d+[\.\)]\s+)?(?:Applying it here|Application|जीवन में अनुप्रयोग|अनुप्रयोग)[\s:*#\n]*([\s\S]*?)(?=(?:###|\*\*)\s*(?:\d+[\.\)]\s+)?(?:Reflection|चिंतन|Daily Practice|दैनिक अभ्यास)|$)/i);
+    if (applyMatch) parsedApplication = applyMatch[1].trim();
+
     return {
-      emotion: (data.situation?.primary || 'Clarity + Duty').replace(/_/g, ' ').toUpperCase(),
-      situation: 'Guiding perspective from Gita Brain',
-      understanding: data.answer?.slice(0, 300) || '',
-      meaning: data.answer || '',
-      application: 'Reflect on how this applies to your present circumstances.',
-      reflection: 'In what ways can you move forward with equanimity?',
-      action: 'Focus on your immediate effort and let go of anxiety over results.',
-      chapter: firstEvidence.chapter || 2,
-      verse: firstEvidence.verse || 47,
+      emotion: primarySituation,
+      situation: primarySituation,
+      understanding: parsedUnderstanding || rawAnswer.slice(0, 300) || '',
+      meaning: parsedMeaning || rawAnswer || '',
+      guidance: rawAnswer || '',
+      application: parsedApplication || (language === 'hi' ? 'विचार करें कि यह ज्ञान आपकी वर्तमान परिस्थिति पर कैसे लागू होता है।' : 'Reflect on how this applies to your present circumstances.'),
+      reflection: language === 'hi' ? 'आज आप समत्व भाव के साथ आगे कैसे बढ़ सकते हैं?' : 'In what ways can you move forward with equanimity?',
+      action: language === 'hi' ? 'अपने तात्कालिक कर्तव्य पर ध्यान दें और परिणाम की चिंता छोड़ दें।' : 'Focus on your immediate effort and let go of anxiety over results.',
+      chapter: Number(firstEvidence.chapter || 2),
+      verse: Number(firstEvidence.verse || 47),
       sanskrit: firstEvidence.sanskrit || '',
       transliteration: firstEvidence.transliteration || '',
       translation: firstEvidence.translation || ''
@@ -152,10 +189,12 @@ export async function askGita(thought: string, mood = 'neutral'): Promise<Guidan
     } catch (retryError: any) {
       console.warn('Gita Brain retry also failed:', retryError);
       // Contextual offline fallback so app never crashes and always answers relevantly
-      const fallback = getGuidanceForThought(thought, mood);
+      const fallback = getGuidanceForThought(thought, mood, language);
       return {
         ...fallback,
-        understanding: `${fallback.understanding}\n\n(Note: Operating in offline mode. Ensure Gita server is running at ${base} or check Settings)`
+        understanding: language === 'hi'
+          ? `${fallback.understanding}\n\n(सूचना: ऑफ़लाइन मोड में काम कर रहा है। सुनिश्चित करें कि गीता सर्वर ${base} पर चल रहा है)`
+          : `${fallback.understanding}\n\n(Note: Operating in offline mode. Ensure Gita server is running at ${base} or check Settings)`
       };
     }
   }

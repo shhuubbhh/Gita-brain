@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { TRANSLATIONS } from '../utils/translations';
 
 interface SettingsScreenProps {
@@ -29,6 +29,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onOpenAbout
 }) => {
   const t = TRANSLATIONS[language] || TRANSLATIONS.en;
+  const timeInputRef = useRef<HTMLInputElement>(null);
 
   const [reflectionReminderEnabled, setReflectionReminderEnabled] = useState<boolean>(() => {
     try {
@@ -80,8 +81,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       } catch {}
       showToast(
         next
-          ? (language === 'hi' ? `दैनिक चिंतन अनुस्मारक: ${formatTime12h(reflectionReminderTime)}` : `Reflection Reminder: Set for ${formatTime12h(reflectionReminderTime)}`)
-          : (language === 'hi' ? "दैनिक चिंतन अनुस्मारक: बंद" : "Reflection Reminder: Disabled")
+          ? (language === 'hi' ? `दैनिक जर्नल अनुस्मारक: ${formatTime12h(reflectionReminderTime)}` : `Journal Reminder: Set for ${formatTime12h(reflectionReminderTime)}`)
+          : (language === 'hi' ? "दैनिक जर्नल अनुस्मारक: बंद" : "Journal Reminder: Disabled")
       );
       return next;
     });
@@ -100,6 +101,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     );
   };
 
+  const handleOpenTimePicker = () => {
+    if (!reflectionReminderEnabled || !timeInputRef.current) return;
+    try {
+      if ('showPicker' in HTMLInputElement.prototype) {
+        timeInputRef.current.showPicker();
+      } else {
+        timeInputRef.current.focus();
+        timeInputRef.current.click();
+      }
+    } catch {
+      timeInputRef.current.focus();
+      timeInputRef.current.click();
+    }
+  };
+
   const handleToggleSound = () => {
     const next = !japaSoundEnabled;
     onToggleJapaSound(next);
@@ -113,7 +129,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const handleConfirmClearJournal = () => {
     onClearJournalEntries();
     setShowClearJournalModal(false);
-    showToast("All journal reflections cleared");
+    showToast(language === 'hi' ? "सभी जर्नल प्रविष्टियां हटा दी गईं" : "All journal entries cleared");
   };
 
   const isDark = theme === 'dark';
@@ -362,24 +378,26 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
         marginBottom: 22
       }}>
-        {/* Reflection reminder */}
-        <div style={{
-          padding: '16px 18px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12
-        }}>
+        {/* Journal reminder */}
+        <div
+          onClick={handleOpenTimePicker}
+          style={{
+            padding: '16px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            cursor: reflectionReminderEnabled ? 'pointer' : 'default',
+            userSelect: 'none'
+          }}
+        >
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14.5, fontWeight: 600, color: isDark ? '#F3F0EA' : '#1C1917' }}>
               {t.reflectionReminderLabel}
             </div>
-            <div style={{ fontSize: 12, color: isDark ? '#928C82' : '#78716C', marginTop: 2 }}>
-              {t.reflectionReminderDesc}
-            </div>
 
             {/* Time Selection */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
               <span style={{ fontSize: 12.5, color: isDark ? '#9CA3AF' : '#6F6B64' }}>
                 {reflectionReminderEnabled
                   ? (language === 'hi' ? 'निर्धारित समय:' : 'Scheduled for:')
@@ -387,7 +405,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </span>
 
               {reflectionReminderEnabled && (
-                <label
+                <div
                   style={{
                     position: 'relative',
                     display: 'inline-flex',
@@ -397,7 +415,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     border: `1px solid ${isDark ? 'rgba(74, 222, 128, 0.35)' : 'rgba(30, 94, 58, 0.22)'}`,
                     borderRadius: 14,
                     padding: '3px 10px',
-                    cursor: 'pointer',
                     fontSize: 12.5,
                     fontWeight: 600,
                     color: isDark ? '#4ADE80' : '#1E5E3A'
@@ -409,24 +426,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     <polyline points="12 6 12 12 16 14" />
                   </svg>
                   <span>{formatTime12h(reflectionReminderTime)}</span>
-                  <input
-                    type="time"
-                    value={reflectionReminderTime}
-                    onChange={e => handleChangeReflectionTime(e.target.value)}
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      opacity: 0,
-                      cursor: 'pointer',
-                      width: '100%',
-                      height: '100%'
-                    }}
-                  />
-                </label>
+                </div>
               )}
+
+              {/* Time input element */}
+              <input
+                ref={timeInputRef}
+                type="time"
+                value={reflectionReminderTime}
+                onChange={e => handleChangeReflectionTime(e.target.value)}
+                style={{
+                  position: 'absolute',
+                  opacity: 0,
+                  pointerEvents: 'none',
+                  width: 0,
+                  height: 0
+                }}
+              />
             </div>
           </div>
-          {renderToggle(reflectionReminderEnabled, handleToggleReflectionReminder)}
+          <div onClick={e => e.stopPropagation()}>
+            {renderToggle(reflectionReminderEnabled, handleToggleReflectionReminder)}
+          </div>
         </div>
       </div>
 

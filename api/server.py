@@ -42,17 +42,60 @@ def _get_local_ips():
     return ips
 
 
-def parse_structured_answer(raw_text, situation, evidence):
+def _clean_section_content(text):
+    if not text:
+        return ""
+    # Strip leading markdown headers in both English and Hindi
+    text = re.sub(
+        r'^(?:#{1,4}\s+|\*\*)?(?:\d+[\.\)]\s+)?(?:understanding|what the gita points toward|applying it here|applying this here|reflection|daily practice|meaning|application|समझ|गीता का मार्गदर्शन|मार्गदर्शन|जीवन में अनुप्रयोग|अनुप्रयोग|चिंतन|दैनिक अभ्यास|अभ्यास)[\s:*#-]*(?:\*\*)?',
+        '',
+        text,
+        flags=re.IGNORECASE
+    ).strip()
+    return text
+
+
+HINDI_SITUATIONS = {
+    "career_confusion": "मार्गदर्शन एवं निर्णय असमंजस",
+    "decision_conflict": "निर्णय एवं आंतरिक द्वंद्व",
+    "fear_of_failure": "असफलता का भय",
+    "anxiety": "चिंता एवं व्याकुलता",
+    "grief": "शोक एवं आंतरिक पीड़ा",
+    "grief_loss": "शोक एवं वियोग",
+    "revenge": "क्रोध एवं प्रतिशोध",
+    "anger": "क्रोध एवं अशांति",
+    "jealousy": "ईर्ष्या एवं तुलना",
+    "burnout": "मानसिक थकान",
+    "loneliness": "अकेलापन",
+    "relationship_conflict": "संबंधों में सामंजस्य",
+    "spiritual_doubt": "आध्यात्मिक संशय",
+    "overthinking": "अशांत मन एवं विचार",
+}
+
+HINDI_VERSE_TRANSLATIONS = {
+    (2, 47): "तुम्हारा अधिकार केवल कर्म करने में है, उसके फलों में कभी नहीं। इसलिए कर्म के फल की इच्छा मत रखो और न ही अकर्मण्यता में तुम्हारी आसक्ति हो।",
+    (2, 48): "हे धनंजय! सफलता और असफलता में समान भाव रखकर, अनासक्त होकर योग में स्थित रहते हुए अपने कर्तव्य का पालन करो। यही समत्व भाव ही योग कहलाता है।",
+    (2, 14): "हे कुन्तीपुत्र! सुख और दुःख के क्षणिक अनुभव सर्दी और गर्मी की ऋतुओं की तरह आने-जाने वाले हैं। वे अनित्य हैं; इसलिए हे भारत, अविचल होकर उन्हें सहन करना सीखो।",
+    (2, 62): "विषयों का निरंतर ध्यान करने से मनुष्य की उनमें आसक्ति हो जाती है, आसक्ति से कामना उत्पन्न होती है, और कामना में बाधा आने पर क्रोध उत्पन्न होता है।",
+    (3, 35): "दूसरों के कर्तव्य को भली-भाँति करने की अपेक्षा अपना सहज कर्तव्य दोषपूर्ण होने पर भी कहीं अधिक श्रेयस्कर है। अपने कर्तव्य का पालन करते हुए मरना भी उत्तम है, दूसरों का मार्ग भय उत्पन्न करने वाला है।",
+    (6, 5): "मनुष्य को अपने मन द्वारा अपना उद्धार करना चाहिए, अपना पतन नहीं; क्योंकि यह मन ही मनुष्य का सच्चा मित्र है और यही मन उसका शत्रु भी है।",
+    (6, 26): "यह चंचल और अस्थिर मन जहाँ-जहाँ भी भटके, वहाँ-वहाँ से इसे रोककर बार-बार आत्मा के वश में लाना चाहिए।",
+    (9, 22): "जो अनन्य भक्त केवल मेरा ही चिंतन करते हुए निष्काम भाव से मेरी उपासना करते हैं, उनके योग-क्षेम (प्राप्ति और रक्षा) का वहन मैं स्वयं करता हूँ।",
+    (18, 47): "श्रेष्ठ रीति से आचरण किए हुए दूसरे के धर्म की अपेक्षा गुणरहित भी अपना स्वाभाविक धर्म श्रेष्ठ है। अपने स्वभाव के अनुसार नियत कर्म करने से मनुष्य को कोई दोष नहीं लगता।",
+    (18, 66): "सब धर्मों को मुझमें त्यागकर केवल मेरी शरण में आओ; मैं तुम्हें समस्त पापों और कष्टों से मुक्त कर दूँगा, शोक मत करो।"
+}
+
+
+def parse_structured_answer(raw_text, situation, evidence, language="en"):
     """
     Parses the Markdown answer from Gita Brain into structured sections
-    suitable for mobile card rendering:
+    suitable for mobile card rendering in English or Hindi:
     - understanding
     - meaning
     - application
     - reflection
     - action
     """
-    # Regex to split sections by ### headers or markdown bold headers
     sections = {}
     current_key = "intro"
     lines = raw_text.splitlines()
@@ -64,22 +107,25 @@ def parse_structured_answer(raw_text, situation, evidence):
         header_candidate = match.group(1).lower().strip().rstrip(":*# ") if match else ""
         is_known_heading = any(k in header_candidate for k in (
             "understand", "points toward", "wisdom", "teaching", "mean",
-            "apply", "situation", "here", "reflect", "action", "practice", "daily", "verse"
+            "apply", "situation", "here", "reflect", "action", "practice", "daily", "verse",
+            "समझ", "मार्गदर्शन", "अनुप्रयोग", "चिंतन", "अभ्यास", "कदम", "सीख", "अनुवाद", "श्लोक", "अर्थ"
         ))
         if match and (line_clean.startswith("#") or (is_known_heading and len(header_candidate) < 60)):
             if buffer:
                 sections[current_key] = "\n".join(buffer).strip()
                 buffer = []
             header = header_candidate
-            if "understand" in header:
+            if "understand" in header or "समझ" in header:
                 current_key = "understanding"
-            elif "points toward" in header or "wisdom" in header or "teaching" in header or "mean" in header:
+            elif any(k in header for k in ("translation", "अनुवाद", "श्लोक का अर्थ", "श्लोक अनुवाद")):
+                current_key = "verse_translation"
+            elif any(k in header for k in ("points toward", "wisdom", "teaching", "mean", "मार्गदर्शन", "सीख")):
                 current_key = "meaning"
-            elif "apply" in header or "situation" in header or "here" in header:
+            elif any(k in header for k in ("apply", "situation", "here", "अनुप्रयोग", "जीवन")):
                 current_key = "application"
-            elif "reflect" in header:
+            elif any(k in header for k in ("reflect", "चिंतन", "विचार")):
                 current_key = "reflection"
-            elif "action" in header or "practice" in header or "daily" in header:
+            elif any(k in header for k in ("action", "practice", "daily", "अभ्यास", "कदम")):
                 current_key = "action"
             else:
                 current_key = header
@@ -89,8 +135,16 @@ def parse_structured_answer(raw_text, situation, evidence):
     if buffer:
         sections[current_key] = "\n".join(buffer).strip()
 
-    # Friendly emotion formatting
-    primary_situation = (situation.get("primary") or "Seeking Clarity").replace("_", " ").title()
+    # Friendly situation/emotion formatting
+    primary_key = (situation.get("primary") or "").lower()
+    if language == "hi":
+        primary_situation = HINDI_SITUATIONS.get(primary_key, "आंतरिक स्पष्टता")
+        default_reflection = "आज आप शांति और स्पष्टता के साथ अपने जीवन में कौन सा निर्णय ले सकते हैं?"
+        default_action = "3 गहरी शांत सांसें लें, अपने वर्तमान कर्तव्य पर ध्यान केंद्रित करें, और चिंता को ईश्वर पर छोड़ दें।"
+    else:
+        primary_situation = (situation.get("primary") or "Seeking Clarity").replace("_", " ").title()
+        default_reflection = "In what ways can you act with clarity and compassion today?"
+        default_action = "Take 3 mindful breaths, focus on your sincere duty today, and release the anxious attachment to future outcomes."
     emotion = f"{primary_situation}"
 
     # Extract primary verse details if available
@@ -99,21 +153,21 @@ def parse_structured_answer(raw_text, situation, evidence):
         for pv in evidence:
             if pv.get("translation") and pv.get("sanskrit"):
                 primary_verse = {
-                    "chapter": pv.get("chapter", 2),
-                    "verse": pv.get("verse", 47),
-                    "sanskrit": pv.get("sanskrit", ""),
-                    "transliteration": pv.get("transliteration", ""),
-                    "translation": pv.get("translation", "")
+                    "chapter": pv.get("chapter") or 2,
+                    "verse": pv.get("verse") or 47,
+                    "sanskrit": pv.get("sanskrit") or "",
+                    "transliteration": pv.get("transliteration") or "",
+                    "translation": pv.get("translation") or ""
                 }
                 break
         if not primary_verse:
             pv = evidence[0]
             primary_verse = {
-                "chapter": pv.get("chapter", 2),
-                "verse": pv.get("verse", 47),
-                "sanskrit": pv.get("sanskrit", ""),
-                "transliteration": pv.get("transliteration", ""),
-                "translation": pv.get("translation", "")
+                "chapter": pv.get("chapter") or 2,
+                "verse": pv.get("verse") or 47,
+                "sanskrit": pv.get("sanskrit") or "",
+                "transliteration": pv.get("transliteration") or "",
+                "translation": pv.get("translation") or ""
             }
 
     if not primary_verse or not primary_verse.get("translation"):
@@ -122,35 +176,58 @@ def parse_structured_answer(raw_text, situation, evidence):
             "verse": 47,
             "sanskrit": "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥",
             "transliteration": "karmaṇy-evādhikāras te mā phaleṣu kadācana\nmā karma-phala-hetur bhūr mā te saṅgo 'stv akarmaṇi",
-            "translation": "You have a right to perform your prescribed duty, but you are not entitled to the fruits of action. Never consider yourself the cause of the results of your activities, and never be attached to inaction."
+            "translation": "तुम्हारा अधिकार केवल कर्म करने में है, उसके फलों में कभी नहीं।" if language == "hi" else "You have a right to perform your prescribed duty, but you are not entitled to the fruits of action. Never consider yourself the cause of the results of your activities, and never be attached to inaction."
         }
 
+    # If language is Hindi, ensure the verse translation is in Hindi
+    if language == "hi":
+        vt_from_llm = _clean_section_content(sections.get("verse_translation") or "")
+        ch_num = int(primary_verse.get("chapter") or 2)
+        v_num = int(primary_verse.get("verse") or 47)
+        if vt_from_llm and any('\u0900' <= char <= '\u097f' for char in vt_from_llm):
+            primary_verse["translation"] = vt_from_llm
+        elif (ch_num, v_num) in HINDI_VERSE_TRANSLATIONS:
+            primary_verse["translation"] = HINDI_VERSE_TRANSLATIONS[(ch_num, v_num)]
+        elif not any('\u0900' <= char <= '\u097f' for char in primary_verse.get("translation", "")):
+            # If current translation is English, replace with Hindi default for verse
+            primary_verse["translation"] = HINDI_VERSE_TRANSLATIONS.get((ch_num, v_num), "तुम्हारा अधिकार केवल कर्म करने में है, उसके फलों में कभी नहीं। इसलिए कर्म के फल की इच्छा मत रखो और न ही अकर्मण्यता में तुम्हारी आसक्ति हो।")
+
+    # Clean sections
+    understanding_raw = sections.get("understanding") or sections.get("intro") or ""
+    if not understanding_raw and raw_text:
+        understanding_raw = raw_text.split("\n\n")[0]
+    understanding = _clean_section_content(understanding_raw)
+
+    meaning_raw = sections.get("meaning") or ""
+    meaning = _clean_section_content(meaning_raw)
+
+    application_raw = sections.get("application") or ""
+    application = _clean_section_content(application_raw)
+
     # Extract reflection quote
-    reflection_text = sections.get("reflection", "")
+    reflection_text = _clean_section_content(sections.get("reflection", ""))
     reflection_prompt = reflection_text
-    # If reflection contains multiple paragraphs or quotes, clean it
     ref_match = re.search(r'["“]([^"”]+)["”]', reflection_text)
     if ref_match:
         reflection_prompt = ref_match.group(1).strip()
 
-    # Dynamic action parsing: prioritize parsed action/daily practice, then dynamic takeaway from application
-    action_text = sections.get("action", "").strip()
+    # Dynamic action parsing
+    action_text = _clean_section_content(sections.get("action", ""))
     if not action_text:
-        app_text = sections.get("application", "").strip()
-        if app_text:
-            sentences = [s.strip() for s in re.split(r'[.!?\n]+', app_text) if len(s.strip()) > 20]
+        if application:
+            sentences = [s.strip() for s in re.split(r'[.!?\n।]+', application) if len(s.strip()) > 20]
             if sentences:
-                action_text = sentences[-1] + "."
+                action_text = sentences[-1] + ("।" if language == "hi" else ".")
     if not action_text:
-        action_text = "Take 3 mindful breaths, focus on your sincere duty today, and release the anxious attachment to future outcomes."
+        action_text = default_action
 
     return {
         "emotion": emotion,
         "situation": primary_situation,
-        "understanding": sections.get("understanding", raw_text[:300] + "..."),
-        "meaning": sections.get("meaning", ""),
-        "application": sections.get("application", ""),
-        "reflection": reflection_prompt or "In what ways can you act with clarity and compassion today?",
+        "understanding": understanding or raw_text[:300] + "...",
+        "meaning": meaning,
+        "application": application,
+        "reflection": reflection_prompt or default_reflection,
         "action": action_text,
         "verse": primary_verse
     }
@@ -203,18 +280,28 @@ class Handler(BaseHTTPRequestHandler):
             if len(thought) > MAX_TEXT:
                 raise ValueError(f"thought exceeds {MAX_TEXT} characters")
             
-            result = generate_answer(mood, thought, top_k)
+            language = str(data.get("language", "en")).strip().lower()
+            if language not in ("en", "hi"):
+                language = "en"
+
+            result = generate_answer(mood, thought, top_k, language=language)
             # Add structured breakdown for mobile app UI
             result["structured"] = parse_structured_answer(
                 result["answer"],
                 result.get("situation", {}),
-                result.get("evidence", [])
+                result.get("evidence", []),
+                language=language
             )
             self._json(200, result)
+        except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
+            return
         except Exception as e:
             safe_err = _sanitize_error(str(e))
             print(f"[ERROR] Request failed: {safe_err}")
-            self._json(400, {"error": safe_err})
+            try:
+                self._json(400, {"error": safe_err})
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":

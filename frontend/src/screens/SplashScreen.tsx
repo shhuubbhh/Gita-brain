@@ -121,7 +121,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onProceed, language 
           margin: '0 0 10px 0',
           textShadow: '0 2px 12px rgba(0, 0, 0, 0.6)'
         }}>
-          {t.drawerTitle}
+          {t.splashTitle}
         </h1>
 
         {/* Subtitle */}

@@ -29,7 +29,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [guidance, setGuidance] = useState<GuidanceData | null>(null);
   const [isListening, setIsListening] = useState(false);
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      const scrollH = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = `${Math.min(Math.max(scrollH, 24), 130)}px`;
+    }
+  }, [thought]);
 
   // Proactively ping server on launch
   useEffect(() => {
@@ -111,12 +119,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     );
 
     try {
-      const result = await askGita(textToSubmit, detectedMood);
+      const result = await askGita(textToSubmit, detectedMood, language);
       setGuidance(result);
     } catch (err) {
       console.error("Failed to query Gita Brain", err);
       // Dynamic fallback based on user's inquiry ensures relevant Gita guidance
-      const contextual = getGuidanceForThought(textToSubmit, detectedMood);
+      const contextual = getGuidanceForThought(textToSubmit, detectedMood, language);
       setGuidance(contextual);
     } finally {
       setIsAnalyzing(false);
@@ -132,6 +140,101 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   };
 
   const isQueryMode = submittedQuery !== null;
+
+  // Format situation title matching reference design (e.g. "Career Confusion")
+  const formatSituationTitle = (rawSituation: string, lang: Language) => {
+    if (!rawSituation) return lang === 'hi' ? 'आंतरिक स्पष्टता' : 'Seeking Clarity';
+
+    const normalized = rawSituation.toLowerCase().trim().replace(/[-_]+/g, ' ');
+
+    if (/career|job|photographer|decision|choice|what should|path|dilemma/i.test(normalized)) {
+      return lang === 'hi' ? 'निर्णय एवं कर्तव्य असमंजस' : 'Career Confusion';
+    }
+    if (/anxi|fear|scared|worry|nervous|stress|panic/i.test(normalized)) {
+      return lang === 'hi' ? 'चिंता एवं भय से मुक्ति' : 'Fear & Anxiety';
+    }
+    if (/grief|sad|loss|sorrow|death|crying|mourn/i.test(normalized)) {
+      return lang === 'hi' ? 'शोक एवं संताप' : 'Grief & Sorrow';
+    }
+    if (/anger|rage|betray|revenge|cheat|furious/i.test(normalized)) {
+      return lang === 'hi' ? 'क्रोध एवं प्रतिशोध' : 'Anger & Resentment';
+    }
+    if (/fail|setback|reject|defeat/i.test(normalized)) {
+      return lang === 'hi' ? 'असफलता में समत्व' : 'Facing Setbacks & Failure';
+    }
+    if (/mind|overthink|distract|focus|racing/i.test(normalized)) {
+      return lang === 'hi' ? 'अशांत मन एवं एकाग्रता' : 'Restless Mind & Overthinking';
+    }
+    if (/jealous|envy|compar/i.test(normalized)) {
+      return lang === 'hi' ? 'ईर्ष्या एवं तुलना' : 'Comparison & Envy';
+    }
+    if (/devotion|gratitude|peace|prayer|bhakti/i.test(normalized)) {
+      return lang === 'hi' ? 'भक्ति एवं दिव्य शांति' : 'Devotion & Inner Peace';
+    }
+
+    return rawSituation
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase());
+  };
+
+  // Clean markdown and render bold/italic text properly without literal ** marks
+  const renderFormattedMarkdown = (text: string) => {
+    if (!text) return null;
+
+    // Strip leading section labels (e.g. ### 1. Understanding or **1. Understanding:**)
+    const cleaned = text
+      .replace(/^#{1,4}\s+/gm, '')
+      .replace(/^(?:\*\*)?(?:\d+[\.\)]\s+)?(?:understanding|what the gita points toward|applying it here|applying this here|reflection|daily practice|meaning|application)[\s:*#-]*(?:\*\*)?/i, '')
+      .trim();
+
+    // Split paragraphs
+    const paragraphs = cleaned.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+
+    return (
+      <>
+        {paragraphs.map((para, pIdx) => {
+          let paraText = para.trim();
+          const starCount = (paraText.match(/\*\*/g) || []).length;
+          if (starCount % 2 !== 0) {
+            paraText = paraText.replace(/\*\*/g, '');
+          }
+
+          const boldParts = paraText.split(/\*\*(.*?)\*\*/g);
+
+          return (
+            <p key={pIdx} style={{ margin: pIdx === 0 ? 0 : '12px 0 0 0', lineHeight: 1.7 }}>
+              {boldParts.map((segment, bIdx) => {
+                if (bIdx % 2 === 1) {
+                  return (
+                    <strong key={bIdx} style={{ fontWeight: 600, color: isDark ? '#FFFFFF' : '#111827' }}>
+                      {segment}
+                    </strong>
+                  );
+                }
+                const italicParts = segment.split(/\*([^*]+)\*/g);
+                if (italicParts.length > 1) {
+                  return (
+                    <React.Fragment key={bIdx}>
+                      {italicParts.map((sub, iIdx) =>
+                        iIdx % 2 === 1 ? (
+                          <em key={iIdx} style={{ fontStyle: 'italic' }}>
+                            {sub}
+                          </em>
+                        ) : (
+                          sub
+                        )
+                      )}
+                    </React.Fragment>
+                  );
+                }
+                return segment;
+              })}
+            </p>
+          );
+        })}
+      </>
+    );
+  };
 
   return (
     <div style={{
@@ -227,100 +330,28 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       {/* ───────────────────────────────────────────────────────────
           SLIDE 1: DEFAULT HOME SCREEN (With Little Krishna & Golden Dune)
       ─────────────────────────────────────────────────────────── */}
+      {/* ───────────────────────────────────────────────────────────
+          SLIDE 1: DEFAULT HOME SCREEN (Matching Attached Design)
+          Order:
+          1. Text Section: Good evening, What's on your mind?, Share what you're going through...
+          2. Character Illustration: Little Krishna with peacock feather
+          3. Curved Green Mound: White input pill + dark notice dialogue card
+      ─────────────────────────────────────────────────────────── */}
       {!isQueryMode && (
         <div className="animate-fade-up" style={{
           display: 'flex',
           flexDirection: 'column',
           flex: 1,
-          paddingBottom: 100
+          justifyContent: 'space-between',
+          minHeight: 'calc(100vh - 65px)',
+          background: isDark ? '#121614' : '#FAF7F2',
+          boxSizing: 'border-box'
         }}>
-          {/* Hero Illustration: Golden Dune Curve + Little Krishna with Peacock Feather */}
-          <div style={{
-            position: 'relative',
-            width: '100%',
-            height: '280px',
-            overflow: 'hidden',
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'flex-start'
-          }}>
-            {/* Ambient Warm Golden Glow behind Krishna */}
-            <div style={{
-              position: 'absolute',
-              top: '8%',
-              left: '10%',
-              width: '300px',
-              height: '240px',
-              borderRadius: '50%',
-              background: isDark
-                ? 'radial-gradient(circle, rgba(212, 160, 80, 0.22) 0%, rgba(18, 22, 20, 0) 70%)'
-                : 'radial-gradient(circle, rgba(254, 228, 148, 0.4) 0%, rgba(250, 247, 242, 0) 70%)',
-              pointerEvents: 'none'
-            }} />
-
-            {/* Golden Sand Dune SVG Wave */}
-            <svg
-              viewBox="0 0 430 260"
-              preserveAspectRatio="none"
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                pointerEvents: 'none'
-              }}
-            >
-              <defs>
-                <linearGradient id="goldenDuneGrad" x1="0%" y1="20%" x2="100%" y2="80%">
-                  <stop offset="0%" stopColor={isDark ? "#C9942A" : "#F5BE47"} stopOpacity={isDark ? 0.80 : 0.95} />
-                  <stop offset="42%" stopColor={isDark ? "#8C661D" : "#F8D878"} stopOpacity={isDark ? 0.60 : 0.85} />
-                  <stop offset="80%" stopColor={isDark ? "#3A2D14" : "#FCF0CD"} stopOpacity={isDark ? 0.35 : 0.4} />
-                  <stop offset="100%" stopColor={isDark ? "#121614" : "#FAF7F2"} stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
-              {/* The rising golden dune curve matching the screenshot */}
-              <path
-                d="M -10,185 C 85,135 220,115 445,130 L 445,260 L -10,260 Z"
-                fill="url(#goldenDuneGrad)"
-              />
-            </svg>
-
-            {/* Character: Little Krishna holding peacock feather */}
-            <div style={{
-              position: 'relative',
-              zIndex: 10,
-              marginLeft: '16px',
-              marginBottom: '10px'
-            }}>
-              <img
-                src="./krishna.png"
-                alt="Bal Krishna with peacock feather"
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  if (!target.src.includes('android_asset')) {
-                    target.src = 'file:///android_asset/krishna.png';
-                  }
-                }}
-                style={{
-                  height: '240px',
-                  width: 'auto',
-                  objectFit: 'contain',
-                  display: 'block',
-                  filter: isDark
-                    ? 'drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4))'
-                    : 'drop-shadow(0 6px 14px rgba(210, 150, 40, 0.15))'
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Heading & Subtext matching left slide */}
-          <div style={{ padding: '12px 24px 16px' }}>
+          {/* 1. Top Text Section */}
+          <div style={{ padding: '16px 24px 8px' }}>
             <p style={{
-              fontSize: '14.5px',
-              color: isDark ? '#9CA3AF' : '#706C64',
+              fontSize: '15px',
+              color: isDark ? '#9CA3AF' : '#78716C',
               fontWeight: 400,
               margin: '0 0 6px 0',
               letterSpacing: '-0.01em'
@@ -333,7 +364,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               fontSize: '32px',
               fontWeight: 700,
               color: isDark ? '#F3F0EA' : '#1F1C18',
-              lineHeight: 1.18,
+              lineHeight: 1.15,
               margin: '0 0 10px 0',
               letterSpacing: '-0.015em'
             }}>
@@ -341,9 +372,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </h2>
 
             <p style={{
-              fontSize: '15px',
+              fontSize: '14.5px',
               color: isDark ? '#9CA3AF' : '#706C64',
-              lineHeight: 1.5,
+              lineHeight: 1.45,
               margin: 0,
               maxWidth: '340px'
             }}>
@@ -353,102 +384,312 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </p>
           </div>
 
-          {/* Subtle quick test chip for the user's exact query */}
-          <div style={{ padding: '4px 24px 24px' }}>
-            <button
-              onClick={() => handleSubmitQuery(language === 'hi' ? "नमस्ते, आज मैं बहुत उदास हूँ, मुझे समझ नहीं आ रहा क्या करूँ, क्या आप मार्गदर्शन कर सकते हैं?" : DEFAULT_SAMPLE_QUERY, 'Sad')}
+          {/* 2. Character: Little Krishna holding peacock feather, centered */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'flex-end',
+            position: 'relative',
+            zIndex: 10,
+            marginTop: '4px',
+            marginBottom: '-14px'
+          }}>
+            <img
+              src="./krishna.png"
+              alt="Bal Krishna with peacock feather"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.src.includes('android_asset')) {
+                  target.src = 'file:///android_asset/krishna.png';
+                }
+              }}
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: isDark ? 'rgba(74, 222, 128, 0.1)' : 'rgba(30, 94, 58, 0.05)',
-                border: isDark ? '1px solid rgba(74, 222, 128, 0.25)' : '1px solid rgba(30, 94, 58, 0.18)',
-                borderRadius: '20px',
-                padding: '6px 14px',
-                color: isDark ? '#4ADE80' : '#1E5E3A',
-                fontSize: '12px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
+                height: '240px',
+                width: 'auto',
+                objectFit: 'contain',
+                display: 'block',
+                filter: isDark
+                  ? 'drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4))'
+                  : 'drop-shadow(0 6px 14px rgba(0, 0, 0, 0.08))'
               }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = isDark ? 'rgba(74, 222, 128, 0.18)' : 'rgba(30, 94, 58, 0.1)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = isDark ? 'rgba(74, 222, 128, 0.1)' : 'rgba(30, 94, 58, 0.05)';
-              }}
-            >
-              <span>{language === 'hi' ? 'नमूना प्रश्न आजमाएं: "आज मैं बहुत उदास हूँ..."' : 'Try sample query from slide: "I am very sad today..."'}</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </button>
+            />
           </div>
 
-          {/* Calming spacious breathing room below, matching the screenshot */}
-          <div style={{ flex: 1, minHeight: '120px' }} />
+          {/* 3. Curved Green Mound Section */}
+          <div style={{
+            position: 'relative',
+            width: '100%',
+            marginTop: '-18px',
+            zIndex: 5
+          }}>
+            {/* Smooth SVG Arch Top Curve matching the screenshot */}
+            <svg
+              viewBox="0 0 430 70"
+              preserveAspectRatio="none"
+              style={{
+                display: 'block',
+                width: '100%',
+                height: '56px',
+                marginBottom: -1
+              }}
+            >
+              <path
+                d="M 0,70 Q 215,0 430,70 L 430,70 L 0,70 Z"
+                fill={isDark ? '#143823' : '#185834'}
+              />
+            </svg>
+
+            {/* Mound Body containing Input and Dialogue Card */}
+            <div style={{
+              position: 'relative',
+              background: isDark ? '#143823' : '#185834',
+              padding: '8px 20px calc(80px + env(safe-area-inset-bottom, 0px))',
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '14px',
+              overflow: 'hidden'
+            }}>
+              {/* Swirl Pattern Overlay matching screenshot */}
+              <svg
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  pointerEvents: 'none',
+                  opacity: isDark ? 0.45 : 0.65
+                }}
+              >
+                <defs>
+                  <pattern id="moundSwirls" width="80" height="80" patternUnits="userSpaceOnUse">
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255, 255, 255, 0.12)" strokeWidth="1.2" />
+                    <circle cx="40" cy="40" r="24" fill="none" stroke="rgba(255, 255, 255, 0.1)" strokeWidth="1.2" />
+                    <circle cx="40" cy="40" r="14" fill="none" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="1.1" />
+                    <path d="M 0,0 Q 40,25 80,0" fill="none" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="1.2" />
+                    <path d="M 0,80 Q 40,55 80,80" fill="none" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="1.2" />
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#moundSwirls)" />
+              </svg>
+
+              {/* White Input Pill */}
+              <div style={{
+                position: 'relative',
+                zIndex: 2,
+                width: '100%',
+                maxWidth: '390px',
+                background: '#FFFFFF',
+                borderRadius: '30px',
+                minHeight: '54px',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '6px 12px 6px 20px',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16)',
+                boxSizing: 'border-box',
+                gap: '8px'
+              }}>
+                <textarea
+                  ref={textareaRef}
+                  rows={1}
+                  value={thought}
+                  onChange={e => setThought(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmitQuery();
+                    }
+                  }}
+                  placeholder={language === 'hi' ? 'बताएं, आपके मन में क्या चल रहा है...' : "Tell me what's bothering you..."}
+                  style={{
+                    flex: 1,
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: '15px',
+                    fontFamily: 'inherit',
+                    color: '#1F1C18',
+                    padding: '6px 0',
+                    resize: 'none',
+                    lineHeight: 1.45,
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word',
+                    overflowY: 'auto',
+                    maxHeight: '120px',
+                    boxSizing: 'border-box'
+                  }}
+                />
+
+                {/* Send Button if text typed */}
+                {thought.trim().length > 0 && (
+                  <button
+                    onClick={() => handleSubmitQuery()}
+                    aria-label="Submit query"
+                    style={{
+                      background: '#1E5E3A',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '40px',
+                      height: '40px',
+                      minWidth: '40px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      color: '#FFFFFF',
+                      boxShadow: '0 2px 8px rgba(30, 94, 58, 0.25)',
+                      transition: 'transform 0.15s',
+                      alignSelf: 'center'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'translateX(1px)' }}>
+                      <line x1="22" y1="2" x2="11" y2="13" />
+                      <polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" />
+                    </svg>
+                  </button>
+                )}
+
+                {/* Microphone Icon Button */}
+                <button
+                  onClick={handleVoiceInput}
+                  aria-label={isListening ? "Listening for speech" : "Start voice input"}
+                  title={isListening ? "Listening..." : "Speak your mind"}
+                  style={{
+                    background: isListening ? '#DC2626' : 'none',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '38px',
+                    height: '38px',
+                    minWidth: '38px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: isListening ? '#FFFFFF' : '#5C5750',
+                    alignSelf: 'center'
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" y1="19" x2="12" y2="23" />
+                    <line x1="8" y1="23" x2="16" y2="23" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Dialogue Box matching image */}
+              <div style={{
+                position: 'relative',
+                zIndex: 2,
+                width: '100%',
+                maxWidth: '390px',
+                background: 'rgba(10, 36, 20, 0.72)',
+                border: '1px solid rgba(255, 255, 255, 0.14)',
+                borderRadius: '18px',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
+                boxSizing: 'border-box'
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'rgba(255, 255, 255, 0.9)', flexShrink: 0 }}>
+                  <path d="M9 18h6" />
+                  <path d="M10 22h4" />
+                  <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" />
+                </svg>
+                <div style={{
+                  fontSize: '12.5px',
+                  color: 'rgba(255, 255, 255, 0.92)',
+                  lineHeight: 1.45,
+                  fontWeight: 400
+                }}>
+                  {language === 'hi' ? (
+                    <>
+                      <div>ध्यान दें कि प्रत्येक अनुरोध एक नया मार्गदर्शन लाता है।</div>
+                      <div>एक नया अनुरोध समान या भिन्न सीख ला सकता है।</div>
+                    </>
+                  ) : (
+                    <>
+                      <div>Note that each request brings a fresh guidance.</div>
+                      <div>A new request may bring a similar or different teaching.</div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
       {/* ───────────────────────────────────────────────────────────
           SLIDE 2: QUERY MODE SCREEN (User bubble on right + Wisdom answer)
-          Character illustration is hidden as instructed
+          Chat section shifted comfortably up
       ─────────────────────────────────────────────────────────── */}
       {isQueryMode && (
         <div className="animate-fade-up" style={{
           display: 'flex',
           flexDirection: 'column',
           flex: 1,
-          padding: '12px 22px 110px'
+          padding: '6px 20px 40px',
+          overflowY: 'auto'
         }}>
-          {/* Top text area shifted comfortably up, exactly as on the right slide */}
-          <div style={{ marginBottom: '24px' }}>
-            <p style={{
-              fontSize: '14.5px',
-              color: isDark ? '#9CA3AF' : '#706C64',
-              fontWeight: 400,
-              margin: '0 0 6px 0',
-              letterSpacing: '-0.01em'
+          {/* Top compact navigation / indicator: shifted up */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '16px',
+            paddingTop: '2px'
+          }}>
+            <button
+              onClick={handleResetToDefault}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: isDark ? '#9CA3AF' : '#706C64',
+                padding: '4px 0',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '13px',
+                fontWeight: 500
+              }}
+              aria-label="Return to Home"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span>{t.home || 'Home'}</span>
+            </button>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: 600,
+              color: isDark ? '#4ADE80' : '#1E5E3A',
+              background: isDark ? 'rgba(74, 222, 128, 0.12)' : 'rgba(30, 94, 58, 0.08)',
+              padding: '3px 10px',
+              borderRadius: '12px'
             }}>
-              {greeting}
-            </p>
-
-            <h2 style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '32px',
-              fontWeight: 700,
-              color: isDark ? '#F3F0EA' : '#1F1C18',
-              lineHeight: 1.18,
-              margin: '0 0 10px 0',
-              letterSpacing: '-0.015em'
-            }}>
-              {language === 'hi' ? 'आपके मन में क्या चल रहा है?' : "What's on your mind?"}
-            </h2>
-
-            <p style={{
-              fontSize: '15px',
-              color: isDark ? '#9CA3AF' : '#706C64',
-              lineHeight: 1.5,
-              margin: 0,
-              maxWidth: '350px'
-            }}>
-              {language === 'hi'
-                ? 'अपने विचार साझा करें। गीता के शाश्वत ज्ञान से हम सही मार्गदर्शन पाने में आपकी सहायता करेंगे।'
-                : "Share what you're going through. We'll help you explore it through the wisdom of the Gita."}
-            </p>
+              Gita Brain
+            </div>
           </div>
 
-          {/* User's Query Bubble: Soft Sage Green, aligned to right, matching Slide 2 */}
+          {/* User's Query Bubble: Soft Sage Green, aligned to right */}
           <div style={{
             display: 'flex',
             justifyContent: 'flex-end',
-            marginBottom: '26px'
+            marginBottom: '18px'
           }}>
             <div style={{
               background: isDark ? '#1F3526' : '#D5E2D6',
               color: isDark ? '#E8F5E9' : '#222E25',
               border: isDark ? '1px solid #2B4E37' : 'none',
-              padding: '16px 20px',
+              padding: '14px 18px',
               borderRadius: '20px 20px 4px 20px',
               maxWidth: '85%',
               fontSize: '14.5px',
@@ -521,181 +762,273 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               flexDirection: 'column',
               gap: '16px'
             }}>
-              {/* Card Container */}
+              {/* Card Container: Formatted Answer matching reference design */}
               <div style={{
-                background: isDark ? '#1E2621' : '#FFFFFF',
-                borderRadius: '24px',
-                border: isDark ? '1px solid #29342D' : '1px solid #ECE6DD',
-                padding: '24px',
-                boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.35)' : '0 4px 20px rgba(0, 0, 0, 0.04)'
+                background: isDark ? '#1C241F' : '#FFFFFF',
+                borderRadius: '26px',
+                border: isDark ? '1px solid #28372C' : '1px solid #ECE6DD',
+                padding: '24px 22px',
+                boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.35)' : '0 4px 20px rgba(0, 0, 0, 0.03)',
+                display: 'flex',
+                flexDirection: 'column'
               }}>
-                {/* Header Tag / Chapter Pill */}
+                {/* 1. Scripture Reference Pill Badge (e.g. Bhagavad Gita 18.47) */}
                 <div style={{
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '16px',
-                  borderBottom: isDark ? '1px solid #29342D' : '1px solid #F4EFE6',
-                  paddingBottom: '14px'
+                  background: isDark ? 'rgba(74, 222, 128, 0.12)' : '#EAF2EC',
+                  borderRadius: '16px',
+                  padding: '5px 14px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: isDark ? '#4ADE80' : '#1E5E3A',
+                  width: 'fit-content',
+                  marginBottom: '14px'
                 }}>
-                  <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    background: isDark ? 'rgba(74, 222, 128, 0.15)' : 'rgba(30, 94, 58, 0.08)',
-                    color: isDark ? '#4ADE80' : '#1E5E3A',
-                    padding: '5px 12px',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    letterSpacing: '0.04em'
-                  }}>
-                    <span>Bhagavad Gita {guidance.chapter}.{guidance.verse}</span>
-                  </div>
+                  {language === 'hi'
+                    ? `श्रीमद्भगवद्गीता ${guidance.chapter || 2}.${guidance.verse || 47}`
+                    : `Bhagavad Gita ${guidance.chapter || 2}.${guidance.verse || 47}`}
                 </div>
 
-                {/* Empathy / Emotional Resonance */}
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    color: isDark ? '#4ADE80' : '#1E5E3A',
-                    marginBottom: '4px'
-                  }}>
-                    Insight on your state
-                  </div>
-                  <h3 style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '19px',
-                    fontWeight: 600,
-                    color: isDark ? '#F3F0EA' : '#1F1C18',
-                    lineHeight: 1.3,
-                    margin: '0 0 8px 0'
-                  }}>
-                    {guidance.emotion}
-                  </h3>
-                  <p style={{
-                    fontSize: '14px',
-                    color: isDark ? '#D1D5DB' : '#706C64',
-                    lineHeight: 1.55,
-                    margin: 0
-                  }}>
-                    {guidance.understanding}
-                  </p>
+                {/* 2. Subtle Divider */}
+                <div style={{
+                  height: '1px',
+                  background: isDark ? '#26332A' : '#F0ECE4',
+                  marginBottom: '16px'
+                }} />
+
+                {/* 3. Eyebrow Category */}
+                <div style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  color: isDark ? '#4ADE80' : '#1E5E3A',
+                  textTransform: 'uppercase',
+                  marginBottom: '6px'
+                }}>
+                  {language === 'hi' ? 'आपकी स्थिति पर अंतर्दृष्टि' : 'INSIGHT ON YOUR STATE'}
                 </div>
 
-                {/* Sanskrit Shloka Box */}
-                {guidance.sanskrit && (
+                {/* 4. Main Issue Heading (Large Serif) */}
+                <h2 style={{
+                  fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+                  fontSize: '23px',
+                  fontWeight: 700,
+                  color: isDark ? '#F3F0EA' : '#1C1917',
+                  margin: '0 0 16px 0',
+                  lineHeight: 1.25,
+                  letterSpacing: '-0.01em'
+                }}>
+                  {formatSituationTitle(guidance.situation || guidance.emotion, language)}
+                </h2>
+
+                {/* 5. Empathetic Explanation Body (No raw ** marks) */}
+                <div style={{
+                  fontSize: '15px',
+                  color: isDark ? '#D1D5DB' : '#374151',
+                  lineHeight: 1.7,
+                  marginBottom: '20px'
+                }}>
+                  {renderFormattedMarkdown(
+                    guidance.understanding ||
+                    guidance.guidance?.split('\n\n')[0] ||
+                    guidance.meaning ||
+                    ''
+                  )}
+                </div>
+
+                {/* 6. Relevant Shlokas Container (Matching Reference Shloka Box) */}
+                {(guidance.sanskrit || guidance.translation) && (
                   <div style={{
-                    background: isDark ? '#161C18' : '#FAF7F2',
-                    borderRadius: '16px',
-                    border: isDark ? '1px solid #2B372F' : '1px solid #ECE5DC',
-                    padding: '16px',
-                    marginBottom: '16px',
-                    textAlign: 'center'
+                    background: isDark ? '#141B16' : '#F5F0E9',
+                    border: `1px solid ${isDark ? '#253528' : '#E8E1D5'}`,
+                    borderRadius: '18px',
+                    padding: '18px 20px',
+                    marginBottom: '18px'
                   }}>
-                    <p style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: '16.5px',
-                      color: isDark ? '#F3F0EA' : '#1F1C18',
-                      lineHeight: 1.8,
-                      margin: '0 0 8px 0',
-                      whiteSpace: 'pre-line',
-                      fontWeight: 600
-                    }}>
-                      {guidance.sanskrit}
-                    </p>
+                    {/* Sanskrit Shloka in Devanagari */}
+                    {guidance.sanskrit && (
+                      <div style={{
+                        fontFamily: 'var(--font-sanskrit, "Noto Serif Devanagari", "Tiro Devanagari Sanskrit", Georgia, serif)',
+                        fontSize: '16.5px',
+                        fontWeight: 600,
+                        lineHeight: 1.8,
+                        color: isDark ? '#F3F0EA' : '#1E1B18',
+                        textAlign: 'center',
+                        whiteSpace: 'pre-line',
+                        marginBottom: (guidance.transliteration || guidance.translation) ? '12px' : 0,
+                        letterSpacing: '0.015em'
+                      }}>
+                        {guidance.sanskrit}
+                      </div>
+                    )}
+
+                    {/* Roman Transliteration */}
                     {guidance.transliteration && (
-                      <p style={{
+                      <div style={{
                         fontSize: '12.5px',
                         fontStyle: 'italic',
-                        color: isDark ? '#9CA3AF' : '#7A756D',
-                        lineHeight: 1.6,
-                        margin: 0
+                        color: isDark ? '#A1A1AA' : '#6B7280',
+                        textAlign: 'center',
+                        lineHeight: 1.55,
+                        marginBottom: guidance.translation ? '12px' : 0
                       }}>
                         {guidance.transliteration}
-                      </p>
+                      </div>
+                    )}
+
+                    {/* Subtle divider inside shloka box */}
+                    {guidance.translation && guidance.sanskrit && (
+                      <div style={{
+                        height: '1px',
+                        background: isDark ? '#253528' : '#E5DDD0',
+                        margin: '12px 0 14px 0'
+                      }} />
+                    )}
+
+                    {/* Shloka Translation */}
+                    {guidance.translation && (
+                      <div>
+                        <div style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: isDark ? '#4ADE80' : '#1E5E3A',
+                          letterSpacing: '0.06em',
+                          textTransform: 'uppercase',
+                          marginBottom: '6px'
+                        }}>
+                          {language === 'hi' ? 'श्लोक अनुवाद' : 'VERSE TRANSLATION'}
+                        </div>
+                        <div style={{
+                          fontSize: '14px',
+                          lineHeight: 1.65,
+                          color: isDark ? '#D1D5DB' : '#374151'
+                        }}>
+                          {renderFormattedMarkdown(guidance.translation)}
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
 
-                {/* English Translation */}
-                <div style={{ marginBottom: '16px' }}>
+                {/* 7. What the Gita Points Toward / Deeper Wisdom (if distinct from understanding) */}
+                {guidance.meaning && guidance.meaning !== guidance.understanding && guidance.meaning !== guidance.translation && (
                   <div style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    color: isDark ? '#9CA3AF' : '#8C867D',
-                    marginBottom: '6px'
+                    marginBottom: '16px',
+                    padding: '16px 18px',
+                    background: isDark ? 'rgba(255,255,255,0.02)' : '#FAF8F5',
+                    borderRadius: '16px',
+                    border: `1px solid ${isDark ? '#26312A' : '#EDE7DE'}`
                   }}>
-                    Verse Translation
-                  </div>
-                  <p style={{
-                    fontSize: '14px',
-                    color: isDark ? '#E5E7EB' : '#2E2B27',
-                    lineHeight: 1.65,
-                    fontStyle: 'italic',
-                    margin: 0
-                  }}>
-                    "{guidance.translation}"
-                  </p>
-                </div>
-
-                {/* Krishna's Practical Guidance */}
-                <div style={{
-                  background: isDark ? 'rgba(74, 222, 128, 0.08)' : 'rgba(30, 94, 58, 0.04)',
-                  borderLeft: isDark ? '3px solid #4ADE80' : '3px solid #1E5E3A',
-                  padding: '14px 16px',
-                  borderRadius: '0 12px 12px 0',
-                  marginBottom: '16px'
-                }}>
-                  <div style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    color: isDark ? '#4ADE80' : '#1E5E3A',
-                    marginBottom: '6px'
-                  }}>
-                    Gita's Counsel For You
-                  </div>
-                  <p style={{
-                    fontSize: '14px',
-                    color: isDark ? '#F3F0EA' : '#1F1C18',
-                    lineHeight: 1.6,
-                    margin: 0
-                  }}>
-                    {guidance.guidance}
-                  </p>
-                </div>
-
-                {/* Practical Action Step */}
-                {guidance.action && (
-                  <div style={{ marginBottom: '20px' }}>
                     <div style={{
                       fontSize: '11px',
                       fontWeight: 700,
-                      letterSpacing: '0.08em',
+                      letterSpacing: '0.07em',
+                      color: isDark ? '#4ADE80' : '#1E5E3A',
                       textTransform: 'uppercase',
-                      color: isDark ? '#9CA3AF' : '#8C867D',
                       marginBottom: '6px'
                     }}>
-                      Daily Practice
+                      {language === 'hi' ? 'गीता का शाश्वत संदेश' : 'WHAT THE GITA POINTS TOWARD'}
                     </div>
-                    <p style={{
-                      fontSize: '13.5px',
-                      color: isDark ? '#D1D5DB' : '#4A463F',
-                      lineHeight: 1.55,
-                      margin: 0
+                    <div style={{
+                      fontSize: '14.5px',
+                      lineHeight: 1.7,
+                      color: isDark ? '#D1D5DB' : '#374151'
                     }}>
-                      {guidance.action}
-                    </p>
+                      {renderFormattedMarkdown(guidance.meaning)}
+                    </div>
                   </div>
                 )}
 
+                {/* 8. Applying it here (if available) */}
+                {guidance.application && guidance.application !== guidance.meaning && (
+                  <div style={{
+                    marginBottom: '16px',
+                    padding: '16px 18px',
+                    background: isDark ? 'rgba(74, 222, 128, 0.05)' : 'rgba(30, 94, 58, 0.03)',
+                    borderRadius: '16px',
+                    border: `1px solid ${isDark ? 'rgba(74, 222, 128, 0.18)' : 'rgba(30, 94, 58, 0.12)'}`
+                  }}>
+                    <div style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      letterSpacing: '0.07em',
+                      color: isDark ? '#4ADE80' : '#1E5E3A',
+                      textTransform: 'uppercase',
+                      marginBottom: '6px'
+                    }}>
+                      {language === 'hi' ? 'दैनिक जीवन में अनुप्रयोग' : 'APPLYING THIS IN LIFE'}
+                    </div>
+                    <div style={{
+                      fontSize: '14.5px',
+                      lineHeight: 1.7,
+                      color: isDark ? '#D1D5DB' : '#374151'
+                    }}>
+                      {renderFormattedMarkdown(guidance.application)}
+                    </div>
+                  </div>
+                )}
+
+                {/* 9. Practical Action / Daily Reflection */}
+                {guidance.action && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    padding: '14px 16px',
+                    background: isDark ? '#1C2920' : '#EDF4EE',
+                    borderRadius: '16px',
+                    border: `1px solid ${isDark ? '#2D4433' : '#D2E4D5'}`,
+                    marginTop: '2px'
+                  }}>
+                    <span style={{ fontSize: '18px', lineHeight: 1.2, marginTop: '2px' }}>🌱</span>
+                    <div>
+                      <div style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        letterSpacing: '0.06em',
+                        color: isDark ? '#4ADE80' : '#1E5E3A',
+                        textTransform: 'uppercase',
+                        marginBottom: '3px'
+                      }}>
+                        {language === 'hi' ? 'आज का व्यावहारिक अभ्यास' : 'MINDFUL PRACTICE'}
+                      </div>
+                      <div style={{
+                        fontSize: '13.5px',
+                        lineHeight: 1.55,
+                        color: isDark ? '#E5E7EB' : '#2D3748',
+                        fontWeight: 450
+                      }}>
+                        {renderFormattedMarkdown(guidance.action)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Dialogue Box: Advisory notice */}
+              <div style={{
+                background: isDark ? 'rgba(74, 222, 128, 0.08)' : 'rgba(30, 94, 58, 0.05)',
+                border: isDark ? '1px solid rgba(74, 222, 128, 0.22)' : '1px solid rgba(30, 94, 58, 0.16)',
+                borderRadius: '16px',
+                padding: '14px 18px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '12px',
+                boxShadow: isDark ? '0 2px 10px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.03)'
+              }}>
+                <span style={{ fontSize: '18px', lineHeight: 1.2 }}>🪷</span>
+                <p style={{
+                  fontSize: '13.5px',
+                  color: isDark ? '#D1D5DB' : '#4A463F',
+                  lineHeight: 1.55,
+                  margin: 0,
+                  fontWeight: 450
+                }}>
+                  {language === 'hi'
+                    ? 'यह मार्गदर्शन आपके वर्तमान संदेश पर आधारित है। एक नया अनुरोध एक अलग या समान सीख ला सकता है।'
+                    : 'This guidance is based on your current message. A new request may bring a different or similar teaching'}
+                </p>
               </div>
 
               {/* Reset to Slide 1 CTA */}
@@ -736,129 +1069,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
           )}
         </div>
-      )}
-
-      {/* ───────────────────────────────────────────────────────────
-          BOTTOM FLOATING INPUT PILL
-          Only visible when NOT in query response mode (Slide 1)
-      ─────────────────────────────────────────────────────────── */}
-      {!isQueryMode && (
-        <div style={{
-          position: 'fixed',
-          bottom: 'calc(74px + env(safe-area-inset-bottom, 0px))',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '100%',
-          maxWidth: 430,
-          padding: '0 20px',
-          boxSizing: 'border-box',
-          zIndex: 50,
-          pointerEvents: 'none'
-        }}>
-        <div style={{
-          background: isDark ? '#1E2621' : '#FFFFFF',
-          border: isDark ? '1px solid #29342D' : '1px solid #ECE5DC',
-          borderRadius: '30px',
-          height: '56px',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 10px 0 22px',
-          boxShadow: isDark
-            ? '0 8px 32px rgba(0, 0, 0, 0.45)'
-            : '0 4px 20px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03)',
-          pointerEvents: 'auto',
-          transition: 'all 0.2s ease'
-        }}>
-          {/* Text Input */}
-          <input
-            ref={inputRef}
-            type="text"
-            value={thought}
-            onChange={e => setThought(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleSubmitQuery();
-              }
-            }}
-            placeholder={language === 'hi' ? 'बताएं, आपके मन में क्या चल रहा है...' : "Tell me what's bothering you..."}
-            style={{
-              flex: 1,
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              fontSize: '15px',
-              fontFamily: 'inherit',
-              color: isDark ? '#F3F0EA' : '#1F1C18',
-              padding: 0
-            }}
-          />
-
-          {/* Send Arrow Button (Appears if user types text) */}
-          {thought.trim().length > 0 && (
-            <button
-              onClick={() => handleSubmitQuery()}
-              aria-label="Submit query"
-              style={{
-                background: isDark ? '#4ADE80' : '#1E5E3A',
-                border: 'none',
-                borderRadius: '50%',
-                width: '44px',
-                height: '44px',
-                minWidth: '44px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: isDark ? '#0F172A' : '#FFFFFF',
-                marginRight: '6px',
-                boxShadow: isDark ? '0 2px 8px rgba(74, 222, 128, 0.3)' : '0 2px 8px rgba(30, 94, 58, 0.25)',
-                transition: 'transform 0.15s, box-shadow 0.15s'
-              }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'translateX(1px)' }}>
-                <line x1="22" y1="2" x2="11" y2="13" />
-                <polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" />
-              </svg>
-            </button>
-          )}
-
-          {/* Microphone Icon Button */}
-          <button
-            onClick={handleVoiceInput}
-            aria-label={isListening ? "Listening for speech" : "Start voice input"}
-            title={isListening ? "Listening..." : "Speak your mind"}
-            style={{
-              background: isListening
-                ? (isDark ? 'rgba(74, 222, 128, 0.2)' : 'rgba(30, 94, 58, 0.12)')
-                : 'none',
-              border: isListening
-                ? (isDark ? '1px solid #4ADE80' : '1px solid #1E5E3A')
-                : 'none',
-              borderRadius: '50%',
-              width: '40px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: isListening
-                ? (isDark ? '#4ADE80' : '#1E5E3A')
-                : (isDark ? '#9CA3AF' : '#5C5750'),
-              transition: 'all 0.18s'
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-              <line x1="12" y1="19" x2="12" y2="23" />
-              <line x1="8" y1="23" x2="16" y2="23" />
-            </svg>
-          </button>
-        </div>
-      </div>
       )}
     </div>
   );

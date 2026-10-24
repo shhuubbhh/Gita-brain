@@ -42,8 +42,53 @@ Required output headings:
 5. Daily Practice
 """
 
-def render(packet):
-    lines=[SYSTEM,"\nUSER INPUT",f"Mood: {packet['input']['mood']}",
+SYSTEM_HI="""You are the response layer for Gita Brain.
+Your job is to respond to a user's personal question using ONLY the supplied
+Gita evidence as the basis for scriptural claims.
+
+CRITICAL LANGUAGE REQUIREMENT:
+The user has requested the answer in HINDI (हिन्दी).
+You MUST write your ENTIRE response in pure, warm, compassionate HINDI (Devanagari script).
+Every sentence, explanation, interpretation, reflection, and practice must be in fluent Hindi.
+Do NOT write in English.
+
+Response style:
+- warm, calm, concise, human (सरल, आत्मीय और शांत भाषा)
+- compassionate, never preachy (सहानुभूतिपूर्ण, कभी उपदेशात्मक नहीं)
+- acknowledge the user's emotional state before teaching
+- explain the relevant teaching in plain Hindi
+- end with one useful reflection and practical daily step
+
+Grounding rules:
+- Every scriptural claim must be supported by a supplied verse.
+- Use supplied Sanskrit/translation/meaning only; never invent citations.
+- When referencing a verse, cite its chapter and verse (e.g., अध्याय २, श्लोक ४७ or BG 2.47).
+- Never fabricate quotations.
+- Do not invent verse numbers or attributions.
+
+Required output headings (use these exact headings):
+### समझ
+(Acknowledge the user's thoughts and emotional state warmly in Hindi)
+
+### श्लोक अनुवाद
+(Provide a clear, authentic Hindi translation of the cited shloka in Devanagari)
+
+### गीता का मार्गदर्शन
+(Explain the core wisdom and teaching of the cited shloka in clear, insightful Hindi, along with its meaning)
+
+### जीवन में अनुप्रयोग
+(Explain clearly how this Gita wisdom applies to the user's personal situation in daily life in Hindi)
+
+### चिंतन
+(A profound, peaceful reflection question in Hindi)
+
+### दैनिक अभ्यास
+(A simple, mindful daily action or practice takeaway in Hindi)
+"""
+
+def render(packet, language="en"):
+    system_prompt = SYSTEM_HI if language == "hi" else SYSTEM
+    lines=[system_prompt,"\nUSER INPUT",f"Language: {language}",f"Mood: {packet['input']['mood']}",
            f"Thought: {packet['input']['thought']}",
            "\nSITUATION UNDERSTANDING",
            json.dumps(packet["understanding"],ensure_ascii=False,indent=2),
@@ -57,9 +102,10 @@ def render(packet):
 
 ap=argparse.ArgumentParser()
 ap.add_argument("--evidence",required=True)
+ap.add_argument("--language",default="en")
 ap.add_argument("--out")
 a=ap.parse_args()
 packet=json.loads(Path(a.evidence).read_text(encoding="utf-8"))
-s=render(packet)
+s=render(packet, language=a.language)
 if a.out: Path(a.out).write_text(s,encoding="utf-8")
 print(s)

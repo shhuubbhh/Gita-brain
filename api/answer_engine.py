@@ -45,14 +45,14 @@ def build_evidence(mood, thought, top_k=3):
     )
 
 
-def build_prompt(evidence):
+def build_prompt(evidence, language="en"):
     tmp = ROOT / ".tmp_evidence.json"
     try:
         tmp.write_text(json.dumps(evidence, ensure_ascii=False), encoding="utf-8")
         sub_env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
         p = subprocess.run(
             [sys.executable, str(ROOT / "scripts" / "build_llm_prompt.py"),
-             "--evidence", str(tmp)],
+             "--evidence", str(tmp), "--language", str(language)],
             cwd=ROOT, capture_output=True, text=True,
             encoding="utf-8", errors="replace",
             env=sub_env
@@ -276,9 +276,9 @@ def call_openai(prompt):
 _call_openai_compatible = _call_openai
 
 
-def generate_answer(mood, thought, top_k=3):
+def generate_answer(mood, thought, top_k=3, language="en"):
     evidence = build_evidence(mood, thought, top_k)
-    prompt = build_prompt(evidence)
+    prompt = build_prompt(evidence, language=language)
 
     primary = evidence["gita_evidence"][0] if evidence.get("gita_evidence") else {}
     ch = primary.get("chapter", 2)
@@ -286,6 +286,38 @@ def generate_answer(mood, thought, top_k=3):
     trans = primary.get("translation", "")
     situation_data = evidence.get("understanding", {}).get("situation", {})
     sit_name = (situation_data.get("primary") or "clarity").replace("_", " ").title()
+
+    HINDI_SITUATION_NAMES = {
+        "career_confusion": "मार्गदर्शन एवं निर्णय असमंजस",
+        "decision_conflict": "निर्णय एवं आंतरिक द्वंद्व",
+        "fear_of_failure": "असफलता का भय",
+        "anxiety": "चिंता एवं व्याकुलता",
+        "grief": "शोक एवं आंतरिक पीड़ा",
+        "grief_loss": "शोक एवं वियोग",
+        "revenge": "क्रोध एवं प्रतिशोध",
+        "anger": "क्रोध एवं अशांति",
+        "jealousy": "ईर्ष्या एवं तुलना",
+        "burnout": "मानसिक थकान",
+        "loneliness": "अकेलापन",
+        "relationship_conflict": "संबंधों में सामंजस्य",
+        "spiritual_doubt": "आध्यात्मिक संशय",
+        "overthinking": "अशांत मन एवं विचार",
+    }
+    HINDI_VERSE_TRANSLATIONS = {
+        (2, 47): "तुम्हारा अधिकार केवल कर्म करने में है, उसके फलों में कभी नहीं। इसलिए कर्म के फल की इच्छा मत रखो और न ही अकर्मण्यता में तुम्हारी आसक्ति हो।",
+        (2, 48): "हे धनंजय! सफलता और असफलता में समान भाव रखकर, अनासक्त होकर योग में स्थित रहते हुए अपने कर्तव्य का पालन करो। यही समत्व भाव ही योग कहलाता है।",
+        (2, 14): "हे कुन्तीपुत्र! सुख और दुःख के क्षणिक अनुभव सर्दी और गर्मी की ऋतुओं की तरह आने-जाने वाले हैं। वे अनित्य हैं; इसलिए हे भारत, अविचल होकर उन्हें सहन करना सीखो।",
+        (2, 62): "विषयों का निरंतर ध्यान करने से मनुष्य की उनमें आसक्ति हो जाती है, आसक्ति से कामना उत्पन्न होती है, और कामना में बाधा आने पर क्रोध उत्पन्न होता है।",
+        (3, 35): "दूसरों के कर्तव्य को भली-भाँति करने की अपेक्षा अपना सहज कर्तव्य दोषपूर्ण होने पर भी कहीं अधिक श्रेयस्कर है। अपने कर्तव्य का पालन करते हुए मरना भी उत्तम है, दूसरों का मार्ग भय उत्पन्न करने वाला है।",
+        (6, 5): "मनुष्य को अपने मन द्वारा अपना उद्धार करना चाहिए, अपना पतन नहीं; क्योंकि यह मन ही मनुष्य का सच्चा मित्र है और यही मन उसका शत्रु भी है।",
+        (6, 26): "यह चंचल और अस्थिर मन जहाँ-जहाँ भी भटके, वहाँ-वहाँ से इसे रोककर बार-बार आत्मा के वश में लाना चाहिए।",
+        (9, 22): "जो अनन्य भक्त केवल मेरा ही चिंतन करते हुए निष्काम भाव से मेरी उपासना करते हैं, उनके योग-क्षेम का वहन मैं स्वयं करता हूँ।",
+        (18, 47): "श्रेष्ठ रीति से आचरण किए हुए दूसरे के धर्म की अपेक्षा गुणरहित भी अपना स्वाभाविक धर्म श्रेष्ठ है। अपने स्वभाव के अनुसार नियत कर्म करने से मनुष्य को कोई दोष नहीं लगता।",
+        (18, 66): "सब धर्मों को मुझमें त्यागकर केवल मेरी शरण में आओ; मैं तुम्हें समस्त पापों और कष्टों से मुक्त कर दूँगा, शोक मत करो。"
+    }
+    primary_key = (situation_data.get("primary") or "").lower()
+    sit_name_hi = HINDI_SITUATION_NAMES.get(primary_key, sit_name)
+    trans_hi = HINDI_VERSE_TRANSLATIONS.get((ch, v), "तुम्हारा अधिकार केवल कर्म करने में है, उसके फलों में कभी नहीं। इसलिए कर्म के फल की इच्छा मत रखो।")
 
     try:
         answer = call_llm(prompt)
@@ -297,7 +329,27 @@ def generate_answer(mood, thought, top_k=3):
             raise ValueError("Grounding guard check failed")
     except Exception as e:
         print(f"[INFO] Using verified corpus evidence answer fallback: {e}")
-        answer = f"""### Understanding
+        if language == "hi":
+            answer = f"""### समझ
+आप {sit_name_hi} की स्थिति पर विचार कर रहे हैं। इस भावना को स्वीकार करना ही आंतरिक स्पष्टता और शांति की ओर पहला कदम है।
+
+### श्लोक अनुवाद
+"{trans_hi}"
+
+### गीता का मार्गदर्शन
+श्रीमद्भगवद्गीता के अध्याय {ch}, श्लोक {v} में यह पावन संदेश आपके लिए दिशा दिखाता है:
+गीता सिखाती है कि जब आप अपने सच्चे कर्तव्य पर पूरा ध्यान केंद्रित करते हैं और भविष्य के परिणामों की चिंता छोड़ देते हैं, तो मन शांत और स्थिर हो जाता है।
+
+### जीवन में अनुप्रयोग
+सच्चे मन से अपने कर्तव्य का पालन करें। परिणाम की अत्यधिक चिंता त्यागने से मन में शांति और दृढ़ता आती है।
+
+### चिंतन
+आज आप अपने जीवन में शांति और धैर्य के साथ कौन सा निर्णय ले सकते हैं?
+
+### दैनिक अभ्यास
+3 गहरी और शांत सांसें लें। जो आपके नियंत्रण में नहीं है उसे ईश्वर को सौंप दें, और अपने वर्तमान कर्तव्य पर पूरा ध्यान केंद्रित करें।"""
+        else:
+            answer = f"""### Understanding
 You are reflecting on a state of {sit_name.lower()}. Bringing this to light is the foundational step toward inner clarity and resolution.
 
 ### What the Gita points toward

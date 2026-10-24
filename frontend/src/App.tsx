@@ -41,6 +41,13 @@ const ExploreIcon: React.FC<{ active: boolean }> = ({ active }) => (
   </svg>
 );
 
+const SettingsIcon: React.FC<{ active: boolean }> = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+  </svg>
+);
+
 // 4 Bottom Navigation tabs matching the screenshot
 const TABS = [
   { id: 'home', label: 'Home', Icon: HomeIcon },
@@ -525,13 +532,14 @@ export const App: React.FC = () => {
                   {/* Drawer Links */}
                   <div style={{ padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
                     {[
-                      { id: 'home', label: t.drawerHome },
-                      { id: 'journal', label: t.drawerJournal },
-                      { id: 'japa', label: t.navJapa },
-                      { id: 'explore', label: t.navExplore },
-                      { id: 'settings', label: t.drawerSettings }
+                      { id: 'home', label: t.drawerHome, Icon: HomeIcon },
+                      { id: 'journal', label: t.drawerJournal, Icon: JournalIcon },
+                      { id: 'japa', label: t.navJapa, Icon: JapaIcon },
+                      { id: 'explore', label: t.navExplore, Icon: ExploreIcon },
+                      { id: 'settings', label: t.drawerSettings, Icon: SettingsIcon }
                     ].map(item => {
                       const isCurrent = activeTab === item.id;
+                      const ItemIcon = item.Icon;
                       return (
                         <button
                           key={item.id}
@@ -554,9 +562,21 @@ export const App: React.FC = () => {
                             fontSize: '14.5px',
                             fontWeight: isCurrent ? 600 : 500,
                             textAlign: 'left',
-                            transition: 'background 0.15s'
+                            transition: 'background 0.15s',
+                            gap: '12px'
                           }}
                         >
+                          <span style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: 22,
+                            height: 22,
+                            color: isCurrent ? (theme === 'dark' ? '#4ADE80' : '#1E5E3A') : (theme === 'dark' ? '#9E988E' : '#6F6B64'),
+                            flexShrink: 0
+                          }}>
+                            <ItemIcon active={isCurrent} />
+                          </span>
                           <span>{item.label}</span>
                         </button>
                       );

@@ -113,6 +113,8 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
 
   const [soundToast, setSoundToast] = useState<string | null>(null);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isCompletingRef = useRef(false);
+  const lastTapTimeRef = useRef(0);
 
   const toggleSound = () => {
     const next = !isSoundOn;
@@ -258,6 +260,12 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
 
   // Tap handler: increments count for the currently selected mantra
   const handleTap = () => {
+    const now = Date.now();
+    if (now - lastTapTimeRef.current < 45) return;
+    lastTapTimeRef.current = now;
+
+    if (isCompletingRef.current) return;
+
     if (count >= BEAD_COUNT) {
       setCurrentView('complete');
       return;
@@ -284,6 +292,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
 
     // When 108 taps are reached, record progress, reset this mantra's count to 0, and transition to Screen 2!
     if (nextCount === BEAD_COUNT) {
+      isCompletingRef.current = true;
       setMantraCounts(prev => ({
         ...prev,
         [selectedMantraId]: 0
@@ -291,6 +300,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
       recordCompletedRound();
       setTimeout(() => {
         setCurrentView('complete');
+        isCompletingRef.current = false;
       }, 350);
     } else {
       setMantraCounts(prev => ({
@@ -301,6 +311,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
   };
 
   const handleReset = () => {
+    isCompletingRef.current = false;
     setMantraCounts(prev => ({
       ...prev,
       [selectedMantraId]: 0
@@ -308,6 +319,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
   };
 
   const handleStartAgain = () => {
+    isCompletingRef.current = false;
     setMantraCounts(prev => ({
       ...prev,
       [selectedMantraId]: 0
@@ -605,7 +617,6 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
 
                 {/* Central Tap Target Area (Initial count is 0) */}
                 <div
-                  onClick={handleTap}
                   style={{
                     position: 'absolute',
                     width: 150,
@@ -615,7 +626,7 @@ export const JapaScreen: React.FC<JapaScreenProps> = ({
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    cursor: 'pointer',
+                    pointerEvents: 'none',
                     transform: tapScale ? 'scale(0.95)' : 'scale(1)',
                     transition: 'transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1)'
                   }}
