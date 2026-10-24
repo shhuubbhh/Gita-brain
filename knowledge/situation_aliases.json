@@ -77,14 +77,19 @@
     "job",
     "new job",
     "profession",
-    "what should i do",
     "which career",
     "job choice",
+    "career path",
+    "job offer",
+    "leave my job",
+    "quit my job",
+    "career dilemma",
+    "workplace",
     "नौकरी",
     "नई नौकरी",
     "कैरियर",
-    "काम",
-    "naukri"
+    "naukri",
+    "pesha"
   ],
   "money_anxiety": [
     "money",
@@ -224,5 +229,39 @@
     "losing everything",
     "can't lose",
     "successful but anxious"
+  ],
+  "everyday_decision": [
+    "hire a photographer",
+    "hire",
+    "photographer",
+    "buy this phone",
+    "buy this",
+    "buy a",
+    "should i buy",
+    "whether to buy",
+    "whether to hire",
+    "birthday party",
+    "birthday",
+    "practical decision",
+    "everyday choice",
+    "shopping",
+    "खरीदूँ",
+    "खरीदना"
+  ],
+  "general_uncertainty": [
+    "what should i do",
+    "what to do",
+    "not sure what to do",
+    "i don't know what to do",
+    "confused about my life",
+    "confused about life",
+    "don't know what to do with my life",
+    "i feel lost",
+    "feel lost",
+    "feeling lost",
+    "uncertain about everything",
+    "क्या करूँ",
+    "क्या करना चाहिए",
+    "कुछ समझ नहीं आ रहा"
   ]
 }

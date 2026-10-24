@@ -55,8 +55,29 @@ def _clean_section_content(text):
     return text
 
 
+ENGLISH_SITUATIONS = {
+    "career_confusion": "Career Confusion",
+    "everyday_decision": "A Personal Decision",
+    "general_uncertainty": "Seeking Clarity",
+    "decision_conflict": "Difficult Decision",
+    "fear_of_failure": "Fear of Failure",
+    "money_anxiety": "Money Anxiety",
+    "loneliness": "Loneliness",
+    "grief": "Grief After Loss",
+    "guilt": "Guilt About Past Action",
+    "procrastination": "Procrastination",
+    "jealousy": "Comparison & Envy",
+    "purpose_crisis": "Questioning Life Purpose",
+    "revenge": "Desire for Revenge",
+    "anger_at_someone": "Anger Toward Someone",
+    "family_pressure": "Family Pressure",
+    "breakup": "Breakup / Relationship Loss",
+}
+
 HINDI_SITUATIONS = {
-    "career_confusion": "मार्गदर्शन एवं निर्णय असमंजस",
+    "career_confusion": "कैरियर एवं कर्तव्य असमंजस",
+    "everyday_decision": "व्यक्तिगत निर्णय एवं विचार",
+    "general_uncertainty": "आंतरिक स्पष्टता एवं शांति",
     "decision_conflict": "निर्णय एवं आंतरिक द्वंद्व",
     "fear_of_failure": "असफलता का भय",
     "anxiety": "चिंता एवं व्याकुलता",
@@ -70,6 +91,10 @@ HINDI_SITUATIONS = {
     "relationship_conflict": "संबंधों में सामंजस्य",
     "spiritual_doubt": "आध्यात्मिक संशय",
     "overthinking": "अशांत मन एवं विचार",
+    "money_anxiety": "धन एवं आर्थिक चिंता",
+    "family_pressure": "पारिवारिक दबाव",
+    "purpose_crisis": "जीवन का उद्देश्य",
+    "procrastination": "आलस एवं अनुशासन",
 }
 
 HINDI_VERSE_TRANSLATIONS = {
@@ -138,11 +163,14 @@ def parse_structured_answer(raw_text, situation, evidence, language="en"):
     # Friendly situation/emotion formatting
     primary_key = (situation.get("primary") or "").lower()
     if language == "hi":
-        primary_situation = HINDI_SITUATIONS.get(primary_key, "आंतरिक स्पष्टता")
+        primary_situation = HINDI_SITUATIONS.get(primary_key, "आंतरिक स्पष्टता एवं शांति")
         default_reflection = "आज आप शांति और स्पष्टता के साथ अपने जीवन में कौन सा निर्णय ले सकते हैं?"
         default_action = "3 गहरी शांत सांसें लें, अपने वर्तमान कर्तव्य पर ध्यान केंद्रित करें, और चिंता को ईश्वर पर छोड़ दें।"
     else:
-        primary_situation = (situation.get("primary") or "Seeking Clarity").replace("_", " ").title()
+        primary_situation = ENGLISH_SITUATIONS.get(
+            primary_key,
+            (situation.get("primary") or "Seeking Clarity").replace("_", " ").title()
+        )
         default_reflection = "In what ways can you act with clarity and compassion today?"
         default_action = "Take 3 mindful breaths, focus on your sincere duty today, and release the anxious attachment to future outcomes."
     emotion = f"{primary_situation}"

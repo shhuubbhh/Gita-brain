@@ -186,5 +186,25 @@
       "identity",
       "equanimity"
     ]
+  },
+  {
+    "id": "everyday_decision",
+    "name": "A Personal Decision",
+    "concepts": [
+      "decision",
+      "action",
+      "equanimity",
+      "attachment"
+    ]
+  },
+  {
+    "id": "general_uncertainty",
+    "name": "Seeking Clarity",
+    "concepts": [
+      "knowledge",
+      "action",
+      "equanimity",
+      "duty"
+    ]
   }
 ]

@@ -64,15 +64,52 @@ def analyze(mood,text):
             if not chapter_num:
                 chapter_num = c_val
 
-    # Situation phrase matching.
-    sit_scores=[]
-    for sid,aliases in ALIASES.items():
-        hits=[a for a in aliases if phrase_in_text(a, t)]
+    # Domain Gatekeeper Tokens
+    CAREER_DOMAIN_TOKENS = {
+        "career", "job", "profession", "vocation", "workplace", "boss", "employer",
+        "colleague", "coworker", "interview", "resume", "promotion", "resignation",
+        "resign", "fired", "startup", "naukri", "pesha", "rozgar", "business", "dhandha"
+    }
+    FAMILY_DOMAIN_TOKENS = {
+        "parents", "family", "father", "mother", "mom", "dad", "brother", "sister",
+        "relatives", "parivar", "mata", "pita", "gharwale"
+    }
+    RELATIONSHIP_DOMAIN_TOKENS = {
+        "ex", "boyfriend", "girlfriend", "partner", "husband", "wife", "relationship",
+        "dating", "breakup", "broke up", "divorce"
+    }
+    MONEY_DOMAIN_TOKENS = {
+        "money", "debt", "salary", "financial", "finances", "bills", "income", "broke",
+        "budget", "cost", "expensive", "afford", "loan", "rupees", "dollars", "cash",
+        "paisa", "paise", "karz", "dhan", "spending"
+    }
+
+    has_career_domain = any(phrase_in_text(w, t) for w in CAREER_DOMAIN_TOKENS)
+    has_family_domain = any(phrase_in_text(w, t) for w in FAMILY_DOMAIN_TOKENS)
+    has_rel_domain = any(phrase_in_text(w, t) for w in RELATIONSHIP_DOMAIN_TOKENS)
+    has_money_domain = any(phrase_in_text(w, t) for w in MONEY_DOMAIN_TOKENS)
+
+    # Situation phrase matching with Domain Gatekeeper
+    sit_scores = []
+    for sid, aliases in ALIASES.items():
+        # Domain Gatekeeper: specific situations require domain grounding
+        if sid == "career_confusion" and not has_career_domain:
+            continue
+        if sid == "career_comparison" and not has_career_domain:
+            continue
+        if sid == "family_pressure" and not has_family_domain:
+            continue
+        if sid == "breakup" and not has_rel_domain:
+            continue
+        if sid == "money_anxiety" and not has_money_domain:
+            continue
+
+        hits = [a for a in aliases if phrase_in_text(a, t)]
         if hits:
             # Specific multi-word phrases carry more situation evidence than
             # broad one-word matches such as "career" or "loss".
-            score=sum(1.0 + 0.35*max(0,len(a.split())-1) for a in hits)
-            sit_scores.append((score,sid,hits))
+            score = sum(1.0 + 0.35 * max(0, len(a.split()) - 1) for a in hits)
+            sit_scores.append((score, sid, hits))
     
     # Extended keywords for common everyday queries
     if "procrastinat" in t or "delaying" in t:
@@ -112,7 +149,7 @@ def analyze(mood,text):
         if jealousy_score >= 1.0 or comparison_score >= 1.0:
             sit_scores=[(1,"jealousy",concept_ids.get("jealousy",(0,[]))[1] or concept_ids.get("comparison",(0,[]))[1])] + [x for x in sit_scores if x[1]!="jealousy"]
     
-    primary=sit_scores[0][1] if sit_scores else None
+    primary=sit_scores[0][1] if sit_scores else "general_uncertainty"
     primary_concepts=[]
     if primary:
         primary_concepts=next((s["concepts"] for s in SITU if s["id"]==primary), [])
@@ -129,7 +166,7 @@ def analyze(mood,text):
     if chapter_num and chapter_num in CHAPTER_CONCEPTS:
         for cid in CHAPTER_CONCEPTS[chapter_num]:
             if cid not in concepts: concepts.append(cid)
-        if not primary:
+        if not primary or primary == "general_uncertainty":
             # Map chapter to default primary situation if none
             primary = "decision_conflict" if chapter_num in [1, 2] else "procrastination" if chapter_num == 3 else "purpose_crisis"
 
@@ -137,7 +174,7 @@ def analyze(mood,text):
     if not concepts:
         concepts = ["action", "duty", "equanimity", "knowledge"]
         if not primary:
-            primary = "decision_conflict"
+            primary = "general_uncertainty"
 
     evidence=[]
     for score,cid,hits in concept_hits[:12]:
@@ -148,19 +185,44 @@ def analyze(mood,text):
                 evidence.append({"concept_id":cid,"score":0.5,"matched_phrases":[],
                                  "source":"situation_prior"})
 
-    # Confidence reflects converging evidence, not just one keyword.
+    # Calibrated confidence calculation based on actual classification evidence
     sit_conf=0.0
     if sit_scores:
-        top=sit_scores[0][0]
-        second=sit_scores[1][0] if len(sit_scores)>1 else 0
-        sit_conf=min(0.97,0.58+0.10*top+0.05*max(0,top-second))
+        top_score = sit_scores[0][0]
+        top_sid = sit_scores[0][1]
+        second_score = sit_scores[1][0] if len(sit_scores) > 1 else 0.0
+
+        word_count = len(t.split())
+        has_converging_cues = any(e["source"] == "text_cue" for e in evidence)
+
+        # Isolated generic phrase with minimal context (e.g., "What should I do?")
+        is_isolated_generic = (
+            top_sid in ["general_uncertainty", "decision_conflict"] and
+            word_count <= 5 and
+            not has_converging_cues and
+            detected == "neutral"
+        )
+
+        if is_isolated_generic:
+            # Low confidence (< 0.50) for brief, open-ended generic phrases
+            sit_conf = round(min(0.48, max(0.35, 0.35 + 0.02 * word_count)), 2)
+        elif top_sid in ["general_uncertainty", "everyday_decision"]:
+            # Moderate calibrated confidence for everyday practical decisions or general clarity
+            sit_conf = round(min(0.75, 0.52 + 0.08 * top_score + (0.05 if has_converging_cues else 0.0)), 2)
+        else:
+            # Domain-specific situations with grounded evidence
+            base_conf = 0.65
+            if has_converging_cues:
+                base_conf += 0.10
+            diff = max(0.0, top_score - second_score)
+            sit_conf = round(min(0.98, base_conf + 0.08 * top_score + 0.04 * diff), 2)
     elif chapter_num:
         sit_conf = 0.85
     else:
-        sit_conf = 0.60
+        sit_conf = 0.40
 
     if primary and any(e["concept_id"] in primary_concepts and e["source"]=="text_cue" for e in evidence):
-        sit_conf=min(0.99,sit_conf+0.10)
+        sit_conf=min(0.99, round(sit_conf+0.05, 2))
 
     mood_conf=1.0 if mood and mood!="neutral" else (
         min(0.95,0.45+0.12*len(mood_hits[detected])) if detected!="neutral" else 0.3

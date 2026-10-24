@@ -288,7 +288,9 @@ def generate_answer(mood, thought, top_k=3, language="en"):
     sit_name = (situation_data.get("primary") or "clarity").replace("_", " ").title()
 
     HINDI_SITUATION_NAMES = {
-        "career_confusion": "मार्गदर्शन एवं निर्णय असमंजस",
+        "career_confusion": "कैरियर एवं कर्तव्य असमंजस",
+        "everyday_decision": "व्यक्तिगत निर्णय एवं विचार",
+        "general_uncertainty": "आंतरिक स्पष्टता एवं शांति",
         "decision_conflict": "निर्णय एवं आंतरिक द्वंद्व",
         "fear_of_failure": "असफलता का भय",
         "anxiety": "चिंता एवं व्याकुलता",
@@ -302,6 +304,10 @@ def generate_answer(mood, thought, top_k=3, language="en"):
         "relationship_conflict": "संबंधों में सामंजस्य",
         "spiritual_doubt": "आध्यात्मिक संशय",
         "overthinking": "अशांत मन एवं विचार",
+        "money_anxiety": "धन एवं आर्थिक चिंता",
+        "family_pressure": "पारिवारिक दबाव",
+        "purpose_crisis": "जीवन का उद्देश्य",
+        "procrastination": "आलस एवं अनुशासन",
     }
     HINDI_VERSE_TRANSLATIONS = {
         (2, 47): "तुम्हारा अधिकार केवल कर्म करने में है, उसके फलों में कभी नहीं। इसलिए कर्म के फल की इच्छा मत रखो और न ही अकर्मण्यता में तुम्हारी आसक्ति हो।",

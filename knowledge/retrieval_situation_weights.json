@@ -119,5 +119,17 @@
     "change": 1.4,
     "identity": 1.3,
     "equanimity": 1.8
+  },
+  "everyday_decision": {
+    "decision": 1.8,
+    "action": 1.5,
+    "equanimity": 1.5,
+    "attachment": 1.2
+  },
+  "general_uncertainty": {
+    "knowledge": 1.6,
+    "action": 1.5,
+    "equanimity": 1.6,
+    "duty": 1.4
   }
 }

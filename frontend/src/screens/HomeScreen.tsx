@@ -143,33 +143,56 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
   // Format situation title matching reference design (e.g. "Career Confusion")
   const formatSituationTitle = (rawSituation: string, lang: Language) => {
-    if (!rawSituation) return lang === 'hi' ? 'आंतरिक स्पष्टता' : 'Seeking Clarity';
+    if (!rawSituation) return lang === 'hi' ? 'आंतरिक स्पष्टता एवं शांति' : 'Seeking Clarity';
 
-    const normalized = rawSituation.toLowerCase().trim().replace(/[-_]+/g, ' ');
+    // If already in Hindi (Devanagari characters), return directly
+    if (/[\u0900-\u097F]/.test(rawSituation)) {
+      return rawSituation.trim();
+    }
 
-    if (/career|job|photographer|decision|choice|what should|path|dilemma/i.test(normalized)) {
-      return lang === 'hi' ? 'निर्णय एवं कर्तव्य असमंजस' : 'Career Confusion';
+    const key = rawSituation.toLowerCase().trim().replace(/[-_]+/g, ' ');
+
+    if (key === 'career confusion') {
+      return lang === 'hi' ? 'कैरियर एवं कर्तव्य असमंजस' : 'Career Confusion';
     }
-    if (/anxi|fear|scared|worry|nervous|stress|panic/i.test(normalized)) {
-      return lang === 'hi' ? 'चिंता एवं भय से मुक्ति' : 'Fear & Anxiety';
+    if (key === 'everyday decision' || key === 'a personal decision' || key === 'practical decision') {
+      return lang === 'hi' ? 'व्यक्तिगत निर्णय एवं विचार' : 'A Personal Decision';
     }
-    if (/grief|sad|loss|sorrow|death|crying|mourn/i.test(normalized)) {
-      return lang === 'hi' ? 'शोक एवं संताप' : 'Grief & Sorrow';
+    if (key === 'general uncertainty' || key === 'seeking clarity') {
+      return lang === 'hi' ? 'आंतरिक स्पष्टता एवं शांति' : 'Seeking Clarity';
     }
-    if (/anger|rage|betray|revenge|cheat|furious/i.test(normalized)) {
-      return lang === 'hi' ? 'क्रोध एवं प्रतिशोध' : 'Anger & Resentment';
+    if (key === 'decision conflict' || key === 'difficult decision') {
+      return lang === 'hi' ? 'निर्णय एवं आंतरिक द्वंद्व' : 'Decision Conflict';
     }
-    if (/fail|setback|reject|defeat/i.test(normalized)) {
+    if (key === 'fear of failure') {
       return lang === 'hi' ? 'असफलता में समत्व' : 'Facing Setbacks & Failure';
     }
-    if (/mind|overthink|distract|focus|racing/i.test(normalized)) {
-      return lang === 'hi' ? 'अशांत मन एवं एकाग्रता' : 'Restless Mind & Overthinking';
+    if (/anxiety|fear/.test(key)) {
+      return lang === 'hi' ? 'चिंता एवं भय से मुक्ति' : 'Fear & Anxiety';
     }
-    if (/jealous|envy|compar/i.test(normalized)) {
+    if (/grief|loss/.test(key)) {
+      return lang === 'hi' ? 'शोक एवं संताप' : 'Grief & Sorrow';
+    }
+    if (/anger|revenge/.test(key)) {
+      return lang === 'hi' ? 'क्रोध एवं प्रतिशोध' : 'Anger & Resentment';
+    }
+    if (/money|financial/.test(key)) {
+      return lang === 'hi' ? 'आर्थिक चिंता एवं समत्व' : 'Money Anxiety';
+    }
+    if (/procrastinat/.test(key)) {
+      return lang === 'hi' ? 'आलस एवं अनुशासन' : 'Overcoming Procrastination';
+    }
+    if (/jealous|compar/.test(key)) {
       return lang === 'hi' ? 'ईर्ष्या एवं तुलना' : 'Comparison & Envy';
     }
-    if (/devotion|gratitude|peace|prayer|bhakti/i.test(normalized)) {
-      return lang === 'hi' ? 'भक्ति एवं दिव्य शांति' : 'Devotion & Inner Peace';
+    if (/lonel/.test(key)) {
+      return lang === 'hi' ? 'अकेलापन एवं शांति' : 'Finding Inner Peace';
+    }
+    if (/purpose/.test(key)) {
+      return lang === 'hi' ? 'जीवन का उद्देश्य' : 'Questioning Life Purpose';
+    }
+    if (/family/.test(key)) {
+      return lang === 'hi' ? 'पारिवारिक दबाव' : 'Family Pressure';
     }
 
     return rawSituation
