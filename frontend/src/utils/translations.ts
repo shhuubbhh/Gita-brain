@@ -108,6 +108,21 @@ export interface Translations {
 
   // Explore Screen
   exploreTitle: string;
+  exploreSubtitle: string;
+  searchChaptersPlaceholder: string;
+  allChaptersCount: string;
+  chapterSummaryTitle: string;
+  keyTeachingsTitle: string;
+  themesTitle: string;
+  practicalReflectionTitle: string;
+  importantVersesTitle: string;
+  tapToViewVerse: string;
+  verseModalTitle: string;
+  closeButton: string;
+  backToChapters: string;
+  verseCountLabel: string;
+  noChaptersFound: string;
+  canonicalNote: string;
   comingSoonTitle: string;
   comingSoonSubtitle: string;
   underDevelopment: string;
@@ -245,6 +260,21 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     onlyTodayAllowed: "Journaling is available for today only.",
 
     exploreTitle: "Explore",
+    exploreSubtitle: "18 Chapters of Eternal Gita Wisdom",
+    searchChaptersPlaceholder: "Search chapter, theme, or keyword...",
+    allChaptersCount: "18 Chapters • 700 Verses",
+    chapterSummaryTitle: "Chapter Summary",
+    keyTeachingsTitle: "Key Teachings",
+    themesTitle: "Core Themes",
+    practicalReflectionTitle: "Practical Reflection for Daily Life",
+    importantVersesTitle: "Key Verses",
+    tapToViewVerse: "Tap to read verse and meaning",
+    verseModalTitle: "Canonical Shloka",
+    closeButton: "Close",
+    backToChapters: "All Chapters",
+    verseCountLabel: "verses",
+    noChaptersFound: "No chapters found matching your search.",
+    canonicalNote: "Text and primary meaning from verified canonical corpus",
     comingSoonTitle: "Coming Soon",
     comingSoonSubtitle: "We are crafting a deeper exploration of Bhagavad Gita teachings, audio recitations, and guided chapter wisdom.",
     underDevelopment: "In Development",
@@ -380,6 +410,21 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     onlyTodayAllowed: "जर्नल केवल आज के दिन के लिए ही लिखा जा सकता है।",
 
     exploreTitle: "अन्वेषण",
+    exploreSubtitle: "भगवद्गीता के १८ अध्यायों का शाश्वत ज्ञान",
+    searchChaptersPlaceholder: "अध्याय, विषय या मुख्य शब्द खोजें...",
+    allChaptersCount: "१८ अध्याय • ७०० श्लोक",
+    chapterSummaryTitle: "अध्याय सारांश",
+    keyTeachingsTitle: "प्रमुख उपदेश",
+    themesTitle: "मुख्य विषय",
+    practicalReflectionTitle: "दैनिक जीवन में व्यावहारिक उपयोग",
+    importantVersesTitle: "प्रमुख श्लोक",
+    tapToViewVerse: "श्लोक और अर्थ देखने के लिए टैप करें",
+    verseModalTitle: "प्रामाणिक श्लोक",
+    closeButton: "बंद करें",
+    backToChapters: "सभी अध्याय",
+    verseCountLabel: "श्लोक",
+    noChaptersFound: "आपकी खोज से मेल खाता कोई अध्याय नहीं मिला।",
+    canonicalNote: "प्रामाणिक शास्त्र-संग्रह से सत्यापित मूल पाठ",
     comingSoonTitle: "शीघ्र आ रहा है",
     comingSoonSubtitle: "हम भगवद्गीता के उपदेशों, श्लोक पाठ और अध्यायवार अध्ययन का एक गहन अनुभव तैयार कर रहे हैं।",
     underDevelopment: "निर्माणाधीन",

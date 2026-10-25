@@ -64,6 +64,7 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const [previousTab, setPreviousTab] = useState<TabId>('home');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedExploreChapter, setSelectedExploreChapter] = useState<number | null>(null);
 
   // App Theme & Language state
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -134,6 +135,9 @@ export const App: React.FC = () => {
   const previousTabRef = useRef(previousTab);
   previousTabRef.current = previousTab;
 
+  const selectedExploreChapterRef = useRef(selectedExploreChapter);
+  selectedExploreChapterRef.current = selectedExploreChapter;
+
   // Handle hardware back button from Android WebView & browser popstate
   useEffect(() => {
     (window as any).handleAppBackButton = (): boolean => {
@@ -152,12 +156,17 @@ export const App: React.FC = () => {
         setActiveTab(previousTabRef.current || 'home');
         return true;
       }
-      // 4. If viewing any non-home tab (Journal, Japa, Explore), return to Home
+      // 4. If viewing Chapter Detail in Explore, go back to Chapters List
+      if (activeTabRef.current === 'explore' && selectedExploreChapterRef.current !== null) {
+        setSelectedExploreChapter(null);
+        return true;
+      }
+      // 5. If viewing any non-home tab (Journal, Japa, Explore), return to Home
       if (activeTabRef.current !== 'home') {
         setActiveTab('home');
         return true;
       }
-      // 5. On Home with drawer closed -> return false so Android can minimize/exit
+      // 6. On Home with drawer closed -> return false so Android can minimize/exit
       return false;
     };
 
@@ -172,6 +181,10 @@ export const App: React.FC = () => {
       }
       if (activeTabRef.current === 'settings') {
         setActiveTab(previousTabRef.current || 'home');
+        return;
+      }
+      if (activeTabRef.current === 'explore' && selectedExploreChapterRef.current !== null) {
+        setSelectedExploreChapter(null);
         return;
       }
       if (activeTabRef.current !== 'home') {
@@ -398,6 +411,8 @@ export const App: React.FC = () => {
                   language={language}
                   theme={theme}
                   onOpenMenu={() => setIsDrawerOpen(true)}
+                  selectedChapterId={selectedExploreChapter}
+                  onSelectChapter={setSelectedExploreChapter}
                   onSelectChapterPrompt={() => {
                     setActiveTab('home');
                   }}

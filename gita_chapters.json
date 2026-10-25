@@ -1,0 +1,1326 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_id": "gita_chapters_bilingual",
+  "title": {
+    "en": "Bhagavad Gita — Chapter Summaries",
+    "hi": "श्रीमद्भगवद्गीता — अध्याय सार"
+  },
+  "language_codes": [
+    "en",
+    "hi"
+  ],
+  "chapter_count": 18,
+  "content_notes": {
+    "en": "Original educational summaries and reflection prompts, not quotations from a specific published translation. Interpretations can vary across philosophical traditions. Verse references use chapter.verse coordinates and must be mapped to the app's canonical corpus before release.",
+    "hi": "मौलिक शैक्षिक सारांश और चिंतन-सुझाव; किसी प्रकाशित अनुवाद के सीधे उद्धरण नहीं। दार्शनिक व्याख्याएँ भिन्न हो सकती हैं। अध्याय.श्लोक संदर्भों को रिलीज़ से पहले ऐप के canonical corpus से मिलाना आवश्यक है।"
+  },
+  "source_notes": [
+    {
+      "name": "IIT Kanpur Gita Supersite — introduction and chapter outline",
+      "url": "https://www.gitasupersite.iitk.ac.in/srimad/intro",
+      "use": "Cross-check chapter order and broad themes"
+    },
+    {
+      "name": "Bhagavad Gita FYI — chapter list",
+      "url": "https://bhagavadgita.fyi/chapters/",
+      "use": "Cross-check chapter names and verse counts"
+    },
+    {
+      "name": "Internet Sacred Text Archive — Sanskrit Bhagavad Gita",
+      "url": "https://sacred-texts.com/hin/bgs/index.htm",
+      "use": "Cross-check traditional Sanskrit chapter names"
+    }
+  ],
+  "chapters": [
+    {
+      "chapter_number": 1,
+      "sanskrit_name": "Arjuna Viṣāda Yoga",
+      "sanskrit_name_devanagari": "अर्जुनविषादयोग",
+      "title": {
+        "en": "The Yoga of Arjuna’s Despondency",
+        "hi": "अर्जुन के विषाद का योग"
+      },
+      "summary": {
+        "en": "At Kurukshetra, Arjuna asks Krishna to place the chariot between the armies. Seeing teachers, relatives, and friends on both sides, he is overcome by grief and moral uncertainty. He fears that victory will come at the cost of family bonds and social responsibilities. His body trembles, his resolve collapses, and he puts down his bow. Krishna’s full teaching has not yet begun; the chapter establishes the crisis that makes guidance necessary. Arjuna’s distress shows how emotion, attachment, and fear can complicate judgment. His willingness to admit confusion and seek help becomes the starting point for the dialogue.",
+        "hi": "कुरुक्षेत्र में अर्जुन कृष्ण से रथ को दोनों सेनाओं के बीच ले जाने को कहते हैं। अपने गुरुजनों, संबंधियों और मित्रों को दोनों ओर देखकर वे शोक और नैतिक दुविधा से भर जाते हैं। उन्हें लगता है कि विजय की कीमत परिवार और सामाजिक जिम्मेदारियों का विनाश होगी। उनका शरीर काँपता है, साहस टूटता है और वे धनुष रख देते हैं। कृष्ण का विस्तृत उपदेश अभी शुरू नहीं होता; यह अध्याय उस संकट को सामने रखता है जिसके कारण मार्गदर्शन आवश्यक बनता है। अर्जुन का दुःख दिखाता है कि भावना, आसक्ति और भय निर्णय को जटिल बना सकते हैं। अपने भ्रम को स्वीकार करना और सहायता माँगना संवाद की शुरुआत बनता है।"
+      },
+      "key_teachings": [
+        {
+          "en": "A moral dilemma can unsettle even a capable person.",
+          "hi": "नैतिक दुविधा सक्षम व्यक्ति को भी विचलित कर सकती है।"
+        },
+        {
+          "en": "Distinguish immediate emotion from considered judgment.",
+          "hi": "तत्काल भावना और सोच-विचार से बने निर्णय में अंतर करें।"
+        },
+        {
+          "en": "Admitting confusion can begin a learning process.",
+          "hi": "भ्रम स्वीकार करना सीखने की शुरुआत हो सकता है।"
+        },
+        {
+          "en": "Consider the wider consequences of a decision.",
+          "hi": "निर्णय के व्यापक परिणामों पर विचार करें।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Grief and moral conflict",
+          "Duty and relationships",
+          "Seeking guidance"
+        ],
+        "hi": [
+          "शोक और नैतिक संघर्ष",
+          "कर्तव्य और संबंध",
+          "मार्गदर्शन की खोज"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Pause during a difficult choice and identify the values, responsibilities, and people affected.",
+        "hi": "कठिन निर्णय में रुककर उससे जुड़े मूल्यों, जिम्मेदारियों और प्रभावित लोगों पर विचार करें।"
+      },
+      "important_verses": [
+        {
+          "chapter": 1,
+          "verse": 28,
+          "reference": "1.28"
+        },
+        {
+          "chapter": 1,
+          "verse": 31,
+          "reference": "1.31"
+        },
+        {
+          "chapter": 1,
+          "verse": 47,
+          "reference": "1.47"
+        }
+      ]
+    },
+    {
+      "chapter_number": 2,
+      "sanskrit_name": "Sāṅkhya Yoga",
+      "sanskrit_name_devanagari": "साङ्ख्ययोग",
+      "title": {
+        "en": "The Yoga of Knowledge",
+        "hi": "ज्ञान योग"
+      },
+      "summary": {
+        "en": "Krishna begins teaching Arjuna, explaining the distinction between the changing body and the enduring self. He urges Arjuna to understand duty without being ruled by grief or fear. Krishna introduces disciplined action: a person can choose and perform an action but cannot fully control its results, so attachment to outcomes should not dominate the mind. He describes the steady-minded person, who meets pleasure and pain without being swept away. Knowledge, duty, self-mastery, and equanimity are connected rather than separate pursuits. The chapter lays a foundation for the Gita’s later teachings and presents steadiness as something cultivated through practice and discernment.",
+        "hi": "कृष्ण अर्जुन को उपदेश देते हुए बदलते शरीर और स्थायी आत्मा का अंतर समझाते हैं। वे शोक और भय के वश में हुए बिना कर्तव्य निभाने को कहते हैं। कृष्ण अनुशासित कर्म का विचार प्रस्तुत करते हैं: मनुष्य कर्म चुन और कर सकता है, लेकिन परिणामों पर उसका पूर्ण नियंत्रण नहीं होता; इसलिए फल की आसक्ति मन पर हावी न हो। वे स्थितप्रज्ञ व्यक्ति का वर्णन करते हैं, जो सुख-दुःख में संतुलित रहता है। ज्ञान, कर्तव्य, आत्म-संयम और समभाव परस्पर जुड़े हैं। यह अध्याय आगे की शिक्षाओं की बुनियाद रखता है और बताता है कि स्थिरता अभ्यास तथा विवेक से विकसित होती है।"
+      },
+      "key_teachings": [
+        {
+          "en": "Distinguish the enduring self from changing conditions.",
+          "hi": "स्थायी आत्मा और बदलती परिस्थितियों में अंतर समझें।"
+        },
+        {
+          "en": "Focus on action without assuming full control over results.",
+          "hi": "परिणामों पर पूर्ण नियंत्रण माने बिना कर्म पर ध्यान दें।"
+        },
+        {
+          "en": "Practice steadiness through pleasure, pain, gain, and loss.",
+          "hi": "सुख-दुःख और लाभ-हानि में संतुलन का अभ्यास करें।"
+        },
+        {
+          "en": "Use discernment rather than letting fear dictate choices.",
+          "hi": "भय के बजाय विवेक से निर्णय लें।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Self and body",
+          "Duty and action",
+          "Equanimity",
+          "Steady wisdom"
+        ],
+        "hi": [
+          "आत्मा और शरीर",
+          "कर्तव्य और कर्म",
+          "समभाव",
+          "स्थिर बुद्धि"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Choose one responsibility today and focus on doing it carefully instead of rehearsing every possible outcome.",
+        "hi": "आज एक जिम्मेदारी चुनें और हर संभावित परिणाम की चिंता के बजाय उसे सावधानी से पूरा करें।"
+      },
+      "important_verses": [
+        {
+          "chapter": 2,
+          "verse": 14,
+          "reference": "2.14"
+        },
+        {
+          "chapter": 2,
+          "verse": 47,
+          "reference": "2.47"
+        },
+        {
+          "chapter": 2,
+          "verse": 48,
+          "reference": "2.48"
+        },
+        {
+          "chapter": 2,
+          "verse": 55,
+          "reference": "2.55"
+        }
+      ]
+    },
+    {
+      "chapter_number": 3,
+      "sanskrit_name": "Karma Yoga",
+      "sanskrit_name_devanagari": "कर्मयोग",
+      "title": {
+        "en": "The Yoga of Action",
+        "hi": "कर्म योग"
+      },
+      "summary": {
+        "en": "Arjuna asks why action is necessary if knowledge is so valuable. Krishna explains that no one can remain entirely inactive; nature continually moves people toward action. The key question is how and why one acts. Work done as responsibility, without selfish attachment, can support inner freedom and the welfare of others. Krishna presents action as part of mutual contribution rather than merely a private pursuit of reward. He also explains that desire and anger can cloud judgment and should be understood and disciplined. The chapter does not advise abandoning responsibilities; it asks people to act with a wider purpose, a clear mind, and less possessiveness about credit or results.",
+        "hi": "अर्जुन पूछते हैं कि यदि ज्ञान महत्त्वपूर्ण है, तो कर्म क्यों आवश्यक है। कृष्ण समझाते हैं कि कोई पूरी तरह निष्क्रिय नहीं रह सकता; प्रकृति मनुष्य को कर्म की ओर ले जाती है। महत्त्वपूर्ण प्रश्न यह है कि कर्म किस भावना और उद्देश्य से किया जाता है। स्वार्थपूर्ण आसक्ति के बिना जिम्मेदारी से किया गया कार्य आंतरिक स्वतंत्रता और दूसरों के कल्याण में सहायक हो सकता है। कर्म को केवल निजी लाभ नहीं, पारस्परिक योगदान का हिस्सा बताया गया है। कृष्ण बताते हैं कि कामना और क्रोध विवेक को धुँधला कर सकते हैं। यह अध्याय जिम्मेदारियों से भागने के बजाय व्यापक उद्देश्य और स्पष्ट मन से उन्हें निभाने की शिक्षा देता है।"
+      },
+      "key_teachings": [
+        {
+          "en": "Act consciously; complete inactivity is unrealistic.",
+          "hi": "निष्क्रिय रहने के बजाय सजगता से कर्म करें।"
+        },
+        {
+          "en": "Treat work as contribution, not merely a route to reward.",
+          "hi": "काम को केवल पुरस्कार नहीं, योगदान के रूप में देखें।"
+        },
+        {
+          "en": "Desire and anger can distort judgment.",
+          "hi": "कामना और क्रोध निर्णय क्षमता बिगाड़ सकते हैं।"
+        },
+        {
+          "en": "Responsible action can benefit the wider community.",
+          "hi": "जिम्मेदार कर्म समाज के हित में भी हो सकता है।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Selfless action",
+          "Duty",
+          "Mutual responsibility",
+          "Desire and anger"
+        ],
+        "hi": [
+          "निष्काम कर्म",
+          "कर्तव्य",
+          "पारस्परिक जिम्मेदारी",
+          "कामना और क्रोध"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Do one task that benefits someone else without making praise your main goal.",
+        "hi": "ऐसा एक काम करें जिससे किसी और को लाभ हो, और प्रशंसा को मुख्य उद्देश्य न बनाएँ।"
+      },
+      "important_verses": [
+        {
+          "chapter": 3,
+          "verse": 8,
+          "reference": "3.8"
+        },
+        {
+          "chapter": 3,
+          "verse": 19,
+          "reference": "3.19"
+        },
+        {
+          "chapter": 3,
+          "verse": 30,
+          "reference": "3.30"
+        },
+        {
+          "chapter": 3,
+          "verse": 37,
+          "reference": "3.37"
+        }
+      ]
+    },
+    {
+      "chapter_number": 4,
+      "sanskrit_name": "Jñāna Karma Sannyāsa Yoga",
+      "sanskrit_name_devanagari": "ज्ञानकर्मसंन्यासयोग",
+      "title": {
+        "en": "The Yoga of Knowledge and Renunciation of Action",
+        "hi": "ज्ञान और कर्म-संन्यास योग"
+      },
+      "summary": {
+        "en": "Krishna describes the continuity of spiritual teaching and explains divine descent as a response to the decline of dharma. He explores how action, inaction, knowledge, and renunciation are subtler than they first appear. The wise learn to act without egoistic ownership and understand the wider meaning of duty. Different disciplined practices are described, while knowledge is emphasized as a means of clearing confusion and transforming how action is understood. The chapter encourages sincere learning from a capable teacher, asking questions with humility, and applying insight in life. Wisdom is not merely a collection of facts; it changes the relationship between the self, action, and responsibility.",
+        "hi": "कृष्ण आध्यात्मिक ज्ञान की परंपरा का वर्णन करते हैं और धर्म में गिरावट आने पर उसके पुनर्स्थापन के लिए दिव्य अवतरण की बात बताते हैं। वे समझाते हैं कि कर्म, अकर्म, ज्ञान और संन्यास के अर्थ सूक्ष्म हैं। ज्ञानी व्यक्ति अहंकारपूर्ण स्वामित्व छोड़े हुए कर्म करना और कर्तव्य का व्यापक अर्थ समझना सीखता है। विभिन्न अनुशासित अभ्यासों का उल्लेख है, जबकि ज्ञान को भ्रम दूर करने और कर्म के प्रति दृष्टि बदलने वाला साधन बताया गया है। यह अध्याय योग्य शिक्षक से विनम्रता से सीखने, प्रश्न पूछने और समझ को जीवन में लागू करने को प्रेरित करता है। ज्ञान केवल तथ्यों का संग्रह नहीं; वह आत्मा, कर्म और जिम्मेदारी के संबंध को बदलता है।"
+      },
+      "key_teachings": [
+        {
+          "en": "Seek understanding that transforms conduct, not information alone.",
+          "hi": "ऐसी समझ खोजें जो आचरण बदले, केवल जानकारी न बढ़ाए।"
+        },
+        {
+          "en": "Learn with humility, sincere questions, and discernment.",
+          "hi": "विनम्रता, सच्चे प्रश्न और विवेक से सीखें।"
+        },
+        {
+          "en": "Do not treat ego as the sole owner of every action.",
+          "hi": "हर कर्म का एकमात्र कर्ता अहंकार को न मानें।"
+        },
+        {
+          "en": "Knowledge can clarify duty and action.",
+          "hi": "ज्ञान कर्तव्य और कर्म से जुड़े भ्रम को स्पष्ट कर सकता है।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Restoration of dharma",
+          "Knowledge and action",
+          "Learning",
+          "Freedom from ego"
+        ],
+        "hi": [
+          "धर्म की पुनर्स्थापना",
+          "ज्ञान और कर्म",
+          "सीखना",
+          "अहंकार से मुक्ति"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Ask a trusted, knowledgeable person a sincere question about a responsibility that confuses you.",
+        "hi": "जिस जिम्मेदारी को लेकर उलझन है, उसके बारे में किसी विश्वसनीय जानकार से सच्चा प्रश्न पूछें।"
+      },
+      "important_verses": [
+        {
+          "chapter": 4,
+          "verse": 7,
+          "reference": "4.7"
+        },
+        {
+          "chapter": 4,
+          "verse": 8,
+          "reference": "4.8"
+        },
+        {
+          "chapter": 4,
+          "verse": 18,
+          "reference": "4.18"
+        },
+        {
+          "chapter": 4,
+          "verse": 34,
+          "reference": "4.34"
+        }
+      ]
+    },
+    {
+      "chapter_number": 5,
+      "sanskrit_name": "Karma Sannyāsa Yoga",
+      "sanskrit_name_devanagari": "कर्मसंन्यासयोग",
+      "title": {
+        "en": "The Yoga of Renunciation",
+        "hi": "कर्म-संन्यास योग"
+      },
+      "summary": {
+        "en": "Arjuna asks whether renouncing action or performing action is better. Krishna explains that both can lead toward freedom, but selfless action is often more accessible when done with discipline and without attachment. True renunciation is not merely abandoning duties; it includes releasing possessiveness, hatred, and the belief that identity depends on results. The wise look beyond superficial distinctions and approach others with equal regard. Inner peace grows when actions are done without egoistic grasping and the mind is not constantly pulled by desire. The chapter joins practical engagement with inner detachment: a person can participate in the world while cultivating calm and responsibility.",
+        "hi": "अर्जुन पूछते हैं कि कर्म का त्याग बेहतर है या कर्म करते रहना। कृष्ण बताते हैं कि दोनों मार्ग मुक्ति की ओर ले जा सकते हैं, लेकिन अनुशासन और अनासक्ति से किया गया निष्काम कर्म कई लोगों के लिए अधिक सहज है। सच्चा संन्यास केवल जिम्मेदारियाँ छोड़ना नहीं; इसमें स्वामित्व, द्वेष और परिणामों से अपनी पहचान जोड़ने की आदत छोड़ना भी शामिल है। विवेकी व्यक्ति सतही भेदों से आगे देखकर दूसरों के प्रति समान दृष्टि रखता है। जब कर्म अहंकारपूर्ण पकड़ के बिना होते हैं और मन इच्छा के खिंचाव में नहीं बहता, तब शांति बढ़ती है। संसार में सक्रिय रहते हुए भी आंतरिक अनासक्ति और जिम्मेदारी विकसित की जा सकती है।"
+      },
+      "key_teachings": [
+        {
+          "en": "Renunciation is an inner release, not simply withdrawal.",
+          "hi": "संन्यास आंतरिक पकड़ छोड़ना है, केवल पीछे हटना नहीं।"
+        },
+        {
+          "en": "Selfless action can unite responsibility with inner freedom.",
+          "hi": "निष्काम कर्म जिम्मेदारी और आंतरिक स्वतंत्रता जोड़ सकता है।"
+        },
+        {
+          "en": "Treat people with fairness beyond outward status.",
+          "hi": "बाहरी स्थिति से परे लोगों के साथ निष्पक्ष रहें।"
+        },
+        {
+          "en": "Peace grows when desire does not dictate every action.",
+          "hi": "इच्छा के दबाव से मुक्त कर्म शांति बढ़ा सकता है।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Action and renunciation",
+          "Detachment",
+          "Equal vision",
+          "Peace"
+        ],
+        "hi": [
+          "कर्म और संन्यास",
+          "अनासक्ति",
+          "समदृष्टि",
+          "शांति"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Meet your responsibilities while loosening one expectation or resentment today.",
+        "hi": "अपनी जिम्मेदारियाँ निभाते हुए आज एक अपेक्षा या नाराज़गी की पकड़ ढीली करें।"
+      },
+      "important_verses": [
+        {
+          "chapter": 5,
+          "verse": 2,
+          "reference": "5.2"
+        },
+        {
+          "chapter": 5,
+          "verse": 10,
+          "reference": "5.10"
+        },
+        {
+          "chapter": 5,
+          "verse": 18,
+          "reference": "5.18"
+        },
+        {
+          "chapter": 5,
+          "verse": 29,
+          "reference": "5.29"
+        }
+      ]
+    },
+    {
+      "chapter_number": 6,
+      "sanskrit_name": "Dhyāna Yoga / Ātma-Saṃyama Yoga",
+      "sanskrit_name_devanagari": "ध्यानयोग / आत्मसंयमयोग",
+      "title": {
+        "en": "The Yoga of Meditation and Self-Mastery",
+        "hi": "ध्यान और आत्म-संयम योग"
+      },
+      "summary": {
+        "en": "Krishna presents disciplined action and meditation as complementary. Steadiness grows through moderate habits, regulated effort, and trained attention rather than excess or neglect. Meditation calls for a suitable setting, a stable posture, and repeatedly returning the wandering mind to its focus. Arjuna observes that the mind is difficult to control; Krishna acknowledges this and points to practice and detachment. He also reassures that sincere effort is not wasted even if perfection is not reached immediately. The guidance is practical: progress comes through patience, consistency, and balanced living, not self-punishment or demands for instant mastery.",
+        "hi": "कृष्ण अनुशासित कर्म और ध्यान को पूरक बताते हैं। संतुलित आदतों, नियमित प्रयास और प्रशिक्षित ध्यान से स्थिरता बढ़ती है; अति और उपेक्षा दोनों से बचना चाहिए। ध्यान के लिए उपयुक्त स्थान, स्थिर आसन और भटकते मन को बार-बार चुने हुए विषय पर लौटाना आवश्यक है। अर्जुन कहते हैं कि मन को नियंत्रित करना कठिन है; कृष्ण इस कठिनाई को स्वीकार कर अभ्यास और वैराग्य का मार्ग बताते हैं। वे आश्वासन देते हैं कि सच्चा प्रयास व्यर्थ नहीं जाता, भले ही तुरंत पूर्णता न मिले। प्रगति धैर्य, निरंतरता और संतुलित जीवन से आती है, आत्म-दंड या तुरंत सिद्धि की अपेक्षा से नहीं।"
+      },
+      "key_teachings": [
+        {
+          "en": "Return attention gently to the chosen focus.",
+          "hi": "ध्यान को शांतिपूर्वक चुने हुए विषय पर लौटाएँ।"
+        },
+        {
+          "en": "Balance sleep, food, activity, and rest.",
+          "hi": "नींद, भोजन, गतिविधि और विश्राम में संतुलन रखें।"
+        },
+        {
+          "en": "Practice and detachment steady a restless mind.",
+          "hi": "अभ्यास और वैराग्य चंचल मन को स्थिर करते हैं।"
+        },
+        {
+          "en": "Sincere effort matters even when progress is gradual.",
+          "hi": "धीमी प्रगति में भी सच्चा प्रयास मूल्यवान है।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Meditation",
+          "Self-discipline",
+          "Balanced living",
+          "Persistence"
+        ],
+        "hi": [
+          "ध्यान",
+          "आत्म-अनुशासन",
+          "संतुलित जीवन",
+          "निरंतर प्रयास"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Sit quietly for five minutes; when attention wanders, notice it and return to your breath.",
+        "hi": "पाँच मिनट शांत बैठें; ध्यान भटके तो उसे पहचानकर साँस पर लौटें।"
+      },
+      "important_verses": [
+        {
+          "chapter": 6,
+          "verse": 5,
+          "reference": "6.5"
+        },
+        {
+          "chapter": 6,
+          "verse": 17,
+          "reference": "6.17"
+        },
+        {
+          "chapter": 6,
+          "verse": 26,
+          "reference": "6.26"
+        },
+        {
+          "chapter": 6,
+          "verse": 35,
+          "reference": "6.35"
+        }
+      ]
+    },
+    {
+      "chapter_number": 7,
+      "sanskrit_name": "Jñāna Vijñāna Yoga",
+      "sanskrit_name_devanagari": "ज्ञानविज्ञानयोग",
+      "title": {
+        "en": "The Yoga of Knowledge and Realization",
+        "hi": "ज्ञान-विज्ञान योग"
+      },
+      "summary": {
+        "en": "Krishna joins knowledge of the divine with realization through lived understanding. He describes material elements and consciousness, presenting existence as dependent on a deeper source. People approach the divine from different experiences: distress, curiosity, practical needs, or the search for wisdom. Yet attachment and the qualities of nature can cloud perception, making deeper reality difficult to recognize. The chapter encourages looking beyond appearances and reflecting on what sustains life. Its purpose is not merely to collect religious ideas, but to connect reflection, devotion, and experience so that understanding of the world becomes more integrated.",
+        "hi": "कृष्ण दिव्य ज्ञान को जीवन-अनुभव से प्राप्त अनुभूति के साथ जोड़ते हैं। वे भौतिक तत्त्वों और चेतना का वर्णन करते हुए अस्तित्व को एक गहरे आधार पर निर्भर बताते हैं। लोग दुःख, जिज्ञासा, व्यावहारिक जरूरतों या ज्ञान की खोज जैसे अलग-अलग कारणों से ईश्वर की ओर आते हैं। आसक्ति और प्रकृति के गुण दृष्टि को ढक सकते हैं, जिससे गहरी वास्तविकता पहचानना कठिन हो जाता है। यह अध्याय बाहरी रूपों से आगे देखने और जीवन को सहारा देने वाले आधार पर विचार करने को प्रेरित करता है। उद्देश्य केवल धार्मिक विचार जमा करना नहीं, बल्कि चिंतन, भक्ति और अनुभव को जोड़कर संसार की अधिक समग्र समझ विकसित करना है।"
+      },
+      "key_teachings": [
+        {
+          "en": "Knowledge deepens when joined with lived realization.",
+          "hi": "जीवन-अनुभव से जुड़ने पर ज्ञान गहरा होता है।"
+        },
+        {
+          "en": "People begin inquiry from different needs and experiences.",
+          "hi": "लोग अलग-अलग जरूरतों और अनुभवों से खोज शुरू करते हैं।"
+        },
+        {
+          "en": "Look beyond appearances to what sustains life.",
+          "hi": "जीवन को सहारा देने वाले आधार को समझने के लिए बाहरी रूपों से आगे देखें।"
+        },
+        {
+          "en": "Attachment can narrow perception.",
+          "hi": "आसक्ति दृष्टि को सीमित कर सकती है।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Knowledge and realization",
+          "Nature and consciousness",
+          "Devotion",
+          "Limits of perception"
+        ],
+        "hi": [
+          "ज्ञान और अनुभूति",
+          "प्रकृति और चेतना",
+          "भक्ति",
+          "दृष्टि की सीमाएँ"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Ask what experience or reflection has shaped one belief you hold strongly.",
+        "hi": "अपने किसी दृढ़ विश्वास के पीछे के अनुभव या चिंतन पर विचार करें।"
+      },
+      "important_verses": [
+        {
+          "chapter": 7,
+          "verse": 4,
+          "reference": "7.4"
+        },
+        {
+          "chapter": 7,
+          "verse": 5,
+          "reference": "7.5"
+        },
+        {
+          "chapter": 7,
+          "verse": 16,
+          "reference": "7.16"
+        },
+        {
+          "chapter": 7,
+          "verse": 19,
+          "reference": "7.19"
+        }
+      ]
+    },
+    {
+      "chapter_number": 8,
+      "sanskrit_name": "Akṣara Brahma Yoga",
+      "sanskrit_name_devanagari": "अक्षरब्रह्मयोग",
+      "title": {
+        "en": "The Yoga of the Imperishable Absolute",
+        "hi": "अक्षर ब्रह्म योग"
+      },
+      "summary": {
+        "en": "Arjuna asks Krishna to clarify foundational terms such as Brahman, the self, action, and the divine principle. Krishna relates a person’s deepest orientation to what the mind remembers and seeks, especially at life’s end. He emphasizes sustained remembrance and regular discipline rather than a last-minute effort. The chapter discusses cosmic cycles and paths associated with departure from embodied life, reflecting traditional spiritual cosmology. Its central invitation is to cultivate a steady orientation toward what is enduring throughout life, not to rely only on the circumstances of a final moment. Daily attention, values, and practice shape the mind over time.",
+        "hi": "अर्जुन कृष्ण से ब्रह्म, आत्मा, कर्म और दिव्य तत्त्व जैसे मूल विचारों का अर्थ पूछते हैं। कृष्ण व्यक्ति की गहरी मानसिक दिशा को उसके स्मरण और मन के अभ्यास से जोड़ते हैं, विशेषकर जीवन के अंतिम समय में। वे नियमित साधना और निरंतर स्मरण पर जोर देते हैं, केवल अंतिम क्षण के प्रयास पर नहीं। अध्याय ब्रह्मांडीय चक्रों और देह त्याग से जुड़े मार्गों का वर्णन करता है, जो पारंपरिक आध्यात्मिक विश्व-दृष्टि का हिस्सा हैं। इसका केंद्रीय संदेश है कि स्थायी तत्त्व की ओर मन को पूरे जीवन में लगाना चाहिए। दैनिक ध्यान, मूल्य और अभ्यास समय के साथ मन की दिशा बनाते हैं।"
+      },
+      "key_teachings": [
+        {
+          "en": "Regular practice shapes the mind’s direction under pressure.",
+          "hi": "नियमित अभ्यास कठिन समय में मन की दिशा बनाता है।"
+        },
+        {
+          "en": "Keep enduring values in view throughout life.",
+          "hi": "स्थायी मूल्यों को पूरे जीवन में स्मरण रखें।"
+        },
+        {
+          "en": "Spiritual discipline grows through continuity.",
+          "hi": "आध्यात्मिक अनुशासन निरंतरता से विकसित होता है।"
+        },
+        {
+          "en": "This chapter presents traditional spiritual cosmology, not a scientific model.",
+          "hi": "यह अध्याय पारंपरिक आध्यात्मिक दृष्टि है, वैज्ञानिक मॉडल नहीं।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Brahman and self",
+          "Remembrance",
+          "Practice",
+          "Cosmic cycles"
+        ],
+        "hi": [
+          "ब्रह्म और आत्मा",
+          "स्मरण",
+          "साधना",
+          "ब्रह्मांडीय चक्र"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Build a small daily practice around a value you want to remember in difficult times.",
+        "hi": "कठिन समय में याद रखना चाहते हैं ऐसे मूल्य के लिए छोटी दैनिक साधना बनाएँ।"
+      },
+      "important_verses": [
+        {
+          "chapter": 8,
+          "verse": 5,
+          "reference": "8.5"
+        },
+        {
+          "chapter": 8,
+          "verse": 7,
+          "reference": "8.7"
+        },
+        {
+          "chapter": 8,
+          "verse": 13,
+          "reference": "8.13"
+        },
+        {
+          "chapter": 8,
+          "verse": 15,
+          "reference": "8.15"
+        }
+      ]
+    },
+    {
+      "chapter_number": 9,
+      "sanskrit_name": "Rāja Vidyā Rāja Guhya Yoga",
+      "sanskrit_name_devanagari": "राजविद्याराजगुह्ययोग",
+      "title": {
+        "en": "The Yoga of Royal Knowledge and Royal Mystery",
+        "hi": "राजविद्या राजगुह्य योग"
+      },
+      "summary": {
+        "en": "Krishna describes knowledge that joins divine presence in existence with a personal path of devotion. The world rests in the divine, yet the divine is not limited by the world. Sincere devotion matters more than outward grandeur: even a modest offering can be meaningful when given with genuine love. Krishna invites people to direct ordinary actions, meals, gifts, and disciplines toward the sacred. The chapter also offers hope that a person’s past need not prevent a sincere change of direction. Its emphasis is on accessible devotion, inner sincerity, and remembering the sacred in daily life rather than reserving spirituality for elaborate rituals.",
+        "hi": "कृष्ण ऐसा ज्ञान बताते हैं जो समस्त अस्तित्व में दिव्य उपस्थिति और व्यक्तिगत भक्ति को जोड़ता है। संसार दिव्य आधार पर स्थित है, लेकिन दिव्य तत्त्व संसार तक सीमित नहीं है। बाहरी भव्यता से अधिक सच्ची भक्ति महत्त्वपूर्ण है; प्रेम से अर्पित छोटी भेंट भी अर्थपूर्ण हो सकती है। कृष्ण दैनिक कर्म, भोजन, दान और अनुशासन को पवित्र भावना से जोड़ने के लिए प्रेरित करते हैं। यह अध्याय आशा देता है कि अतीत किसी व्यक्ति को सच्चा परिवर्तन करने से हमेशा नहीं रोकता। इसका जोर सहज भक्ति, आंतरिक ईमानदारी और रोज़मर्रा के जीवन में पवित्रता का स्मरण रखने पर है, न कि केवल भव्य अनुष्ठानों पर।"
+      },
+      "key_teachings": [
+        {
+          "en": "Sincerity matters more than outward display.",
+          "hi": "भक्ति में दिखावे से अधिक सच्चाई महत्त्वपूर्ण है।"
+        },
+        {
+          "en": "Ordinary actions can become meaningful when done with devotion.",
+          "hi": "समर्पित भावना से साधारण कर्म भी अर्थपूर्ण बन सकते हैं।"
+        },
+        {
+          "en": "A person’s past need not prevent sincere change.",
+          "hi": "अतीत सच्चे परिवर्तन को हमेशा नहीं रोकता।"
+        },
+        {
+          "en": "Remember the sacred in everyday life.",
+          "hi": "दैनिक जीवन में भी पवित्रता का स्मरण रखें।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Devotion",
+          "Divine presence",
+          "Sincerity",
+          "Transformation"
+        ],
+        "hi": [
+          "भक्ति",
+          "दिव्य उपस्थिति",
+          "सच्चाई",
+          "परिवर्तन"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Do one ordinary task with care and gratitude without seeking recognition.",
+        "hi": "आज कोई साधारण काम सावधानी और कृतज्ञता से करें, बिना प्रशंसा की अपेक्षा के।"
+      },
+      "important_verses": [
+        {
+          "chapter": 9,
+          "verse": 22,
+          "reference": "9.22"
+        },
+        {
+          "chapter": 9,
+          "verse": 26,
+          "reference": "9.26"
+        },
+        {
+          "chapter": 9,
+          "verse": 27,
+          "reference": "9.27"
+        },
+        {
+          "chapter": 9,
+          "verse": 30,
+          "reference": "9.30"
+        }
+      ]
+    },
+    {
+      "chapter_number": 10,
+      "sanskrit_name": "Vibhūti Yoga",
+      "sanskrit_name_devanagari": "विभूतियोग",
+      "title": {
+        "en": "The Yoga of Divine Manifestations",
+        "hi": "विभूति योग"
+      },
+      "summary": {
+        "en": "Arjuna asks how to recognize Krishna’s presence in the world. Krishna names examples of excellence, power, beauty, and significance in nature, knowledge, and human experience as expressions of divine splendour. The examples are not an exhaustive list; they train the mind to notice the sacred through what is especially admirable or awe-inspiring. The chapter invites a shift from seeing disconnected objects to noticing a deeper source behind the world’s variety. It acknowledges that divine manifestations exceed any finite catalogue. The practical invitation is to let wonder, humility, and gratitude grow when encountering exceptional beauty, courage, wisdom, or natural power.",
+        "hi": "अर्जुन पूछते हैं कि संसार में कृष्ण की उपस्थिति कैसे पहचानें। कृष्ण प्रकृति, ज्ञान और मानवीय अनुभव में उत्कृष्टता, शक्ति, सुंदरता और महत्त्व के उदाहरण बताते हैं, जिन्हें दिव्य वैभव की अभिव्यक्तियाँ समझा जा सकता है। यह सूची पूर्ण नहीं है; इसका उद्देश्य अद्भुत और प्रशंसनीय चीज़ों में पवित्रता पहचानना है। यह अध्याय संसार को असंबद्ध वस्तुओं के बजाय उसकी विविधता के पीछे मौजूद गहरे आधार से देखने को प्रेरित करता है। दिव्य अभिव्यक्तियाँ किसी सीमित सूची से परे हैं। व्यावहारिक संदेश है कि सुंदरता, साहस, ज्ञान या प्रकृति की शक्ति देखकर विस्मय, विनम्रता और कृतज्ञता विकसित करें।"
+      },
+      "key_teachings": [
+        {
+          "en": "Let excellence awaken wonder, not envy or arrogance.",
+          "hi": "उत्कृष्टता से ईर्ष्या या अहंकार नहीं, विस्मय जागने दें।"
+        },
+        {
+          "en": "Notice sources of strength beyond personal achievement.",
+          "hi": "व्यक्तिगत उपलब्धि से आगे शक्ति के स्रोत पहचानें।"
+        },
+        {
+          "en": "Examples point toward a greater reality but do not exhaust it.",
+          "hi": "उदाहरण व्यापक वास्तविकता की ओर संकेत करते हैं, उसे सीमित नहीं करते।"
+        },
+        {
+          "en": "Gratitude deepens attention to the world.",
+          "hi": "कृतज्ञता संसार के प्रति सजगता बढ़ाती है।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Divine manifestations",
+          "Wonder",
+          "Humility",
+          "Unity in diversity"
+        ],
+        "hi": [
+          "दिव्य विभूतियाँ",
+          "विस्मय",
+          "विनम्रता",
+          "विविधता में एकता"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Notice one example of beauty, courage, or wisdom and appreciate it without comparison.",
+        "hi": "सुंदरता, साहस या ज्ञान का एक उदाहरण देखकर तुलना के बजाय उसकी सराहना करें।"
+      },
+      "important_verses": [
+        {
+          "chapter": 10,
+          "verse": 8,
+          "reference": "10.8"
+        },
+        {
+          "chapter": 10,
+          "verse": 20,
+          "reference": "10.20"
+        },
+        {
+          "chapter": 10,
+          "verse": 41,
+          "reference": "10.41"
+        },
+        {
+          "chapter": 10,
+          "verse": 42,
+          "reference": "10.42"
+        }
+      ]
+    },
+    {
+      "chapter_number": 11,
+      "sanskrit_name": "Viśvarūpa Darśana Yoga",
+      "sanskrit_name_devanagari": "विश्वरूपदर्शनयोग",
+      "title": {
+        "en": "The Yoga of the Vision of the Universal Form",
+        "hi": "विश्वरूप दर्शन योग"
+      },
+      "summary": {
+        "en": "At Arjuna’s request, Krishna reveals the universal form, a vision containing countless beings, powers, and the movement of time. Arjuna experiences wonder and fear as creation and destruction appear together. The vision challenges an ordinary limited view and shows events unfolding on a scale beyond one person’s perspective. Arjuna praises Krishna, acknowledges his own familiarity and mistakes, and asks to see the gentler form he knows. Krishna returns to a familiar appearance and emphasizes devotion. The chapter holds awe and humility together: insight into vastness can unsettle the ego, while devotion and responsibility help a person return to purposeful action.",
+        "hi": "अर्जुन के अनुरोध पर कृष्ण विश्वरूप दिखाते हैं, जिसमें असंख्य प्राणी, शक्तियाँ और समय की गति समाहित हैं। सृष्टि और विनाश को साथ देखकर अर्जुन विस्मय और भय अनुभव करते हैं। यह दर्शन सीमित दृष्टि को चुनौती देता है और दिखाता है कि घटनाएँ एक व्यक्ति की समझ से कहीं बड़े विस्तार में घटती हैं। अर्जुन कृष्ण की स्तुति करते हैं, अपने व्यवहार की भूलें स्वीकारते हैं और परिचित सौम्य रूप देखने का अनुरोध करते हैं। कृष्ण परिचित रूप में लौटकर भक्ति का महत्त्व बताते हैं। यह अध्याय विस्मय और विनम्रता को जोड़ता है: विराटता की अनुभूति अहंकार को हिला सकती है, जबकि भक्ति और जिम्मेदारी उद्देश्यपूर्ण कर्म की ओर लौटाती हैं।"
+      },
+      "key_teachings": [
+        {
+          "en": "A wider perspective reveals the limits of personal viewpoint.",
+          "hi": "व्यापक दृष्टि व्यक्तिगत समझ की सीमाएँ दिखाती है।"
+        },
+        {
+          "en": "The vision includes both creation and destruction.",
+          "hi": "इस दर्शन में सृष्टि और विनाश दोनों शामिल हैं।"
+        },
+        {
+          "en": "Awe can encourage humility rather than a sense of control.",
+          "hi": "विस्मय नियंत्रण के अहंकार के बजाय विनम्रता बढ़ा सकता है।"
+        },
+        {
+          "en": "Return to responsible action after profound reflection.",
+          "hi": "गहरे चिंतन के बाद जिम्मेदार कर्म की ओर लौटें।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Universal form",
+          "Time and change",
+          "Awe and fear",
+          "Humility and devotion"
+        ],
+        "hi": [
+          "विश्वरूप",
+          "समय और परिवर्तन",
+          "विस्मय और भय",
+          "विनम्रता और भक्ति"
+        ]
+      },
+      "practical_reflection": {
+        "en": "When events feel centered on you, consider the larger forces and people involved.",
+        "hi": "जब लगे कि सब कुछ आपके इर्द-गिर्द है, तो व्यापक परिस्थितियों और लोगों पर विचार करें।"
+      },
+      "important_verses": [
+        {
+          "chapter": 11,
+          "verse": 12,
+          "reference": "11.12"
+        },
+        {
+          "chapter": 11,
+          "verse": 32,
+          "reference": "11.32"
+        },
+        {
+          "chapter": 11,
+          "verse": 45,
+          "reference": "11.45"
+        },
+        {
+          "chapter": 11,
+          "verse": 55,
+          "reference": "11.55"
+        }
+      ]
+    },
+    {
+      "chapter_number": 12,
+      "sanskrit_name": "Bhakti Yoga",
+      "sanskrit_name_devanagari": "भक्तियोग",
+      "title": {
+        "en": "The Yoga of Devotion",
+        "hi": "भक्ति योग"
+      },
+      "summary": {
+        "en": "Arjuna asks about devotion to a personal form of the divine and contemplation of the unmanifest absolute. Krishna recognizes both approaches but describes focused devotion as accessible for many people. He portrays a devotee as compassionate, patient, balanced in pleasure and pain, self-controlled, and not driven by hatred or ego. Devotion is expressed not only through worship but through character and relationships. Krishna also offers a gradual path: steady attention, regular practice, action offered in service, and relinquishing attachment to results. The chapter makes spiritual life concrete through everyday conduct and the quality of one’s heart.",
+        "hi": "अर्जुन पूछते हैं कि साकार दिव्य रूप की भक्ति बेहतर है या अव्यक्त परम तत्त्व का ध्यान। कृष्ण दोनों मार्ग स्वीकारते हैं, लेकिन बताते हैं कि अनेक लोगों के लिए एकाग्र भक्ति सहज हो सकती है। वे भक्त को करुणामय, धैर्यवान, सुख-दुःख में संतुलित, आत्म-संयमी और द्वेष-अहंकार से दूर बताते हैं। भक्ति केवल पूजा में नहीं, चरित्र और संबंधों में भी प्रकट होती है। कृष्ण क्रमिक मार्ग बताते हैं: एकाग्रता, नियमित अभ्यास, सेवा-भाव से कर्म और फल की आसक्ति छोड़ना। यह अध्याय दैनिक आचरण और हृदय की गुणवत्ता के माध्यम से आध्यात्मिक जीवन को ठोस रूप देता है।"
+      },
+      "key_teachings": [
+        {
+          "en": "Devotion is reflected in compassion and freedom from hatred.",
+          "hi": "भक्ति करुणा और द्वेष से मुक्त रहने में दिखाई देती है।"
+        },
+        {
+          "en": "Patience and steadiness are part of spiritual practice.",
+          "hi": "धैर्य और स्थिरता आध्यात्मिक अभ्यास का हिस्सा हैं।"
+        },
+        {
+          "en": "If concentration is difficult, begin with practice and service.",
+          "hi": "एकाग्रता कठिन हो तो अभ्यास और सेवा से शुरू करें।"
+        },
+        {
+          "en": "Character and relationships reveal devotion.",
+          "hi": "चरित्र और संबंध भक्ति की गहराई दिखाते हैं।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Devotion",
+          "Compassion",
+          "Steadiness",
+          "Gradual practice"
+        ],
+        "hi": [
+          "भक्ति",
+          "करुणा",
+          "स्थिरता",
+          "क्रमिक साधना"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Practice patience or compassionate listening in one conversation today.",
+        "hi": "आज एक बातचीत में धैर्य या करुणापूर्ण सुनने का अभ्यास करें।"
+      },
+      "important_verses": [
+        {
+          "chapter": 12,
+          "verse": 6,
+          "reference": "12.6"
+        },
+        {
+          "chapter": 12,
+          "verse": 13,
+          "reference": "12.13"
+        },
+        {
+          "chapter": 12,
+          "verse": 15,
+          "reference": "12.15"
+        },
+        {
+          "chapter": 12,
+          "verse": 20,
+          "reference": "12.20"
+        }
+      ]
+    },
+    {
+      "chapter_number": 13,
+      "sanskrit_name": "Kṣetra Kṣetrajña Vibhāga Yoga",
+      "sanskrit_name_devanagari": "क्षेत्रक्षेत्रज्ञविभागयोग",
+      "title": {
+        "en": "The Yoga of the Field and Its Knower",
+        "hi": "क्षेत्र और क्षेत्रज्ञ का योग"
+      },
+      "summary": {
+        "en": "Krishna distinguishes the field—the body, mind, and changing experiences—from the knower who is aware of them. This distinction supports self-inquiry: thoughts, feelings, sensations, and circumstances can be observed rather than treated as the whole of one’s identity. The chapter lists qualities associated with knowledge, including humility, patience, non-harm, self-discipline, and a sustained search for truth. It also discusses nature, consciousness, and the supreme principle. Interpretations differ across philosophical traditions, so the ideas should not be reduced to a single modern psychological claim. The central invitation is to examine experience carefully and distinguish what changes from the awareness that knows change.",
+        "hi": "कृष्ण क्षेत्र—शरीर, मन और बदलते अनुभवों—तथा उन्हें जानने वाले के बीच अंतर बताते हैं। यह भेद आत्म-अन्वेषण में सहायक है: विचार, भावनाएँ और परिस्थितियाँ देखी जा सकती हैं, उन्हें पूरी पहचान मानना आवश्यक नहीं। अध्याय ज्ञान के गुणों में विनम्रता, धैर्य, अहिंसा, आत्म-अनुशासन और सत्य की खोज को शामिल करता है। प्रकृति, चेतना और परम तत्त्व पर भी विचार होता है। अलग-अलग दार्शनिक परंपराएँ इन विचारों की अलग व्याख्या करती हैं; इन्हें किसी एक आधुनिक मनोवैज्ञानिक दावे तक सीमित नहीं करना चाहिए। केंद्रीय संदेश है कि अनुभव को ध्यान से देखें और बदलती वस्तुओं तथा उन्हें जानने वाली चेतना में अंतर समझें।"
+      },
+      "key_teachings": [
+        {
+          "en": "Observe thoughts without assuming they define your whole identity.",
+          "hi": "विचारों को देखें, पर उन्हें पूरी पहचान न मानें।"
+        },
+        {
+          "en": "Humility, patience, non-harm, and discipline support knowledge.",
+          "hi": "विनम्रता, धैर्य, अहिंसा और अनुशासन ज्ञान को सहारा देते हैं।"
+        },
+        {
+          "en": "Distinguish changing experience from awareness of it.",
+          "hi": "बदलते अनुभव और उन्हें जानने वाली चेतना में अंतर करें।"
+        },
+        {
+          "en": "Philosophical interpretations may differ.",
+          "hi": "दार्शनिक व्याख्याएँ अलग-अलग हो सकती हैं।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Field and knower",
+          "Self-inquiry",
+          "Qualities of knowledge",
+          "Nature and consciousness"
+        ],
+        "hi": [
+          "क्षेत्र और क्षेत्रज्ञ",
+          "आत्म-अन्वेषण",
+          "ज्ञान के गुण",
+          "प्रकृति और चेतना"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Describe a strong emotion as an experience you notice, not your entire identity.",
+        "hi": "तीव्र भावना को अपनी पूरी पहचान नहीं, बल्कि एक अनुभव के रूप में पहचानें।"
+      },
+      "important_verses": [
+        {
+          "chapter": 13,
+          "verse": 2,
+          "reference": "13.2"
+        },
+        {
+          "chapter": 13,
+          "verse": 7,
+          "reference": "13.7"
+        },
+        {
+          "chapter": 13,
+          "verse": 22,
+          "reference": "13.22"
+        },
+        {
+          "chapter": 13,
+          "verse": 34,
+          "reference": "13.34"
+        }
+      ]
+    },
+    {
+      "chapter_number": 14,
+      "sanskrit_name": "Guṇatraya Vibhāga Yoga",
+      "sanskrit_name_devanagari": "गुणत्रयविभागयोग",
+      "title": {
+        "en": "The Yoga of the Three Qualities",
+        "hi": "तीन गुणों का विभाग योग"
+      },
+      "summary": {
+        "en": "Krishna describes three qualities through which material nature shapes experience: sattva, associated with clarity and harmony; rajas, with activity and desire; and tamas, with inertia and obscurity. These qualities influence knowledge, action, attachment, and mood, and their prominence changes with circumstances. The teaching encourages observation rather than fixed labeling: notice which quality is active and how it affects judgment. Even clarity can become attachment when one clings to comfort or an identity of being wise. The chapter aims to understand these patterns and cultivate freedom from being controlled by them, while remaining grounded in discernment and devotion.",
+        "hi": "कृष्ण प्रकृति के तीन गुण बताते हैं: सत्त्व, जो स्पष्टता और सामंजस्य से जुड़ा है; रजस्, जो गतिविधि और इच्छा से जुड़ा है; और तमस्, जो जड़ता और अस्पष्टता से जुड़ा है। ये गुण ज्ञान, कर्म, आसक्ति और मनोदशा को प्रभावित करते हैं और परिस्थितियों के अनुसार बदलते हैं। यह शिक्षा स्थायी लेबल लगाने के बजाय अवलोकन करने को कहती है: पहचानें कि कौन-सा गुण सक्रिय है और निर्णय पर उसका क्या प्रभाव है। स्पष्टता भी आसक्ति बन सकती है, यदि कोई आराम या ज्ञानी होने की पहचान से चिपक जाए। उद्देश्य इन प्रवृत्तियों को समझना और विवेक तथा भक्ति के सहारे इनके नियंत्रण से ऊपर उठना है।"
+      },
+      "key_teachings": [
+        {
+          "en": "Notice whether clarity, restless desire, or inertia shapes your response.",
+          "hi": "पहचानें कि प्रतिक्रिया को स्पष्टता, बेचैन इच्छा या जड़ता प्रभावित कर रही है।"
+        },
+        {
+          "en": "Do not turn temporary states into permanent labels.",
+          "hi": "अस्थायी मनोदशाओं को स्थायी लेबल न बनाएँ।"
+        },
+        {
+          "en": "Pleasant states can also create attachment.",
+          "hi": "सुखद अवस्थाएँ भी आसक्ति बना सकती हैं।"
+        },
+        {
+          "en": "Self-observation creates space for deliberate response.",
+          "hi": "आत्म-अवलोकन सोच-समझकर प्रतिक्रिया देने की जगह बनाता है।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Sattva, rajas, tamas",
+          "Nature and behavior",
+          "Attachment",
+          "Transcending the qualities"
+        ],
+        "hi": [
+          "सत्त्व, रजस्, तमस्",
+          "प्रकृति और व्यवहार",
+          "आसक्ति",
+          "गुणों से परे जाना"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Notice your state before reacting and choose one small action that restores balance.",
+        "hi": "प्रतिक्रिया से पहले मन की स्थिति पहचानें और संतुलन लौटाने वाला छोटा कदम चुनें।"
+      },
+      "important_verses": [
+        {
+          "chapter": 14,
+          "verse": 5,
+          "reference": "14.5"
+        },
+        {
+          "chapter": 14,
+          "verse": 6,
+          "reference": "14.6"
+        },
+        {
+          "chapter": 14,
+          "verse": 7,
+          "reference": "14.7"
+        },
+        {
+          "chapter": 14,
+          "verse": 8,
+          "reference": "14.8"
+        },
+        {
+          "chapter": 14,
+          "verse": 22,
+          "reference": "14.22"
+        }
+      ]
+    },
+    {
+      "chapter_number": 15,
+      "sanskrit_name": "Puruṣottama Yoga",
+      "sanskrit_name_devanagari": "पुरुषोत्तमयोग",
+      "title": {
+        "en": "The Yoga of the Supreme Person",
+        "hi": "पुरुषोत्तम योग"
+      },
+      "summary": {
+        "en": "Krishna uses the image of a tree with roots above and branches below to describe worldly existence, where forms and attachments can keep beings entangled. The tree is to be understood and cut down through detachment so the seeker can discover the enduring source beyond it. The chapter discusses the self’s journey through embodied life and describes the divine as the sustaining presence behind memory, understanding, and life. Krishna distinguishes the perishable, the imperishable, and the Supreme Person who transcends both. The teaching asks readers not to confuse temporary roles and circumstances with their deepest identity. Freedom requires discernment, non-attachment, and orientation toward what endures.",
+        "hi": "कृष्ण ऊपर जड़ों और नीचे शाखाओं वाले वृक्ष का रूपक देते हैं, जो संसार और उसकी आसक्तियों को दर्शाता है। इस वृक्ष को समझकर वैराग्य से काटना आवश्यक है, ताकि साधक स्थायी आधार पहचान सके। अध्याय देहधारी जीवन में जीव की यात्रा और स्मृति, समझ तथा जीवन को सहारा देने वाली दिव्य उपस्थिति का वर्णन करता है। कृष्ण नश्वर, अविनाशी और इन दोनों से परे पुरुषोत्तम के बीच अंतर बताते हैं। यह शिक्षा अस्थायी भूमिकाओं और परिस्थितियों को अपनी गहरी पहचान न मानने के लिए प्रेरित करती है। स्वतंत्रता के लिए विवेक, अनासक्ति और स्थायी तत्त्व की ओर मन लगाना आवश्यक है।"
+      },
+      "key_teachings": [
+        {
+          "en": "Do not mistake temporary roles for your deepest identity.",
+          "hi": "अस्थायी भूमिकाओं को अपनी गहरी पहचान न मानें।"
+        },
+        {
+          "en": "Discernment and detachment loosen worldly entanglement.",
+          "hi": "विवेक और वैराग्य सांसारिक उलझनें कम करते हैं।"
+        },
+        {
+          "en": "Reflect on what sustains memory, understanding, and life.",
+          "hi": "स्मृति, समझ और जीवन को सहारा देने वाले आधार पर विचार करें।"
+        },
+        {
+          "en": "The chapter distinguishes the perishable, imperishable, and Supreme Person.",
+          "hi": "अध्याय नश्वर, अविनाशी और पुरुषोत्तम में अंतर बताता है।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "World-tree metaphor",
+          "Attachment and freedom",
+          "The self",
+          "The Supreme Person"
+        ],
+        "hi": [
+          "संसार-वृक्ष का रूपक",
+          "आसक्ति और स्वतंत्रता",
+          "जीव",
+          "पुरुषोत्तम"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Remember that a role or possession is part of your life, not the whole of you.",
+        "hi": "याद रखें कि कोई भूमिका या वस्तु आपके जीवन का हिस्सा है, आपका संपूर्ण अस्तित्व नहीं।"
+      },
+      "important_verses": [
+        {
+          "chapter": 15,
+          "verse": 1,
+          "reference": "15.1"
+        },
+        {
+          "chapter": 15,
+          "verse": 3,
+          "reference": "15.3"
+        },
+        {
+          "chapter": 15,
+          "verse": 7,
+          "reference": "15.7"
+        },
+        {
+          "chapter": 15,
+          "verse": 15,
+          "reference": "15.15"
+        },
+        {
+          "chapter": 15,
+          "verse": 18,
+          "reference": "15.18"
+        }
+      ]
+    },
+    {
+      "chapter_number": 16,
+      "sanskrit_name": "Daivāsura Sampad Vibhāga Yoga",
+      "sanskrit_name_devanagari": "दैवासुरसम्पद्विभागयोग",
+      "title": {
+        "en": "The Yoga of Divine and Demonic Qualities",
+        "hi": "दैवी और आसुरी संपदा का विभाग योग"
+      },
+      "summary": {
+        "en": "Krishna contrasts qualities that support well-being—fearlessness, honesty, self-restraint, compassion, and humility—with patterns rooted in hypocrisy, arrogance, anger, harshness, and greed. These descriptions concern dispositions and conduct, not permission to condemn entire groups of people. Unchecked desire and ego can distort judgment and lead to harmful choices. Ethical life therefore requires attention to motives as well as outward actions. Krishna warns against being governed by impulse and encourages using sound principles as a guide. Read constructively, the chapter invites self-examination: which habits build trust and reduce harm, and which increase conflict and suffering?",
+        "hi": "कृष्ण कल्याण को सहारा देने वाले गुणों—निर्भयता, ईमानदारी, आत्म-संयम, करुणा और विनम्रता—की तुलना पाखंड, अहंकार, क्रोध, कठोरता और लोभ से करते हैं। इन वर्णनों को व्यवहार और स्वभाव के संदर्भ में समझना चाहिए, पूरे समूहों की निंदा के रूप में नहीं। अनियंत्रित इच्छा और अहंकार विवेक बिगाड़कर हानिकारक निर्णयों की ओर ले जा सकते हैं। नैतिक जीवन में बाहरी कर्मों के साथ उनकी भावना पर भी ध्यान देना आवश्यक है। कृष्ण आवेग के अधीन न रहने और सिद्धांतों को मार्गदर्शक बनाने को कहते हैं। यह अध्याय आत्म-परीक्षण का निमंत्रण देता है: कौन-सी आदतें विश्वास बनाती हैं और कौन-सी संघर्ष बढ़ाती हैं?"
+      },
+      "key_teachings": [
+        {
+          "en": "Cultivate honesty, compassion, self-restraint, and humility.",
+          "hi": "ईमानदारी, करुणा, आत्म-संयम और विनम्रता विकसित करें।"
+        },
+        {
+          "en": "Notice how arrogance, anger, and greed affect choices.",
+          "hi": "अहंकार, क्रोध और लोभ के निर्णयों पर प्रभाव को पहचानें।"
+        },
+        {
+          "en": "Evaluate conduct instead of labeling whole groups.",
+          "hi": "पूरे समूहों को लेबल करने के बजाय व्यवहार का मूल्यांकन करें।"
+        },
+        {
+          "en": "Use ethical principles when impulses are strong.",
+          "hi": "तीव्र आवेगों में नैतिक सिद्धांतों का सहारा लें।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Ethical qualities",
+          "Ego and greed",
+          "Self-examination",
+          "Guiding principles"
+        ],
+        "hi": [
+          "नैतिक गुण",
+          "अहंकार और लोभ",
+          "आत्म-परीक्षण",
+          "मार्गदर्शक सिद्धांत"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Review a disagreement and consider where patience, honesty, or humility could help.",
+        "hi": "किसी मतभेद पर विचार करें और देखें कि धैर्य, ईमानदारी या विनम्रता कहाँ मदद कर सकती थी।"
+      },
+      "important_verses": [
+        {
+          "chapter": 16,
+          "verse": 1,
+          "reference": "16.1"
+        },
+        {
+          "chapter": 16,
+          "verse": 2,
+          "reference": "16.2"
+        },
+        {
+          "chapter": 16,
+          "verse": 4,
+          "reference": "16.4"
+        },
+        {
+          "chapter": 16,
+          "verse": 21,
+          "reference": "16.21"
+        }
+      ]
+    },
+    {
+      "chapter_number": 17,
+      "sanskrit_name": "Śraddhātraya Vibhāga Yoga",
+      "sanskrit_name_devanagari": "श्रद्धात्रयविभागयोग",
+      "title": {
+        "en": "The Yoga of the Threefold Division of Faith",
+        "hi": "तीन प्रकार की श्रद्धा का विभाग योग"
+      },
+      "summary": {
+        "en": "Arjuna asks about people who worship with faith but do not follow prescribed teachings. Krishna explains that faith is shaped by disposition and relates the three qualities of nature to food, worship, discipline, and giving. He distinguishes practices that support clarity and balance from those driven by display, craving, or harmful austerity. The chapter asks readers to examine intention as well as outward form: generosity may be offered with care or used to seek recognition; discipline may be meaningful or become self-punishment. “Om Tat Sat” is presented as a sacred affirmation associated with consecrated action. The lesson is to examine the quality and purpose of faith and conduct.",
+        "hi": "अर्जुन पूछते हैं कि निर्धारित शिक्षाओं का पालन किए बिना श्रद्धा से पूजा करने वालों की स्थिति क्या है। कृष्ण बताते हैं कि श्रद्धा स्वभाव से प्रभावित होती है और तीन गुण भोजन, पूजा, तप तथा दान में भी दिखाई देते हैं। वे संतुलन बढ़ाने वाले अभ्यासों और दिखावे, लालसा या हानिकारक तप से प्रेरित व्यवहार में अंतर करते हैं। अध्याय बाहरी रूप के साथ उद्देश्य देखने को कहता है: दान करुणा से दिया जा सकता है या प्रशंसा के लिए; अनुशासन सार्थक हो सकता है या आत्म-दंड बन सकता है। “ॐ तत् सत्” को समर्पित कर्म से जुड़ी पवित्र पुष्टि के रूप में प्रस्तुत किया गया है। शिक्षा है कि अपनी श्रद्धा और आचरण के उद्देश्य की जाँच करें।"
+      },
+      "key_teachings": [
+        {
+          "en": "Examine the intention behind worship, discipline, and giving.",
+          "hi": "पूजा, अनुशासन और दान के पीछे की भावना जाँचें।"
+        },
+        {
+          "en": "Do not confuse discipline with harmful self-punishment.",
+          "hi": "अनुशासन को हानिकारक आत्म-दंड न बनाएँ।"
+        },
+        {
+          "en": "Generosity is not merely a performance.",
+          "hi": "दान केवल दिखावा नहीं होना चाहिए।"
+        },
+        {
+          "en": "Faith appears in everyday choices as well as formal practice.",
+          "hi": "श्रद्धा दैनिक चुनावों में भी प्रकट होती है।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Faith and disposition",
+          "Food and practice",
+          "Austerity",
+          "Giving and intention"
+        ],
+        "hi": [
+          "श्रद्धा और स्वभाव",
+          "भोजन और अभ्यास",
+          "तप",
+          "दान और भावना"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Before helping or following a discipline, ask whether it is kind, sustainable, and sincere.",
+        "hi": "सहायता या अनुशासन से पहले पूछें कि वह करुणापूर्ण, टिकाऊ और सच्चा है या नहीं।"
+      },
+      "important_verses": [
+        {
+          "chapter": 17,
+          "verse": 3,
+          "reference": "17.3"
+        },
+        {
+          "chapter": 17,
+          "verse": 8,
+          "reference": "17.8"
+        },
+        {
+          "chapter": 17,
+          "verse": 20,
+          "reference": "17.20"
+        },
+        {
+          "chapter": 17,
+          "verse": 23,
+          "reference": "17.23"
+        }
+      ]
+    },
+    {
+      "chapter_number": 18,
+      "sanskrit_name": "Mokṣa Sannyāsa Yoga",
+      "sanskrit_name_devanagari": "मोक्षसंन्यासयोग",
+      "title": {
+        "en": "The Yoga of Liberation through Renunciation",
+        "hi": "मोक्ष और संन्यास योग"
+      },
+      "summary": {
+        "en": "The final chapter gathers the Gita’s themes: renunciation, duty, knowledge, action, the three qualities, devotion, and liberation. Krishna distinguishes abandoning harmful attachment from refusing to act, and explains that action depends on multiple contributing factors rather than an isolated ego alone. He discusses the relation between disposition and responsibility, urging people to perform their own duty thoughtfully rather than imitate another path without discernment. The dialogue culminates in an invitation to take refuge in the divine, followed by Arjuna’s renewed clarity and readiness to act. The chapter does not erase difficult choices; it brings understanding, devotion, and responsibility together so action can proceed with awareness and commitment.",
+        "hi": "अंतिम अध्याय गीता के प्रमुख विषयों—संन्यास, कर्तव्य, ज्ञान, कर्म, तीन गुण, भक्ति और मुक्ति—को समेटता है। कृष्ण हानिकारक आसक्ति छोड़ने और कर्म करने से मना कर देने के बीच अंतर बताते हैं। वे समझाते हैं कि किसी कार्य के पीछे अनेक कारक होते हैं, केवल अहंकार नहीं। अध्याय स्वभाव और जिम्मेदारी के संबंध पर विचार करता है तथा बिना विवेक दूसरों की नकल करने के बजाय अपना कर्तव्य सोच-समझकर निभाने को कहता है। संवाद के अंत में कृष्ण दिव्य शरण का निमंत्रण देते हैं और अर्जुन की स्पष्टता तथा कर्म करने की तत्परता लौट आती है। यह अध्याय कठिन निर्णय मिटाता नहीं; समझ, भक्ति और जिम्मेदारी को जोड़कर सजग कर्म का आधार बनाता है।"
+      },
+      "key_teachings": [
+        {
+          "en": "Release harmful attachment rather than using renunciation to avoid duty.",
+          "hi": "जिम्मेदारी से बचने के बजाय हानिकारक आसक्ति छोड़ें।"
+        },
+        {
+          "en": "Recognize the many factors contributing to action.",
+          "hi": "समझें कि कर्म के पीछे अनेक कारक होते हैं।"
+        },
+        {
+          "en": "Choose responsibility with discernment, not imitation.",
+          "hi": "नकल के बजाय विवेक से अपनी जिम्मेदारी निभाएँ।"
+        },
+        {
+          "en": "Bring knowledge, devotion, and action together.",
+          "hi": "ज्ञान, भक्ति और कर्म को साथ लेकर चलें।"
+        },
+        {
+          "en": "Reflection should lead toward responsible action.",
+          "hi": "चिंतन अधिक जिम्मेदार कर्म की ओर ले जाए।"
+        }
+      ],
+      "themes": {
+        "en": [
+          "Renunciation and duty",
+          "Nature of action",
+          "Personal responsibility",
+          "Surrender and liberation"
+        ],
+        "hi": [
+          "संन्यास और कर्तव्य",
+          "कर्म का स्वरूप",
+          "व्यक्तिगत जिम्मेदारी",
+          "समर्पण और मुक्ति"
+        ]
+      },
+      "practical_reflection": {
+        "en": "Identify the responsibility that is truly yours and take the next constructive step.",
+        "hi": "अपनी वास्तविक जिम्मेदारी पहचानें और अगला रचनात्मक कदम उठाएँ।"
+      },
+      "important_verses": [
+        {
+          "chapter": 18,
+          "verse": 5,
+          "reference": "18.5"
+        },
+        {
+          "chapter": 18,
+          "verse": 9,
+          "reference": "18.9"
+        },
+        {
+          "chapter": 18,
+          "verse": 47,
+          "reference": "18.47"
+        },
+        {
+          "chapter": 18,
+          "verse": 63,
+          "reference": "18.63"
+        },
+        {
+          "chapter": 18,
+          "verse": 66,
+          "reference": "18.66"
+        }
+      ]
+    }
+  ]
+}
