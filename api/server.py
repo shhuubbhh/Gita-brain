@@ -279,7 +279,8 @@ class Handler(BaseHTTPRequestHandler):
         self._json(204, {})
 
     def do_GET(self):
-        if self.path in ("/", "/v1/health"):
+        clean_path = self.path.split("?")[0]
+        if clean_path in ("/", "/v1/health"):
             provider = os.environ.get("GITA_BRAIN_PROVIDER", "gemini").strip().lower()
             self._json(200, {
                 "status": "ok",
@@ -289,6 +290,17 @@ class Handler(BaseHTTPRequestHandler):
                 "model": get_active_model(provider)
             })
             return
+        elif clean_path in ("/privacy", "/privacy-policy", "/privacy_policy.html"):
+            privacy_file = ROOT / "privacy_policy.html"
+            if privacy_file.exists():
+                content = privacy_file.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(content)))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(content)
+                return
         self._json(404, {"error": "not_found"})
 
     def do_POST(self):
